@@ -3,7 +3,8 @@ import brandConfig from '../../brand.config.json';
 // Candidate logo paths, in priority order. Only used as a blind-probe fallback for
 // apps assembled by an older BFF that didn't record platform.logo_path in
 // brand.config.json (see getLogoCandidates below).
-export const LOGO_CANDIDATES = ['/logo.png', '/logo.jpg', '/logo.jpeg', '/logo.webp'];
+export const LOGO_CANDIDATES = ['/1790979140609.jpg', '/logo.png', '/logo.jpg', '/logo.jpeg', '/logo.webp'];
+
 
 type PlatformBrand = {
     name?: string;
