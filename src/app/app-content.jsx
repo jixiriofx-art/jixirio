@@ -182,6 +182,9 @@ const AppContent = observer(() => {
     }, [is_api_initialized, client.loginid]);
 
     if (common?.error) return null;
+    if (!has_entered) {
+    return <JixirioLanding onEnter={() => setHasEntered(true)} />;
+    }
 
     return (
         <React.Fragment>
