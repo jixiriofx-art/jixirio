@@ -3,42 +3,70 @@
     min-height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: #05070d;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 32%),
+        linear-gradient(180deg, #0b0e14 0%, #0d1117 48%, #080b10 100%);
     color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Inter, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.jixirio-landing *,
+.jixirio-landing *::before,
+.jixirio-landing *::after {
+    box-sizing: border-box;
+}
+
+.jixirio-landing button {
+    font-family: inherit;
 }
 
 .jixirio-landing__glow {
     position: absolute;
-    width: 320px;
-    height: 320px;
+    width: 380px;
+    height: 380px;
     border-radius: 50%;
-    filter: blur(100px);
+    filter: blur(110px);
     opacity: 0.18;
     pointer-events: none;
 }
 
 .jixirio-landing__glow--one {
-    top: -120px;
-    right: -80px;
-    background: #6c5ce7;
+    top: -150px;
+    right: -100px;
+    background: #00e676;
 }
 
 .jixirio-landing__glow--two {
-    bottom: -140px;
-    left: -100px;
-    background: #00c2ff;
+    bottom: 12%;
+    left: -180px;
+    background: #38bdf8;
 }
+
+.jixirio-landing__grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 55px 55px;
+    mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+/* HEADER */
 
 .jixirio-landing__header {
     position: relative;
-    z-index: 2;
+    z-index: 10;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 28px;
+    padding: 22px 5%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(18px);
+    background: rgba(11, 14, 20, 0.55);
 }
 
 .jixirio-landing__logo {
@@ -48,191 +76,457 @@
 }
 
 .jixirio-landing__logo-mark {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 11px;
-    background: #ffffff;
-    color: #05070d;
-    font-size: 20px;
-    font-weight: 800;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #00e676, #10b981);
+    color: #06100b;
+    font-size: 21px;
+    font-weight: 900;
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.25);
 }
 
 .jixirio-landing__logo-text {
-    font-size: 21px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
 }
 
-.jixirio-landing__status {
+.jixirio-landing__logo-text small {
+    color: #00e676;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.jixirio-landing__nav {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 9px;
+}
+
+.jixirio-landing__login,
+.jixirio-landing__signup {
+    min-height: 40px;
+    border-radius: 999px;
+    padding: 0 17px;
+    cursor: pointer;
     font-size: 12px;
-    color: #aeb5c5;
+    font-weight: 700;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
-.jixirio-landing__status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #32d583;
-    box-shadow: 0 0 10px rgba(50, 213, 131, 0.8);
+.jixirio-landing__login {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.045);
+    color: #ffffff;
 }
 
-.jixirio-landing__content {
+.jixirio-landing__login span {
+    font-size: 15px;
+}
+
+.jixirio-landing__signup {
+    border: 1px solid #ffffff;
+    background: #ffffff;
+    color: #0b0e14;
+}
+
+.jixirio-landing__login:hover,
+.jixirio-landing__signup:hover {
+    transform: translateY(-2px);
+}
+
+.jixirio-landing__login:hover {
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.jixirio-landing__signup:hover {
+    box-shadow: 0 8px 30px rgba(255, 255, 255, 0.13);
+}
+
+/* HERO */
+
+.jixirio-landing__hero {
     position: relative;
     z-index: 2;
-    flex: 1;
+    min-height: 650px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 90px 20px 110px;
+    text-align: center;
+}
+
+.jixirio-landing__hero-content {
+    width: 100%;
+    max-width: 900px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 24px 60px;
 }
 
-.jixirio-landing__badge {
-    margin-bottom: 22px;
+.jixirio-landing__greeting {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 230, 118, 0.25);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    color: #9ea7ba;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.4px;
+    background: rgba(0, 230, 118, 0.06);
+    color: #00e676;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.jixirio-landing__live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00e676;
+    box-shadow: 0 0 13px rgba(0, 230, 118, 0.9);
+    animation: jixirio-pulse 1.7s infinite;
+}
+
+/* ANIMATED SEARCH BAR */
+
+.jixirio-landing__search {
+    width: min(680px, 92vw);
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    padding: 0 23px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.065),
+            rgba(255, 255, 255, 0.025)
+        );
+    box-shadow:
+        0 0 0 1px rgba(168, 85, 247, 0.06),
+        0 15px 60px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(18px);
+    animation: jixirio-search-glow 4s ease-in-out infinite;
+}
+
+.jixirio-landing__search-icon {
+    flex: 0 0 auto;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
+    border-radius: 11px;
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    font-size: 25px;
+    line-height: 1;
+}
+
+.jixirio-landing__search-text {
+    min-width: 0;
+    color: #ffffff;
+    font-size: clamp(17px, 3vw, 23px);
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.jixirio-landing__cursor {
+    display: inline-block;
+    width: 2px;
+    height: 25px;
+    margin-left: 5px;
+    vertical-align: middle;
+    background: #00e676;
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.7);
+    animation: jixirio-cursor 0.8s infinite;
 }
 
 .jixirio-landing h1 {
-    max-width: 760px;
+    max-width: 850px;
     margin: 0;
-    font-size: clamp(42px, 8vw, 78px);
+    color: #ffffff;
+    font-size: clamp(44px, 8vw, 82px);
     line-height: 0.98;
-    letter-spacing: -3px;
-    font-weight: 800;
+    letter-spacing: -4px;
+    font-weight: 850;
 }
 
 .jixirio-landing h1 span {
     display: block;
-    background: linear-gradient(90deg, #ffffff, #8c7cff);
+    margin-top: 8px;
+    background: linear-gradient(90deg, #00e676 0%, #38bdf8 48%, #a855f7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.jixirio-landing p {
-    max-width: 570px;
-    margin: 26px 0 32px;
-    color: #9ba4b7;
+.jixirio-landing__hero-description {
+    max-width: 610px;
+    margin: 27px auto 30px;
+    color: #9ca3af;
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-.jixirio-landing__button {
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    padding: 15px 18px 15px 24px;
-    border-radius: 14px;
-    background: #ffffff;
-    color: #05070d;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.jixirio-landing__button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(255, 255, 255, 0.15);
-}
-
-.jixirio-landing__arrow {
-    width: 32px;
-    height: 32px;
+.jixirio-landing__hero-actions {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9px;
-    background: #05070d;
-    color: #ffffff;
+    flex-wrap: wrap;
+    gap: 11px;
+}
+
+.jixirio-landing__primary-button,
+.jixirio-landing__secondary-button,
+.jixirio-landing__referral-button,
+.jixirio-landing__final-button {
+    min-height: 50px;
+    padding: 0 22px;
+    border-radius: 13px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.jixirio-landing__primary-button,
+.jixirio-landing__final-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    border: 1px solid #00e676;
+    background: #00e676;
+    color: #041008;
+    box-shadow: 0 10px 35px rgba(0, 230, 118, 0.16);
+}
+
+.jixirio-landing__primary-button span,
+.jixirio-landing__final-button span {
     font-size: 18px;
 }
 
-.jixirio-landing__features {
+.jixirio-landing__secondary-button {
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(255, 255, 255, 0.045);
+    color: #ffffff;
+}
+
+.jixirio-landing__primary-button:hover,
+.jixirio-landing__secondary-button:hover,
+.jixirio-landing__referral-button:hover,
+.jixirio-landing__final-button:hover {
+    transform: translateY(-3px);
+}
+
+.jixirio-landing__primary-button:hover,
+.jixirio-landing__final-button:hover {
+    box-shadow: 0 15px 45px rgba(0, 230, 118, 0.25);
+}
+
+.jixirio-landing__secondary-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.jixirio-landing__hero-note {
     display: flex;
-    gap: 10px;
-    margin-top: 55px;
-}
-
-.jixirio-landing__features > div {
-    min-width: 130px;
-    padding: 14px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.035);
-}
-
-.jixirio-landing__features strong,
-.jixirio-landing__features small {
-    display: block;
-}
-
-.jixirio-landing__features strong {
-    font-size: 12px;
-}
-
-.jixirio-landing__features small {
-    margin-top: 5px;
-    color: #737d91;
-    font-size: 10px;
-}
-
-.jixirio-landing__footer {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: space-between;
-    padding: 18px 28px;
-    color: #626b7c;
+    align-items: center;
+    gap: 7px;
+    margin-top: 23px;
+    color: #6f7785;
     font-size: 11px;
 }
 
-@media (max-width: 600px) {
-    .jixirio-landing__header {
-        padding: 20px;
-    }
-
-    .jixirio-landing__content {
-        padding: 30px 20px 50px;
-    }
-
-    .jixirio-landing h1 {
-        font-size: clamp(40px, 13vw, 58px);
-        letter-spacing: -2px;
-    }
-
-    .jixirio-landing p {
-        font-size: 14px;
-    }
-
-    .jixirio-landing__features {
-        width: 100%;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 40px;
-    }
-
-    .jixirio-landing__features > div {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .jixirio-landing__footer {
-        padding: 16px 20px;
-    }
+.jixirio-landing__hero-note span {
+    color: #00e676;
 }
+
+/* GENERAL SECTIONS */
+
+.jixirio-landing main {
+    position: relative;
+    z-index: 2;
+}
+
+.jixirio-landing__social-proof,
+.jixirio-landing__features-section,
+.jixirio-landing__referral,
+.jixirio-landing__why,
+.jixirio-landing__final-cta {
+    position: relative;
+    padding: 110px 5%;
+}
+
+.jixirio-landing__section-intro,
+.jixirio-landing__features-section,
+.jixirio-landing__why,
+.jixirio-landing__final-cta {
+    text-align: center;
+}
+
+.jixirio-landing__section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border: 1px solid rgba(0, 230, 118, 0.25);
+    border-radius: 999px;
+    background: rgba(0, 230, 118, 0.055);
+    color: #00e676;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+}
+
+.jixirio-landing__section-badge--blue {
+    border-color: rgba(56, 189, 248, 0.28);
+    background: rgba(56, 189, 248, 0.06);
+    color: #38bdf8;
+}
+
+.jixirio-landing h2 {
+    margin: 18px auto 0;
+    max-width: 800px;
+    color: #ffffff;
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 1.03;
+    letter-spacing: -2.5px;
+}
+
+.jixirio-landing h2 span {
+    background: linear-gradient(90deg, #00e676, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* COMMUNITY */
+
+.jixirio-landing__rating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.jixirio-landing__rating strong {
+    font-size: 25px;
+}
+
+.jixirio-landing__stars,
+.jixirio-landing__testimonial-stars {
+    color: #00e676;
+    letter-spacing: 2px;
+}
+
+.jixirio-landing__rating small {
+    color: #7d8797;
+    font-size: 11px;
+}
+
+.jixirio-landing__trust-tags {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.jixirio-landing__trust-tags span {
+    padding: 7px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    color: #a7afbc;
+    font-size: 10px;
+}
+
+.jixirio-landing__testimonial-track {
+    width: 100%;
+    margin-top: 55px;
+    overflow: hidden;
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 8%,
+        black 92%,
+        transparent
+    );
+}
+
+.jixirio-landing__testimonial-row {
+    display: flex;
+    width: max-content;
+    gap: 18px;
+    animation: jixirio-testimonial-scroll 34s linear infinite;
+}
+
+.jixirio-landing__testimonial {
+    width: 310px;
+    min-height: 190px;
+    flex-shrink: 0;
+    padding: 20px;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    background:
+        linear-gradient(#111720, #111720) padding-box,
+        linear-gradient(
+            135deg,
+            rgba(56, 189, 248, 0.42),
+            rgba(168, 85, 247, 0.42)
+        ) border-box;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.22);
+}
+
+.jixirio-landing__testimonial-top {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.jixirio-landing__avatar {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00e676, #38bdf8);
+    color: #06100b;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.jixirio-landing__testimonial-top strong,
+.jixirio-landing__testimonial-top small {
+    display: block;
+    text-align: left;
+}
+
+.jixirio-landing__testimonial-top
