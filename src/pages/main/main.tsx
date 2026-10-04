@@ -36,7 +36,7 @@ import {
     LabelPairedPuzzlePieceTwoCaptionBoldIcon,
 } from '@deriv/quill-icons/LabelPaired';
 import { LegacyGuide1pxIcon } from '@deriv/quill-icons/Legacy';
-import { Localize, localize } from '@deriv/translations';
+import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
@@ -82,15 +82,20 @@ const JixirioSection = ({
 const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
     const [position, setPosition] = useState({ x: 24, y: 24 });
     const [dragging, setDragging] = useState(false);
+    const [has_moved, setHasMoved] = useState(false);
+
     const drag_start = React.useRef({ x: 0, y: 0 });
     const initial_position = React.useRef({ x: 24, y: 24 });
 
     const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
         setDragging(true);
+        setHasMoved(false);
+
         drag_start.current = {
             x: event.clientX,
             y: event.clientY,
         };
+
         initial_position.current = {
             x: position.x,
             y: position.y,
@@ -102,13 +107,15 @@ const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
     const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
         if (!dragging) return;
 
-        const next_x =
-            initial_position.current.x +
-            (window.innerWidth - event.clientX - drag_start.current.x);
+        const delta_x = event.clientX - drag_start.current.x;
+        const delta_y = event.clientY - drag_start.current.y;
 
-        const next_y =
-            initial_position.current.y +
-            (window.innerHeight - event.clientY - drag_start.current.y);
+        if (Math.abs(delta_x) > 4 || Math.abs(delta_y) > 4) {
+            setHasMoved(true);
+        }
+
+        const next_x = initial_position.current.x - delta_x;
+        const next_y = initial_position.current.y - delta_y;
 
         setPosition({
             x: Math.max(12, Math.min(window.innerWidth - 72, next_x)),
@@ -118,6 +125,14 @@ const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
 
     const handlePointerUp = () => {
         setDragging(false);
+    };
+
+    const handleClick = () => {
+        if (!has_moved) {
+            onClick();
+        }
+
+        setHasMoved(false);
     };
 
     return (
@@ -134,9 +149,8 @@ const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            onClick={event => {
-                if (!dragging) onClick();
-            }}
+            onPointerCancel={handlePointerUp}
+            onClick={handleClick}
         >
             <span>AI</span>
         </button>
@@ -145,7 +159,16 @@ const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
-    const { dashboard, load_modal, run_panel, quick_strategy, summary_card, blockly_store } = useStore();
+
+    const {
+        dashboard,
+        load_modal,
+        run_panel,
+        quick_strategy,
+        summary_card,
+        blockly_store,
+    } = useStore();
+
     const { is_loading } = blockly_store;
 
     const {
@@ -173,10 +196,16 @@ const AppWrapper = observer(() => {
 
     const { is_open } = quick_strategy;
 
-    const { cancel_button_text, ok_button_text, title, message, dismissable, is_closed_on_cancel } =
-        dialog_options as {
-            [key: string]: string;
-        };
+    const {
+        cancel_button_text,
+        ok_button_text,
+        title,
+        message,
+        dismissable,
+        is_closed_on_cancel,
+    } = dialog_options as {
+        [key: string]: string;
+    };
 
     const { clear } = summary_card;
 
@@ -214,7 +243,6 @@ const AppWrapper = observer(() => {
 
     const [left_tab_shadow, setLeftTabShadow] = useState<boolean>(false);
     const [right_tab_shadow, setRightTabShadow] = useState<boolean>(false);
-
     const [tradeTypeModalState, setTradeTypeModalState] = useState(getModalState());
 
     const getTradeTypeModalProps = () => {
@@ -228,7 +256,8 @@ const AppWrapper = observer(() => {
                 ? `${tradeTypeData.currentTradeType.tradeTypeCategory}/${tradeTypeData.currentTradeType.tradeType}`
                 : 'N/A',
 
-            current_trade_type_display_name: tradeTypeData?.currentTradeTypeDisplayName || 'N/A',
+            current_trade_type_display_name:
+                tradeTypeData?.currentTradeTypeDisplayName || 'N/A',
 
             onConfirm: handleTradeTypeConfirm,
             onCancel: handleTradeTypeCancel,
@@ -244,7 +273,9 @@ const AppWrapper = observer(() => {
 
         if (!tab_value) return is_preview_mode ? BOT_BUILDER : tab;
 
-        return Number(hash.indexOf(String(tab_value)));
+        const hash_index = hash.indexOf(String(tab_value));
+
+        return hash_index >= 0 ? hash_index : tab;
     };
 
     const active_hash_tab = GetHashedValue(active_tab);
@@ -296,7 +327,8 @@ const AppWrapper = observer(() => {
 
     React.useEffect(() => {
         if (connectionStatus !== CONNECTION_STATUS.OPENED) {
-            const is_bot_running = document.getElementById('db-animation__stop-button') !== null;
+            const is_bot_running =
+                document.getElementById('db-animation__stop-button') !== null;
 
             if (is_bot_running) {
                 clear();
@@ -309,8 +341,12 @@ const AppWrapper = observer(() => {
 
     const updateTabShadowsHeight = () => {
         const botBuilderEl = document.getElementById('id-bot-builder');
-        const leftShadow = document.querySelector('.tabs-shadow--left') as HTMLElement;
-        const rightShadow = document.querySelector('.tabs-shadow--right') as HTMLElement;
+        const leftShadow = document.querySelector(
+            '.tabs-shadow--left'
+        ) as HTMLElement;
+        const rightShadow = document.querySelector(
+            '.tabs-shadow--right'
+        ) as HTMLElement;
 
         if (botBuilderEl && leftShadow && rightShadow) {
             const height = botBuilderEl.offsetHeight;
@@ -393,7 +429,9 @@ const AppWrapper = observer(() => {
         } else {
             const currentSearch = window.location.search;
 
-            navigate(`${currentSearch}#${hash[active_tab] || hash[0]}`);
+            navigate(
+                `${currentSearch}#${hash[active_tab] || hash[0]}`
+            );
         }
 
         if (active_tour !== '') {
@@ -421,18 +459,28 @@ const AppWrapper = observer(() => {
 
     React.useEffect(() => {
         const trashcan_init_id = setTimeout(() => {
-            if (active_tab === BOT_BUILDER && Blockly?.derivWorkspace?.trashcan) {
+            if (
+                active_tab === BOT_BUILDER &&
+                Blockly?.derivWorkspace?.trashcan
+            ) {
                 const trashcanY = window.innerHeight - 250;
 
                 let trashcanX;
 
                 if (is_drawer_open) {
-                    trashcanX = isDbotRTL() ? 380 : window.innerWidth - 460;
+                    trashcanX = isDbotRTL()
+                        ? 380
+                        : window.innerWidth - 460;
                 } else {
-                    trashcanX = isDbotRTL() ? 20 : window.innerWidth - 100;
+                    trashcanX = isDbotRTL()
+                        ? 20
+                        : window.innerWidth - 100;
                 }
 
-                Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(trashcanX, trashcanY);
+                Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(
+                    trashcanX,
+                    trashcanY
+                );
             }
         }, 100);
 
@@ -495,11 +543,17 @@ const AppWrapper = observer(() => {
             <div className='main'>
                 <div
                     className={classNames('main__container', {
-                        'main__container--active': active_tour && active_tab === DASHBOARD && !isDesktop,
+                        'main__container--active':
+                            active_tour &&
+                            active_tab === DASHBOARD &&
+                            !isDesktop,
                     })}
                 >
                     <div>
-                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}
+                        {!isDesktop &&
+                            left_tab_shadow && (
+                                <span className='tabs-shadow tabs-shadow--left' />
+                            )}
 
                         <Tabs
                             active_index={active_tab}
@@ -521,7 +575,9 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-dbot-dashboard'
                             >
-                                <Dashboard handleTabChange={handleTabChange} />
+                                <Dashboard
+                                    handleTabChange={handleTabChange}
+                                />
                             </div>
 
                             {/* BOT BUILDER */}
@@ -563,24 +619,45 @@ const AppWrapper = observer(() => {
                                 >
                                     <div className='jixirio-section__grid'>
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>AI SCANNER</span>
+                                            <span className='jixirio-card__label'>
+                                                AI SCANNER
+                                            </span>
                                             <h2>Scan the market</h2>
-                                            <p>Find potential setups across supported Deriv markets.</p>
-                                            <button type='button'>Start scanning</button>
+                                            <p>
+                                                Find potential setups across
+                                                supported Deriv markets.
+                                            </p>
+                                            <button type='button'>
+                                                Start scanning
+                                            </button>
                                         </div>
 
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>ANALYSIS</span>
+                                            <span className='jixirio-card__label'>
+                                                ANALYSIS
+                                            </span>
                                             <h2>Analyze a setup</h2>
-                                            <p>Break down market conditions before entering a trade.</p>
-                                            <button type='button'>Analyze</button>
+                                            <p>
+                                                Break down market conditions
+                                                before entering a trade.
+                                            </p>
+                                            <button type='button'>
+                                                Analyze
+                                            </button>
                                         </div>
 
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>MATCHING BOT</span>
+                                            <span className='jixirio-card__label'>
+                                                MATCHING BOT
+                                            </span>
                                             <h2>Find a matching bot</h2>
-                                            <p>Match market conditions with an available strategy.</p>
-                                            <button type='button'>Find bot</button>
+                                            <p>
+                                                Match market conditions with
+                                                an available strategy.
+                                            </p>
+                                            <button type='button'>
+                                                Find bot
+                                            </button>
                                         </div>
                                     </div>
                                 </JixirioSection>
@@ -610,7 +687,7 @@ const AppWrapper = observer(() => {
                                 />
                             </div>
 
-                            {/* TRADING VIEW / CHARTS */}
+                            {/* TRADING VIEW */}
                             <div
                                 label={
                                     <>
@@ -623,13 +700,20 @@ const AppWrapper = observer(() => {
                                     </>
                                 }
                                 id={
-                                    is_chart_modal_visible || is_trading_view_modal_visible
+                                    is_chart_modal_visible ||
+                                    is_trading_view_modal_visible
                                         ? 'id-charts--disabled'
                                         : 'id-charts'
                                 }
                             >
                                 <Suspense
-                                    fallback={<ChunkLoader message={localize('Please wait, loading chart...')} />}
+                                    fallback={
+                                        <ChunkLoader
+                                            message={localize(
+                                                'Please wait, loading chart...'
+                                            )}
+                                        />
+                                    }
                                 >
                                     <ChartWrapper show_digits_stats={false} />
                                 </Suspense>
@@ -659,21 +743,36 @@ const AppWrapper = observer(() => {
                                 >
                                     <div className='jixirio-section__grid'>
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>STAKE</span>
+                                            <span className='jixirio-card__label'>
+                                                STAKE
+                                            </span>
                                             <h2>Position sizing</h2>
-                                            <p>Set a controlled stake for every trading session.</p>
+                                            <p>
+                                                Set a controlled stake for
+                                                every trading session.
+                                            </p>
                                         </div>
 
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>LIMITS</span>
+                                            <span className='jixirio-card__label'>
+                                                LIMITS
+                                            </span>
                                             <h2>Session limits</h2>
-                                            <p>Define maximum trades, loss limits and profit targets.</p>
+                                            <p>
+                                                Define maximum trades, loss
+                                                limits and profit targets.
+                                            </p>
                                         </div>
 
                                         <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>DISCIPLINE</span>
+                                            <span className='jixirio-card__label'>
+                                                DISCIPLINE
+                                            </span>
                                             <h2>Trade with intention</h2>
-                                            <p>Build rules that help prevent emotional overtrading.</p>
+                                            <p>
+                                                Build rules that help prevent
+                                                emotional overtrading.
+                                            </p>
                                         </div>
                                     </div>
                                 </JixirioSection>
@@ -698,17 +797,24 @@ const AppWrapper = observer(() => {
                                     <Suspense
                                         fallback={
                                             <ChunkLoader
-                                                message={localize('Please wait, loading tutorials...')}
+                                                message={localize(
+                                                    'Please wait, loading tutorials...'
+                                                )}
                                             />
                                         }
                                     >
-                                        <Tutorial handleTabChange={handleTabChange} />
+                                        <Tutorial
+                                            handleTabChange={handleTabChange}
+                                        />
                                     </Suspense>
                                 </div>
                             </div>
                         </Tabs>
 
-                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
+                        {!isDesktop &&
+                            right_tab_shadow && (
+                                <span className='tabs-shadow tabs-shadow--right' />
+                            )}
                     </div>
                 </div>
             </div>
@@ -726,12 +832,18 @@ const AppWrapper = observer(() => {
                 <TradingViewModal />
             </DesktopWrapper>
 
-            <MobileWrapper>{!is_open && <RunPanel />}</MobileWrapper>
+            <MobileWrapper>
+                {!is_open && <RunPanel />}
+            </MobileWrapper>
 
             <Dialog
-                cancel_button_text={cancel_button_text || localize('Cancel')}
+                cancel_button_text={
+                    cancel_button_text || localize('Cancel')
+                }
                 className='dc-dialog__wrapper--fixed'
-                confirm_button_text={ok_button_text || localize('Ok')}
+                confirm_button_text={
+                    ok_button_text || localize('Ok')
+                }
                 has_close_icon
                 is_mobile_full_width={false}
                 is_visible={is_dialog_open}
@@ -754,9 +866,15 @@ const AppWrapper = observer(() => {
                 return (
                     <TradeTypeConfirmationModal
                         is_visible={modalProps.is_visible}
-                        trade_type_display_name={modalProps.trade_type_display_name}
-                        current_trade_type={modalProps.current_trade_type}
-                        current_trade_type_display_name={modalProps.current_trade_type_display_name}
+                        trade_type_display_name={
+                            modalProps.trade_type_display_name
+                        }
+                        current_trade_type={
+                            modalProps.current_trade_type
+                        }
+                        current_trade_type_display_name={
+                            modalProps.current_trade_type_display_name
+                        }
                         onConfirm={modalProps.onConfirm}
                         onCancel={modalProps.onCancel}
                     />
