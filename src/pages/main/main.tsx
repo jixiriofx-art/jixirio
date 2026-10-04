@@ -36,7 +36,7 @@ import {
     LabelPairedPuzzlePieceTwoCaptionBoldIcon,
 } from '@deriv/quill-icons/LabelPaired';
 import { LegacyGuide1pxIcon } from '@deriv/quill-icons/Legacy';
-import { Localize, localize } from '@deriv-com/translations';
+import { Localize, localize } from '@deriv/translations';
 import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
@@ -47,10 +47,107 @@ import './main.scss';
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
 
+const JixirioSection = ({
+    id,
+    title,
+    description,
+    children,
+}: {
+    id: string;
+    title: string;
+    description: string;
+    children?: React.ReactNode;
+}) => {
+    return (
+        <div id={id} className='jixirio-section'>
+            <div className='jixirio-section__header'>
+                <div>
+                    <div className='jixirio-section__eyebrow'>JIXIRIO</div>
+                    <h1 className='jixirio-section__title'>{title}</h1>
+                    <p className='jixirio-section__description'>{description}</p>
+                </div>
+            </div>
+
+            {children || (
+                <div className='jixirio-section__empty'>
+                    <div className='jixirio-section__empty-icon'>✦</div>
+                    <h2>Coming together</h2>
+                    <p>This Jixirio workspace is ready for us to build.</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const AIFloatingButton = ({ onClick }: { onClick: () => void }) => {
+    const [position, setPosition] = useState({ x: 24, y: 24 });
+    const [dragging, setDragging] = useState(false);
+    const drag_start = React.useRef({ x: 0, y: 0 });
+    const initial_position = React.useRef({ x: 24, y: 24 });
+
+    const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+        setDragging(true);
+        drag_start.current = {
+            x: event.clientX,
+            y: event.clientY,
+        };
+        initial_position.current = {
+            x: position.x,
+            y: position.y,
+        };
+
+        event.currentTarget.setPointerCapture(event.pointerId);
+    };
+
+    const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+        if (!dragging) return;
+
+        const next_x =
+            initial_position.current.x +
+            (window.innerWidth - event.clientX - drag_start.current.x);
+
+        const next_y =
+            initial_position.current.y +
+            (window.innerHeight - event.clientY - drag_start.current.y);
+
+        setPosition({
+            x: Math.max(12, Math.min(window.innerWidth - 72, next_x)),
+            y: Math.max(12, Math.min(window.innerHeight - 72, next_y)),
+        });
+    };
+
+    const handlePointerUp = () => {
+        setDragging(false);
+    };
+
+    return (
+        <button
+            type='button'
+            aria-label='Open Jixirio AI'
+            className={classNames('jixirio-ai-float', {
+                'jixirio-ai-float--dragging': dragging,
+            })}
+            style={{
+                right: `${position.x}px`,
+                bottom: `${position.y}px`,
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onClick={event => {
+                if (!dragging) onClick();
+            }}
+        >
+            <span>AI</span>
+        </button>
+    );
+};
+
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
     const { dashboard, load_modal, run_panel, quick_strategy, summary_card, blockly_store } = useStore();
     const { is_loading } = blockly_store;
+
     const {
         active_tab,
         active_tour,
@@ -61,7 +158,9 @@ const AppWrapper = observer(() => {
         setActiveTour,
         setTourDialogVisibility,
     } = dashboard;
+
     const { dashboard_strategies } = load_modal;
+
     const {
         is_dialog_open,
         is_drawer_open,
@@ -71,32 +170,53 @@ const AppWrapper = observer(() => {
         onOkButtonClick,
         stopBot,
     } = run_panel;
+
     const { is_open } = quick_strategy;
-    const { cancel_button_text, ok_button_text, title, message, dismissable, is_closed_on_cancel } = dialog_options as {
-        [key: string]: string;
-    };
+
+    const { cancel_button_text, ok_button_text, title, message, dismissable, is_closed_on_cancel } =
+        dialog_options as {
+            [key: string]: string;
+        };
+
     const { clear } = summary_card;
-    const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
+
+    const {
+        DASHBOARD,
+        BOT_BUILDER,
+        BEST_BOTS,
+        AI_ANALYSIS,
+        DANALYSIS,
+        AUTO_TRADES,
+        CHART,
+        MANUAL_TRADING,
+        RISK_MANAGEMENT,
+        TUTORIAL,
+    } = DBOT_TABS;
+
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'chart', 'tutorial'];
+
+    const hash = [
+        'dashboard',
+        'bot_builder',
+        'best_bots',
+        'ai_analysis',
+        'danalysis',
+        'auto_trades',
+        'chart',
+        'manual_trading',
+        'risk_management',
+        'tutorial',
+    ];
+
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
+
     const [left_tab_shadow, setLeftTabShadow] = useState<boolean>(false);
     const [right_tab_shadow, setRightTabShadow] = useState<boolean>(false);
 
-    // Trade type modal state
     const [tradeTypeModalState, setTradeTypeModalState] = useState(getModalState());
 
-    /**
-     * Helper function to get modal props with enhanced type safety and clear documentation
-     *
-     * Props serve distinct purposes:
-     * - current_trade_type: Technical identifier for API/internal use (format: "category/type")
-     * - current_trade_type_display_name: Human-readable name for UI display
-     *
-     * This separation ensures proper data flow between technical systems and user interface
-     */
     const getTradeTypeModalProps = () => {
         const { tradeTypeData } = tradeTypeModalState;
 
@@ -104,14 +224,10 @@ const AppWrapper = observer(() => {
             is_visible: tradeTypeModalState.isVisible,
             trade_type_display_name: tradeTypeData?.displayName || '',
 
-            // Technical identifier for internal/API use (e.g., "callput/callput")
-            // Used by backend systems and technical integrations
             current_trade_type: tradeTypeData?.currentTradeType
                 ? `${tradeTypeData.currentTradeType.tradeTypeCategory}/${tradeTypeData.currentTradeType.tradeType}`
                 : 'N/A',
 
-            // Human-readable display name for UI (e.g., "Rise/Fall")
-            // Used for user-facing text and modal content
             current_trade_type_display_name: tradeTypeData?.currentTradeTypeDisplayName || 'N/A',
 
             onConfirm: handleTradeTypeConfirm,
@@ -119,25 +235,26 @@ const AppWrapper = observer(() => {
         };
     };
 
-    // App Builder embeds the bot at /bot/preview — open the bot builder there by
-    // default (instead of the dashboard) when no explicit #tab hash is present.
     const is_preview_mode = window.location.pathname.includes('/preview');
+
     let tab_value: number | string = active_tab;
+
     const GetHashedValue = (tab: number) => {
         tab_value = location.hash?.split('#')[1];
+
         if (!tab_value) return is_preview_mode ? BOT_BUILDER : tab;
+
         return Number(hash.indexOf(String(tab_value)));
     };
+
     const active_hash_tab = GetHashedValue(active_tab);
 
-    // Set up modal state change listener
     React.useEffect(() => {
         setModalStateChangeCallback(new_state => {
             setTradeTypeModalState(new_state);
         });
     }, [is_loading]);
 
-    // Reset URL parameter processing when location changes
     React.useEffect(() => {
         resetUrlParamProcessing();
     }, [location.search]);
@@ -146,40 +263,41 @@ const AppWrapper = observer(() => {
         const el_dashboard = document.getElementById('id-dbot-dashboard');
         const el_tutorial = document.getElementById('id-tutorials');
 
+        if (!el_dashboard || !el_tutorial) return;
+
         const observer_dashboard = new window.IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    setLeftTabShadow(false);
-                    return;
-                }
-                setLeftTabShadow(true);
+                setLeftTabShadow(!entry.isIntersecting);
             },
             {
                 root: null,
-                threshold: 0.5, // set offset 0.1 means trigger if atleast 10% of element in viewport
+                threshold: 0.5,
             }
         );
 
         const observer_tutorial = new window.IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    setRightTabShadow(false);
-                    return;
-                }
-                setRightTabShadow(true);
+                setRightTabShadow(!entry.isIntersecting);
             },
             {
                 root: null,
-                threshold: 0.5, // set offset 0.1 means trigger if atleast 10% of element in viewport
+                threshold: 0.5,
             }
         );
+
         observer_dashboard.observe(el_dashboard);
         observer_tutorial.observe(el_tutorial);
-    });
+
+        return () => {
+            observer_dashboard.disconnect();
+            observer_tutorial.disconnect();
+        };
+    }, []);
 
     React.useEffect(() => {
         if (connectionStatus !== CONNECTION_STATUS.OPENED) {
             const is_bot_running = document.getElementById('db-animation__stop-button') !== null;
+
             if (is_bot_running) {
                 clear();
                 stopBot();
@@ -189,7 +307,6 @@ const AppWrapper = observer(() => {
         }
     }, [clear, connectionStatus, setWebSocketState, stopBot]);
 
-    // Update tab shadows height to match bot builder height
     const updateTabShadowsHeight = () => {
         const botBuilderEl = document.getElementById('id-bot-builder');
         const leftShadow = document.querySelector('.tabs-shadow--left') as HTMLElement;
@@ -197,6 +314,7 @@ const AppWrapper = observer(() => {
 
         if (botBuilderEl && leftShadow && rightShadow) {
             const height = botBuilderEl.offsetHeight;
+
             leftShadow.style.height = `${height}px`;
             rightShadow.style.height = `${height}px`;
         }
@@ -205,50 +323,37 @@ const AppWrapper = observer(() => {
     React.useEffect(() => {
         let pollTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-        // Handle URL trade type parameters when switching to Bot Builder tab
         if (active_tab === BOT_BUILDER) {
-            // Use requestAnimationFrame to ensure Blockly workspace is fully initialized
             requestAnimationFrame(() => {
-                // Disable automatic URL parameter application to prevent changes before modal
                 disableUrlParameterApplication();
 
-                // Set up listener for manual trade type changes (only once)
                 setupTradeTypeChangeListener();
 
-                // Create unified handler for both immediate and delayed execution
                 const handleTradeTypeModal = () => {
                     checkAndShowTradeTypeModal(
-                        // onConfirm: Changes are now handled by the modal component
                         () => {
-                            // Re-enable URL parameter application for future parameters
                             enableUrlParameterApplication();
                         },
-                        // onCancel: URL parameter removal is now handled by the modal component
                         () => {}
                     );
                 };
 
-                // Wait for Blockly to finish loading before checking for URL parameters
                 if (!blockly_store.is_loading) {
-                    // Blockly is loaded, but add longer delay to ensure workspace is fully initialized
-                    // and trade type fields are populated
                     setTimeout(() => {
                         handleTradeTypeModal();
                     }, 500);
                 } else {
-                    // Blockly is still loading, wait for it to finish with optimized polling
                     let pollAttempts = 0;
-                    const maxPollAttempts = 10; // Maximum 5 seconds (10 * 500ms) - optimized performance
+                    const maxPollAttempts = 10;
 
                     const checkBlocklyLoaded = () => {
                         if (!blockly_store.is_loading) {
                             handleTradeTypeModal();
-                            return; // Exit polling once loaded
+                            return;
                         }
 
                         if (pollAttempts < maxPollAttempts) {
                             pollAttempts++;
-                            // Use 500ms intervals for better performance (5x improvement from 100ms)
                             pollTimeoutId = setTimeout(checkBlocklyLoaded, 500);
                         } else {
                             console.warn(
@@ -262,7 +367,6 @@ const AppWrapper = observer(() => {
             });
         }
 
-        // Cleanup function to prevent memory leaks
         return () => {
             if (pollTimeoutId) {
                 clearTimeout(pollTimeoutId);
@@ -272,38 +376,46 @@ const AppWrapper = observer(() => {
     }, [active_tab, is_loading]);
 
     React.useEffect(() => {
-        // Run on mount and when active tab changes
         updateTabShadowsHeight();
 
         if (is_open) {
             setTourDialogVisibility(false);
         }
+
         if (init_render.current) {
             setActiveTab(Number(active_hash_tab));
-            if (!isDesktop) handleTabChange(Number(active_hash_tab));
+
+            if (!isDesktop) {
+                handleTabChange(Number(active_hash_tab));
+            }
+
             init_render.current = false;
         } else {
-            // Preserve URL parameters when navigating
             const currentSearch = window.location.search;
+
             navigate(`${currentSearch}#${hash[active_tab] || hash[0]}`);
         }
+
         if (active_tour !== '') {
             setActiveTour('');
         }
 
-        // Prevent scrolling when tutorial tab is active (only on mobile)
         const mainElement = document.querySelector('.main__container');
-        if (active_tab === DBOT_TABS.TUTORIAL && !isDesktop) {
+
+        if (active_tab === TUTORIAL && !isDesktop) {
             document.body.style.overflow = 'hidden';
+
             if (mainElement instanceof HTMLElement) {
                 mainElement.classList.add('no-scroll');
             }
         } else {
             document.body.style.overflow = '';
+
             if (mainElement instanceof HTMLElement) {
                 mainElement.classList.remove('no-scroll');
             }
         }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active_tab]);
 
@@ -311,31 +423,33 @@ const AppWrapper = observer(() => {
         const trashcan_init_id = setTimeout(() => {
             if (active_tab === BOT_BUILDER && Blockly?.derivWorkspace?.trashcan) {
                 const trashcanY = window.innerHeight - 250;
+
                 let trashcanX;
+
                 if (is_drawer_open) {
                     trashcanX = isDbotRTL() ? 380 : window.innerWidth - 460;
                 } else {
                     trashcanX = isDbotRTL() ? 20 : window.innerWidth - 100;
                 }
+
                 Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(trashcanX, trashcanY);
             }
         }, 100);
 
         return () => {
-            clearTimeout(trashcan_init_id); // Clear the timeout on unmount
+            clearTimeout(trashcan_init_id);
         };
-        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active_tab, is_drawer_open]);
 
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
+
         if (dashboard_strategies.length > 0) {
-            // Needed to pass this to the Callback Queue as on tab changes
-            // document title getting override by 'Bot | Deriv' only
             timer = setTimeout(() => {
                 updateWorkspaceName();
             });
         }
+
         return () => {
             if (timer) clearTimeout(timer);
         };
@@ -344,28 +458,38 @@ const AppWrapper = observer(() => {
     const handleTabChange = React.useCallback(
         (tab_index: number) => {
             setActiveTab(tab_index);
+
             const el_id = TAB_IDS[tab_index];
+
             if (el_id) {
                 const el_tab = document.getElementById(el_id);
+
                 setTimeout(() => {
-                    el_tab?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    el_tab?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center',
+                    });
                 }, 10);
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [active_tab]
+        [setActiveTab]
     );
 
-    // [AI]
     const handleLoginGeneration = async () => {
         const oauthUrl = await generateOAuthURL();
+
         if (oauthUrl) {
             window.location.replace(oauthUrl);
         } else {
             console.error('Failed to generate OAuth URL');
         }
     };
-    // [/AI]
+
+    const handleAIClick = () => {
+        handleTabChange(AI_ANALYSIS);
+    };
+
     return (
         <React.Fragment>
             <div className='main'>
@@ -375,8 +499,15 @@ const AppWrapper = observer(() => {
                     })}
                 >
                     <div>
-                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}{' '}
-                        <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
+                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}
+
+                        <Tabs
+                            active_index={active_tab}
+                            className='main__tabs'
+                            onTabItemClick={handleTabChange}
+                            top
+                        >
+                            {/* DASHBOARD */}
                             <div
                                 label={
                                     <>
@@ -392,6 +523,8 @@ const AppWrapper = observer(() => {
                             >
                                 <Dashboard handleTabChange={handleTabChange} />
                             </div>
+
+                            {/* BOT BUILDER */}
                             <div
                                 label={
                                     <>
@@ -405,6 +538,79 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-bot-builder'
                             />
+
+                            {/* BEST BOTS */}
+                            <div
+                                label='Best Bots'
+                                id='id-best-bots'
+                            >
+                                <JixirioSection
+                                    id='id-best-bots'
+                                    title='Best Bots'
+                                    description='Explore carefully selected strategies and discover bots built for different trading approaches.'
+                                />
+                            </div>
+
+                            {/* AI ANALYSIS */}
+                            <div
+                                label='AI Analysis'
+                                id='id-ai-analysis'
+                            >
+                                <JixirioSection
+                                    id='id-ai-analysis'
+                                    title='AI Analysis'
+                                    description='Read the market before you risk the trade.'
+                                >
+                                    <div className='jixirio-section__grid'>
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>AI SCANNER</span>
+                                            <h2>Scan the market</h2>
+                                            <p>Find potential setups across supported Deriv markets.</p>
+                                            <button type='button'>Start scanning</button>
+                                        </div>
+
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>ANALYSIS</span>
+                                            <h2>Analyze a setup</h2>
+                                            <p>Break down market conditions before entering a trade.</p>
+                                            <button type='button'>Analyze</button>
+                                        </div>
+
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>MATCHING BOT</span>
+                                            <h2>Find a matching bot</h2>
+                                            <p>Match market conditions with an available strategy.</p>
+                                            <button type='button'>Find bot</button>
+                                        </div>
+                                    </div>
+                                </JixirioSection>
+                            </div>
+
+                            {/* DANALYSIS */}
+                            <div
+                                label='Danalysis'
+                                id='id-danalysis'
+                            >
+                                <JixirioSection
+                                    id='id-danalysis'
+                                    title='Danalysis'
+                                    description='Deep Deriv market analysis, statistics and digit insights.'
+                                />
+                            </div>
+
+                            {/* AUTO TRADES */}
+                            <div
+                                label='Auto Trades'
+                                id='id-auto-trades'
+                            >
+                                <JixirioSection
+                                    id='id-auto-trades'
+                                    title='Auto Trades'
+                                    description='Manage automated trading strategies and execution.'
+                                />
+                            </div>
+
+                            {/* TRADING VIEW / CHARTS */}
                             <div
                                 label={
                                     <>
@@ -413,7 +619,7 @@ const AppWrapper = observer(() => {
                                             width='24px'
                                             fill='var(--text-general)'
                                         />
-                                        <Localize i18n_default_text='Charts' />
+                                        <Localize i18n_default_text='Trading View' />
                                     </>
                                 }
                                 id={
@@ -428,6 +634,52 @@ const AppWrapper = observer(() => {
                                     <ChartWrapper show_digits_stats={false} />
                                 </Suspense>
                             </div>
+
+                            {/* MANUAL TRADING */}
+                            <div
+                                label='Manual Trading'
+                                id='id-manual-trading'
+                            >
+                                <JixirioSection
+                                    id='id-manual-trading'
+                                    title='Manual Trading'
+                                    description='Take control of your entries with a focused trading workspace.'
+                                />
+                            </div>
+
+                            {/* RISK MANAGEMENT */}
+                            <div
+                                label='Risk Management'
+                                id='id-risk-management'
+                            >
+                                <JixirioSection
+                                    id='id-risk-management'
+                                    title='Risk Management'
+                                    description='Plan your stake, limits, stop levels and exposure before you trade.'
+                                >
+                                    <div className='jixirio-section__grid'>
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>STAKE</span>
+                                            <h2>Position sizing</h2>
+                                            <p>Set a controlled stake for every trading session.</p>
+                                        </div>
+
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>LIMITS</span>
+                                            <h2>Session limits</h2>
+                                            <p>Define maximum trades, loss limits and profit targets.</p>
+                                        </div>
+
+                                        <div className='jixirio-card'>
+                                            <span className='jixirio-card__label'>DISCIPLINE</span>
+                                            <h2>Trade with intention</h2>
+                                            <p>Build rules that help prevent emotional overtrading.</p>
+                                        </div>
+                                    </div>
+                                </JixirioSection>
+                            </div>
+
+                            {/* TUTORIALS */}
                             <div
                                 label={
                                     <>
@@ -445,7 +697,9 @@ const AppWrapper = observer(() => {
                                 <div className='tutorials-wrapper'>
                                     <Suspense
                                         fallback={
-                                            <ChunkLoader message={localize('Please wait, loading tutorials...')} />
+                                            <ChunkLoader
+                                                message={localize('Please wait, loading tutorials...')}
+                                            />
                                         }
                                     >
                                         <Tutorial handleTabChange={handleTabChange} />
@@ -453,19 +707,27 @@ const AppWrapper = observer(() => {
                                 </div>
                             </div>
                         </Tabs>
-                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}{' '}
+
+                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
                     </div>
                 </div>
             </div>
+
+            {/* MOVABLE JIXIRIO AI BUTTON */}
+            <AIFloatingButton onClick={handleAIClick} />
+
             <DesktopWrapper>
                 <div className='main__run-strategy-wrapper'>
                     <RunStrategy />
                     <RunPanel />
                 </div>
+
                 <ChartModal />
                 <TradingViewModal />
             </DesktopWrapper>
+
             <MobileWrapper>{!is_open && <RunPanel />}</MobileWrapper>
+
             <Dialog
                 cancel_button_text={cancel_button_text || localize('Cancel')}
                 className='dc-dialog__wrapper--fixed'
@@ -479,15 +741,16 @@ const AppWrapper = observer(() => {
                 portal_element_id='modal_root'
                 title={title}
                 login={handleLoginGeneration}
-                dismissable={dismissable} // Prevents closing on outside clicks
+                dismissable={dismissable}
                 is_closed_on_cancel={is_closed_on_cancel}
             >
                 {message}
             </Dialog>
 
-            {/* Trade Type Confirmation Modal */}
+            {/* TRADE TYPE CONFIRMATION */}
             {(() => {
                 const modalProps = getTradeTypeModalProps();
+
                 return (
                     <TradeTypeConfirmationModal
                         is_visible={modalProps.is_visible}
