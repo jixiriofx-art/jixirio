@@ -20,16 +20,8 @@
 
         @include mobile-or-tablet-screen {
             justify-content: flex-start;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow: hidden;
             flex-wrap: nowrap;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        &::-webkit-scrollbar {
-            display: none;
         }
 
         &--overflow-hidden {
@@ -86,6 +78,18 @@
         &--full-width {
             width: 100vw;
         }
+
+        /*
+         * ThemedScrollbars is the actual horizontal
+         * scrolling container for the tab bar.
+         */
+        .dc-themed-scrollbars-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            width: max-content;
+            min-width: 100%;
+            white-space: nowrap;
+        }
     }
 
     &__item {
@@ -96,9 +100,10 @@
         color: var(--text-general);
         -webkit-touch-callout: none;
         -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
 
         @include mobile-or-tablet-screen {
-            display: inline-flex;
+            display: inline-flex !important;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -106,9 +111,11 @@
             flex: 0 0 auto;
             width: auto !important;
             min-width: max-content;
+            height: auto !important;
             min-height: 58px;
             line-height: 1.2;
-            padding: 6px 14px;
+            padding: 6px 14px !important;
+            vertical-align: middle;
         }
 
         &__counter {
@@ -160,9 +167,13 @@
             }
         }
 
+        /*
+         * Icons used inside the tab label.
+         */
         svg {
             display: block;
             flex-shrink: 0;
+            margin: 0;
         }
     }
 
@@ -203,10 +214,6 @@
 
         &:not(&--header-fit-content) {
             width: var(--tab-width);
-
-            @include mobile-or-tablet-screen {
-                width: var(--tab-width);
-            }
         }
     }
 }
