@@ -1,9 +1,4 @@
-@use 'components/shared/styles/devices' as *;
-
-/** @define dc-themed-scrollbars */
-.dc-themed-scrollbars {
-    overflow-y: auto;
-    overflow-x: hidden;
+overflow-x: hidden;
     position: relative;
     scroll-behavior: smooth;
 
