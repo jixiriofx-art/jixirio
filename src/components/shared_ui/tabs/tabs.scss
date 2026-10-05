@@ -20,8 +20,18 @@
 
         @include mobile-or-tablet-screen {
             justify-content: flex-start;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             flex-wrap: nowrap;
+            width: 100%;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            touch-action: pan-x;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
 
         &--overflow-hidden {
@@ -79,16 +89,18 @@
             width: 100vw;
         }
 
-        /*
-         * ThemedScrollbars is the actual horizontal
-         * scrolling container for the tab bar.
-         */
         .dc-themed-scrollbars-wrapper {
             display: flex;
             justify-content: flex-start;
             width: max-content;
             min-width: 100%;
             white-space: nowrap;
+
+            @include mobile-or-tablet-screen {
+                width: max-content;
+                min-width: max-content;
+                flex: 0 0 auto;
+            }
         }
     }
 
@@ -107,7 +119,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
             flex: 0 0 auto;
             width: auto !important;
             min-width: max-content;
@@ -116,6 +127,8 @@
             line-height: 1.2;
             padding: 6px 14px !important;
             vertical-align: middle;
+            white-space: nowrap;
+            text-align: center;
         }
 
         &__counter {
@@ -167,9 +180,6 @@
             }
         }
 
-        /*
-         * Icons used inside the tab label.
-         */
         svg {
             display: block;
             flex-shrink: 0;
