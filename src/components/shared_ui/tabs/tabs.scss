@@ -1,3 +1,26 @@
+@media screen and (max-width: 768px) {
+    .dc-tabs__item {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        line-height: 1.2;
+        min-height: 58px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .dc-tabs__item__icon {
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .dc-tabs__item svg {
+        display: block;
+    }
+}
 @use 'components/shared/styles/devices' as *;
 
 .dc-tabs {
