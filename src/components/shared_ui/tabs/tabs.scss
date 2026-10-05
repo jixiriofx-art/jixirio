@@ -162,6 +162,7 @@
 
         svg {
             display: block;
+            flex-shrink: 0;
         }
     }
 
@@ -176,7 +177,6 @@
 
         /* rtl:begin:ignore */
         left: 0;
-
         /* rtl:end:ignore */
 
         height: 2px;
@@ -203,6 +203,10 @@
 
         &:not(&--header-fit-content) {
             width: var(--tab-width);
+
+            @include mobile-or-tablet-screen {
+                width: var(--tab-width);
+            }
         }
     }
 }
