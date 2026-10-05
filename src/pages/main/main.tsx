@@ -597,7 +597,16 @@ const AppWrapper = observer(() => {
 
                             {/* BEST BOTS */}
                             <div
-                                label='Best Bots'
+                                label={
+                                    <>
+                                        <LabelPairedPuzzlePieceTwoCaptionBoldIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Best Bots' />
+                                    </>
+                                }
                                 id='id-best-bots'
                             >
                                 <JixirioSection
@@ -609,7 +618,16 @@ const AppWrapper = observer(() => {
 
                             {/* AI ANALYSIS */}
                             <div
-                                label='AI Analysis'
+                                label={
+                                    <>
+                                        <LabelPairedChartLineCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='AI Analysis' />
+                                    </>
+                                }
                                 id='id-ai-analysis'
                             >
                                 <JixirioSection
@@ -665,7 +683,16 @@ const AppWrapper = observer(() => {
 
                             {/* DANALYSIS */}
                             <div
-                                label='Danalysis'
+                                label={
+                                    <>
+                                        <LabelPairedChartLineCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Danalysis' />
+                                    </>
+                                }
                                 id='id-danalysis'
                             >
                                 <JixirioSection
@@ -677,7 +704,16 @@ const AppWrapper = observer(() => {
 
                             {/* AUTO TRADES */}
                             <div
-                                label='Auto Trades'
+                                label={
+                                    <>
+                                        <LabelPairedPuzzlePieceTwoCaptionBoldIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Auto Trades' />
+                                    </>
+                                }
                                 id='id-auto-trades'
                             >
                                 <JixirioSection
@@ -721,7 +757,16 @@ const AppWrapper = observer(() => {
 
                             {/* MANUAL TRADING */}
                             <div
-                                label='Manual Trading'
+                                label={
+                                    <>
+                                        <LabelPairedChartLineCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Manual Trading' />
+                                    </>
+                                }
                                 id='id-manual-trading'
                             >
                                 <JixirioSection
@@ -733,7 +778,16 @@ const AppWrapper = observer(() => {
 
                             {/* RISK MANAGEMENT */}
                             <div
-                                label='Risk Management'
+                                label={
+                                    <>
+                                        <LabelPairedPuzzlePieceTwoCaptionBoldIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Risk Management' />
+                                    </>
+                                }
                                 id='id-risk-management'
                             >
                                 <JixirioSection
