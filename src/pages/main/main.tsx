@@ -41,6 +41,7 @@ import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
 import Dashboard from '../dashboard';
+import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
 import './main.scss';
 
@@ -60,7 +61,7 @@ const JixirioSection = ({
 }) => {
     return (
         <div id={id} className='jixirio-section'>
-            <div className='jixirio-section__header'>
+        <div className='jixirio-section__header'>
                 <div>
                     <div className='jixirio-section__eyebrow'>JIXIRIO</div>
                     <h1 className='jixirio-section__title'>{title}</h1>
@@ -769,11 +770,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-manual-trading'
                             >
-                                <JixirioSection
-                                    id='id-manual-trading'
-                                    title='Manual Trading'
-                                    description='Take control of your entries with a focused trading workspace.'
-                                />
+                                <ManualTrading />
                             </div>
 
                             {/* RISK MANAGEMENT */}
