@@ -6,12 +6,27 @@
     width: calc(100vw - 3.2rem);
     height: var(--bot-content-height);
     top: 0;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            circle at 75% 20%,
+            rgba(0, 230, 118, 0.045),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 15% 80%,
+            rgba(56, 189, 248, 0.04),
+            transparent 28%
+        ),
+        linear-gradient(145deg, #080d1a, #04060d);
 
     @include mobile-or-tablet-screen {
         width: 100%;
+        height: var(--bot-content-height);
     }
 }
 
+/* Blockly root block header */
 .blocklyText.blocklyTextRootBlockHeader {
     font-size: calc(var(--text-size-sm) * 0.9);
     font-weight: normal;
@@ -22,13 +37,62 @@
     fill: $color-white;
 }
 
+/* Keep the workspace clean — scrolling is handled by Blockly */
 .blocklyMainWorkspaceScrollbar {
     display: none;
 }
 
+/* Blockly workspace viewport */
 .injectionDiv {
     height: calc(100vh - 16.4rem);
     position: relative;
     touch-action: none;
     overflow: hidden;
+    background: transparent;
+}
+
+/* Subtle workspace grid */
+.blocklySvg {
+    background: transparent !important;
+}
+
+/* Keep Blockly's canvas inside the Jixirio shell */
+.blocklyWorkspace {
+    background: transparent;
+}
+
+/* Dark Blockly surface */
+.blocklyMainBackground {
+    fill: #080d1a !important;
+}
+
+/* Blockly flyout */
+.blocklyFlyoutBackground {
+    fill: #0b1120 !important;
+    fill-opacity: 0.98;
+}
+
+/* Blockly toolbox */
+.blocklyToolboxDiv {
+    background: #0a0f1d !important;
+}
+
+/* Blockly scrollbars */
+.blocklyScrollbarHandle {
+    fill: rgba(148, 163, 184, 0.28) !important;
+}
+
+.blocklyScrollbarBackground {
+    fill: rgba(15, 23, 42, 0.35) !important;
+}
+
+/* Mobile workspace */
+@include mobile-or-tablet-screen {
+    .injectionDiv {
+        height: calc(100vh - 13rem);
+    }
+
+    .blocklyFlyout {
+        max-width: 85vw;
+    }
 }
