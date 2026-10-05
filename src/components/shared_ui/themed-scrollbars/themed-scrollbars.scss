@@ -1,4 +1,9 @@
-overflow-x: hidden;
+@use 'components/shared/styles/devices' as *;
+
+/** @define dc-themed-scrollbars */
+.dc-themed-scrollbars {
+    overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
     scroll-behavior: smooth;
 
@@ -40,7 +45,7 @@ overflow-x: hidden;
 
     &-wrapper {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
         margin-bottom: -3rem;
         padding-bottom: 3rem;
         white-space: nowrap;
