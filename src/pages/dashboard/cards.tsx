@@ -1,6 +1,4 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
-// TODO: Complete MobX integration for popup functionality
-// Some code is kept commented out pending popup integration
 import React from 'react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
@@ -19,8 +17,6 @@ import {
 } from '@deriv/quill-icons/Illustration';
 import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
-/* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-/* [/AI] */
 import DashboardBotList from './bot-list/dashboard-bot-list';
 
 type TCardProps = {
@@ -32,123 +28,187 @@ type TCardArray = {
     id: string;
     icon: React.ReactElement;
     content: React.ReactElement;
+    description: React.ReactElement;
+    accent: string;
     callback: () => void;
 };
 
 const Cards = observer(({ is_mobile, has_dashboard_strategies }: TCardProps) => {
     const { dashboard, load_modal, quick_strategy, google_drive } = useStore();
+
     const { toggleLoadModal, setActiveTabIndex } = load_modal;
     const { is_google_drive_configured } = google_drive;
     const { isDesktop } = useDevice();
-    const { onCloseDialog, dialog_options, is_dialog_open, setActiveTab, setPreviewOnPopup } = dashboard;
+
+    const {
+        onCloseDialog,
+        dialog_options,
+        is_dialog_open,
+        setActiveTab,
+        setPreviewOnPopup,
+    } = dashboard;
+
     const { setFormVisibility } = quick_strategy;
 
+    /**
+     * Opens the existing bot import flow.
+     * This keeps the real bot-upload functionality already provided
+     * by the Deriv bot builder.
+     */
     const openFileLoader = () => {
         toggleLoadModal();
         setActiveTabIndex(is_mobile ? 0 : 1);
         setActiveTab(DBOT_TABS.BOT_BUILDER);
     };
 
+    /**
+     * Opens the existing Google Drive loader.
+     * Google Drive is kept available internally even though it is
+     * no longer one of the four main Jixirio quick-action cards.
+     */
     const openGoogleDriveDialog = () => {
         const google_drive_tab_index = isDesktop ? 2 : 1;
+
         toggleLoadModal();
-        setActiveTabIndex(google_drive_tab_index); // Google Drive tab index
+        setActiveTabIndex(google_drive_tab_index);
         setActiveTab(DBOT_TABS.BOT_BUILDER);
+    };
+
+    /**
+     * Opens Jixirio Free Bots / Best Bots.
+     *
+     * Best Bots is currently tab 2 and is already registered in
+     * DBOT_TABS, so we can connect the Dashboard directly to it.
+     */
+    const openFreeBots = () => {
+        setActiveTab(DBOT_TABS.BEST_BOTS);
+    };
+
+    /**
+     * Opens the existing Bot Builder workspace.
+     */
+    const openBotEditor = () => {
+        setActiveTab(DBOT_TABS.BOT_BUILDER);
+    };
+
+    /**
+     * Opens the existing Quick Strategy form inside Bot Builder.
+     */
+    const openQuickStrategy = () => {
+        setActiveTab(DBOT_TABS.BOT_BUILDER);
+        setFormVisibility(true);
     };
 
     const actions: TCardArray[] = [
         {
-            id: 'my-computer',
+            id: 'upload-bot',
             icon: is_mobile ? (
                 <DerivLightLocalDeviceIcon height='48px' width='48px' />
             ) : (
                 <DerivLightMyComputerIcon height='48px' width='48px' />
             ),
-            content: is_mobile ? <Localize i18n_default_text='Local' /> : <Localize i18n_default_text='My computer' />,
-            callback: () => {
-                openFileLoader();
-                /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-                /* [/AI] */
-            },
+            content: <Localize i18n_default_text='Upload Bot' />,
+            description: <Localize i18n_default_text='Import a bot from your device' />,
+            accent: 'orange',
+            callback: openFileLoader,
         },
         {
-            id: 'google-drive',
-            icon: <DerivLightGoogleDriveIcon height='48px' width='48px' />,
-            content: <Localize i18n_default_text='Google Drive' />,
-            callback: () => {
-                openGoogleDriveDialog();
-                /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-                /* [/AI] */
-            },
-        },
-        {
-            id: 'bot-builder',
+            id: 'free-bots',
             icon: <DerivLightBotBuilderIcon height='48px' width='48px' />,
-            content: <Localize i18n_default_text='Bot Builder' />,
-            callback: () => {
-                setActiveTab(DBOT_TABS.BOT_BUILDER);
-                /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-                /* [/AI] */
-            },
+            content: <Localize i18n_default_text='Free Bots' />,
+            description: <Localize i18n_default_text='Explore ready-made trading strategies' />,
+            accent: 'green',
+            callback: openFreeBots,
+        },
+        {
+            id: 'bot-editor',
+            icon: <DerivLightBotBuilderIcon height='48px' width='48px' />,
+            content: <Localize i18n_default_text='Bot Editor' />,
+            description: <Localize i18n_default_text='Build and edit your own bot' />,
+            accent: 'purple',
+            callback: openBotEditor,
         },
         {
             id: 'quick-strategy',
             icon: <DerivLightQuickStrategyIcon height='48px' width='48px' />,
-            content: <Localize i18n_default_text='Quick strategy' />,
-            callback: () => {
-                setActiveTab(DBOT_TABS.BOT_BUILDER);
-                setFormVisibility(true);
-                /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-                /* [/AI] */
-            },
+            content: <Localize i18n_default_text='Quick Strategy' />,
+            description: <Localize i18n_default_text='Start with a quick trading setup' />,
+            accent: 'yellow',
+            callback: openQuickStrategy,
         },
-    ]
-        // Hide the Google Drive tile when the feature isn't configured (no GD_* env vars).
-        .filter(action => action.id !== 'google-drive' || is_google_drive_configured);
+    ];
 
     return React.useMemo(
         () => (
             <div
                 className={classNames('tab__dashboard__table', {
-                    'tab__dashboard__table--minimized': has_dashboard_strategies && is_mobile,
+                    'tab__dashboard__table--minimized':
+                        has_dashboard_strategies && is_mobile,
                 })}
             >
                 <div
                     className={classNames('tab__dashboard__table__tiles', {
-                        'tab__dashboard__table__tiles--minimized': has_dashboard_strategies && is_mobile,
+                        'tab__dashboard__table__tiles--minimized':
+                            has_dashboard_strategies && is_mobile,
                     })}
                     id='tab__dashboard__table__tiles'
                 >
-                    {actions.map(icons => {
-                        const { icon, content, callback, id } = icons;
+                    {actions.map(action => {
+                        const {
+                            icon,
+                            content,
+                            description,
+                            callback,
+                            id,
+                            accent,
+                        } = action;
+
                         return (
-                            <div
+                            <button
                                 key={id}
-                                className={classNames('tab__dashboard__table__block', {
-                                    'tab__dashboard__table__block--minimized': has_dashboard_strategies && is_mobile,
-                                })}
+                                type='button'
+                                className={classNames(
+                                    'tab__dashboard__table__block',
+                                    `tab__dashboard__table__block--${accent}`,
+                                    {
+                                        'tab__dashboard__table__block--minimized':
+                                            has_dashboard_strategies && is_mobile,
+                                    }
+                                )}
+                                onClick={callback}
                             >
                                 <div
-                                    className={classNames('tab__dashboard__table__images', {
-                                        'tab__dashboard__table__images--minimized': has_dashboard_strategies,
-                                    })}
-                                    width='8rem'
-                                    height='8rem'
-                                    icon={icon}
-                                    id={id}
-                                    onClick={() => {
-                                        callback();
-                                    }}
+                                    className={classNames(
+                                        'tab__dashboard__table__images',
+                                        `tab__dashboard__table__images--${accent}`,
+                                        {
+                                            'tab__dashboard__table__images--minimized':
+                                                has_dashboard_strategies,
+                                        }
+                                    )}
                                 >
                                     {icon}
                                 </div>
-                                <Text color='prominent' size={is_mobile ? 'xxs' : 'xs'}>
+
+                                <Text
+                                    color='prominent'
+                                    size={is_mobile ? 'xxs' : 'xs'}
+                                >
                                     {content}
                                 </Text>
-                            </div>
+
+                                <span className='tab__dashboard__table__description'>
+                                    {description}
+                                </span>
+
+                                <span className='tab__dashboard__table__open'>
+                                    Open →
+                                </span>
+                            </button>
                         );
                     })}
 
+                    {/* Existing Google Drive modal remains functional internally. */}
                     {!isDesktop ? (
                         <Dialog
                             title={dialog_options.title}
@@ -171,12 +231,16 @@ const Cards = observer(({ is_mobile, has_dashboard_strategies }: TCardProps) => 
                             }}
                             height_offset='80px'
                         >
-                            <div label='Google Drive' className='google-drive-label'>
+                            <div
+                                label='Google Drive'
+                                className='google-drive-label'
+                            >
                                 <GoogleDrive />
                             </div>
                         </MobileFullPageModal>
                     )}
                 </div>
+
                 <DashboardBotList />
             </div>
         ),
