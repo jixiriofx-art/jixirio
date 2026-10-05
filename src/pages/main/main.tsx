@@ -40,6 +40,7 @@ import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
+import Danalysis from '../danalysis';
 import Dashboard from '../dashboard';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
@@ -61,7 +62,7 @@ const JixirioSection = ({
 }) => {
     return (
         <div id={id} className='jixirio-section'>
-        <div className='jixirio-section__header'>
+            <div className='jixirio-section__header'>
                 <div>
                     <div className='jixirio-section__eyebrow'>JIXIRIO</div>
                     <h1 className='jixirio-section__title'>{title}</h1>
@@ -696,11 +697,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-danalysis'
                             >
-                                <JixirioSection
-                                    id='id-danalysis'
-                                    title='Danalysis'
-                                    description='Deep Deriv market analysis, statistics and digit insights.'
-                                />
+                                <Danalysis />
                             </div>
 
                             {/* AUTO TRADES */}
