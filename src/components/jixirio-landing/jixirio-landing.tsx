@@ -38,11 +38,41 @@ const testimonials = [
     },
 ];
 
+const get_time_greeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+        return 'Good morning';
+    }
+
+    if (hour >= 12 && hour < 17) {
+        return 'Good afternoon';
+    }
+
+    return 'Good evening';
+};
+
 const JixirioLanding = ({ onEnter }: JixirioLandingProps) => {
     const [search_text, setSearchText] = React.useState('');
     const [search_index, setSearchIndex] = React.useState(0);
     const [is_deleting, setIsDeleting] = React.useState(false);
     const [show_more, setShowMore] = React.useState(false);
+    const [greeting, setGreeting] = React.useState(get_time_greeting);
+
+    React.useEffect(() => {
+        const update_greeting = () => {
+            setGreeting(get_time_greeting());
+        };
+
+        update_greeting();
+
+        const greeting_timer = window.setInterval(
+            update_greeting,
+            60 * 1000
+        );
+
+        return () => window.clearInterval(greeting_timer);
+    }, []);
 
     React.useEffect(() => {
         const current_word = search_words[search_index];
@@ -129,7 +159,7 @@ const JixirioLanding = ({ onEnter }: JixirioLandingProps) => {
                     <div className='jixirio-landing__hero-content'>
                         <div className='jixirio-landing__greeting'>
                             <span className='jixirio-landing__live-dot' />
-                            Good evening
+                            {greeting}
                         </div>
 
                         <div className='jixirio-landing__search'>
