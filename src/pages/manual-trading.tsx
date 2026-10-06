@@ -16,45 +16,52 @@ const ManualTrading = observer(() => {
 
     const is_connected = !!api_base.api && api_base.is_authorized;
     const balance = client?.balance ?? api_base.account_info?.balance ?? 0;
-    const currency = client?.currency ?? api_base.account_info?.currency ?? 'USD';
+    const currency =
+        client?.currency ?? api_base.account_info?.currency ?? 'USD';
 
     React.useEffect(() => {
         if (!api_base.api) return;
 
-        const subscription = api_base.api.onMessage().subscribe(({ data }: any) => {
-            if (data?.msg_type === 'proposal_open_contract') {
-                const contract = data.proposal_open_contract;
+        const subscription = api_base.api
+            .onMessage()
+            .subscribe(({ data }: any) => {
+                if (data?.msg_type === 'proposal_open_contract') {
+                    const contract = data.proposal_open_contract;
 
-                if (!contract) return;
+                    if (!contract) return;
 
-                if (contract.is_sold) {
-                    const profit = Number(contract.profit ?? 0);
+                    if (contract.is_sold) {
+                        const profit = Number(contract.profit ?? 0);
 
+                        setIsTrading(false);
+                        setStatus(profit >= 0 ? 'Won' : 'Lost');
+                        setResult(
+                            `${profit >= 0 ? '+' : ''}${profit.toFixed(
+                                2
+                            )} ${currency}`
+                        );
+                    }
+                }
+
+                if (data?.msg_type === 'buy' && data?.buy?.contract_id) {
+                    setStatus('Trade opened');
+                    setResult(`Contract #${data.buy.contract_id}`);
+
+                    api_base.api?.send({
+                        proposal_open_contract: 1,
+                        contract_id: data.buy.contract_id,
+                        subscribe: 1,
+                    });
+                }
+
+                if (data?.error) {
                     setIsTrading(false);
-                    setStatus(profit >= 0 ? 'Won' : 'Lost');
+                    setStatus('Error');
                     setResult(
-                        `${profit >= 0 ? '+' : ''}${profit.toFixed(2)} ${currency}`
+                        data.error.message || 'Trade failed'
                     );
                 }
-            }
-
-            if (data?.msg_type === 'buy' && data?.buy?.contract_id) {
-                setStatus('Trade opened');
-                setResult(`Contract #${data.buy.contract_id}`);
-
-                api_base.api?.send({
-                    proposal_open_contract: 1,
-                    contract_id: data.buy.contract_id,
-                    subscribe: 1,
-                });
-            }
-
-            if (data?.error) {
-                setIsTrading(false);
-                setStatus('Error');
-                setResult(data.error.message || 'Trade failed');
-            }
-        });
+            });
 
         return () => {
             subscription.unsubscribe();
@@ -85,7 +92,9 @@ const ManualTrading = observer(() => {
 
         if (amount > Number(balance)) {
             setStatus('Insufficient balance');
-            setResult('Your stake is greater than your available balance.');
+            setResult(
+                'Your stake is greater than your available balance.'
+            );
             return;
         }
 
@@ -94,48 +103,62 @@ const ManualTrading = observer(() => {
             setStatus('Getting price...');
             setResult('');
 
-            const proposal_response: any = await api_base.api.send({
-                proposal: 1,
-                amount,
-                basis: 'stake',
-                contract_type,
-                currency,
-                duration: ticks,
-                duration_unit: 't',
-                symbol,
-            });
+            const proposal_response: any =
+                await api_base.api.send({
+                    proposal: 1,
+                    amount,
+                    basis: 'stake',
+                    contract_type,
+                    currency,
+                    duration: ticks,
+                    duration_unit: 't',
+                    symbol,
+                });
 
             if (proposal_response?.error) {
-                throw new Error(proposal_response.error.message);
+                throw new Error(
+                    proposal_response.error.message
+                );
             }
 
             const proposal = proposal_response?.proposal;
 
             if (!proposal?.id || !proposal?.ask_price) {
-                throw new Error('No valid trade proposal was received.');
+                throw new Error(
+                    'No valid trade proposal was received.'
+                );
             }
 
             setStatus('Buying...');
 
-            const buy_response: any = await api_base.api.send({
-                buy: proposal.id,
-                price: Number(proposal.ask_price),
-            });
+            const buy_response: any =
+                await api_base.api.send({
+                    buy: proposal.id,
+                    price: Number(proposal.ask_price),
+                });
 
             if (buy_response?.error) {
-                throw new Error(buy_response.error.message);
+                throw new Error(
+                    buy_response.error.message
+                );
             }
 
             if (!buy_response?.buy?.contract_id) {
-                throw new Error('Deriv did not return a contract.');
+                throw new Error(
+                    'Deriv did not return a contract.'
+                );
             }
 
             setStatus('Trade opened');
-            setResult(`Contract #${buy_response.buy.contract_id}`);
+            setResult(
+                `Contract #${buy_response.buy.contract_id}`
+            );
         } catch (error: any) {
             setIsTrading(false);
             setStatus('Error');
-            setResult(error?.message || 'Unable to place trade.');
+            setResult(
+                error?.message || 'Unable to place trade.'
+            );
         }
     };
 
@@ -154,7 +177,9 @@ const ManualTrading = observer(() => {
                     margin: '0 auto',
                 }}
             >
-                <h2 style={{ marginBottom: '8px' }}>Manual Trading</h2>
+                <h2 style={{ marginBottom: '8px' }}>
+                    Manual Trading
+                </h2>
 
                 <p
                     style={{
@@ -168,7 +193,8 @@ const ManualTrading = observer(() => {
                 <div
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                        gridTemplateColumns:
+                            'repeat(2, minmax(0, 1fr))',
                         gap: '12px',
                         marginTop: '20px',
                     }}
@@ -181,7 +207,12 @@ const ManualTrading = observer(() => {
                             border: '1px solid #1f2937',
                         }}
                     >
-                        <div style={{ color: '#94a3b8', fontSize: '13px' }}>
+                        <div
+                            style={{
+                                color: '#94a3b8',
+                                fontSize: '13px',
+                            }}
+                        >
                             Connection
                         </div>
 
@@ -189,10 +220,14 @@ const ManualTrading = observer(() => {
                             style={{
                                 marginTop: '6px',
                                 fontWeight: 700,
-                                color: is_connected ? '#22c55e' : '#f59e0b',
+                                color: is_connected
+                                    ? '#22c55e'
+                                    : '#f59e0b',
                             }}
                         >
-                            {is_connected ? 'Connected' : 'Not connected'}
+                            {is_connected
+                                ? 'Connected'
+                                : 'Not connected'}
                         </div>
                     </div>
 
@@ -204,7 +239,12 @@ const ManualTrading = observer(() => {
                             border: '1px solid #1f2937',
                         }}
                     >
-                        <div style={{ color: '#94a3b8', fontSize: '13px' }}>
+                        <div
+                            style={{
+                                color: '#94a3b8',
+                                fontSize: '13px',
+                            }}
+                        >
                             Balance
                         </div>
 
@@ -228,12 +268,15 @@ const ManualTrading = observer(() => {
                         border: '1px solid #1e293b',
                     }}
                 >
-                    <h3 style={{ marginTop: 0 }}>Trading Workspace</h3>
+                    <h3 style={{ marginTop: 0 }}>
+                        Trading Workspace
+                    </h3>
 
                     <div
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                            gridTemplateColumns:
+                                'repeat(2, minmax(0, 1fr))',
                             gap: '14px',
                         }}
                     >
@@ -250,21 +293,38 @@ const ManualTrading = observer(() => {
 
                             <select
                                 value={symbol}
-                                onChange={e => setSymbol(e.target.value)}
+                                onChange={e =>
+                                    setSymbol(e.target.value)
+                                }
                                 style={{
                                     width: '100%',
                                     padding: '12px',
                                     borderRadius: '8px',
                                     background: '#111827',
                                     color: '#ffffff',
-                                    border: '1px solid #334155',
+                                    border:
+                                        '1px solid #334155',
                                 }}
                             >
-                                <option value='R_100'>Volatility 100</option>
-                                <option value='R_75'>Volatility 75</option>
-                                <option value='R_50'>Volatility 50</option>
-                                <option value='R_25'>Volatility 25</option>
-                                <option value='R_10'>Volatility 10</option>
+                                <option value="R_100">
+                                    Volatility 100
+                                </option>
+
+                                <option value="R_75">
+                                    Volatility 75
+                                </option>
+
+                                <option value="R_50">
+                                    Volatility 50
+                                </option>
+
+                                <option value="R_25">
+                                    Volatility 25
+                                </option>
+
+                                <option value="R_10">
+                                    Volatility 10
+                                </option>
                             </select>
                         </label>
 
@@ -281,18 +341,28 @@ const ManualTrading = observer(() => {
 
                             <select
                                 value={contract_type}
-                                onChange={e => setContractType(e.target.value)}
+                                onChange={e =>
+                                    setContractType(
+                                        e.target.value
+                                    )
+                                }
                                 style={{
                                     width: '100%',
                                     padding: '12px',
                                     borderRadius: '8px',
                                     background: '#111827',
                                     color: '#ffffff',
-                                    border: '1px solid #334155',
+                                    border:
+                                        '1px solid #334155',
                                 }}
                             >
-                                <option value='CALL'>Rise</option>
-                                <option value='PUT'>Fall</option>
+                                <option value="CALL">
+                                    Rise
+                                </option>
+
+                                <option value="PUT">
+                                    Fall
+                                </option>
                             </select>
                         </label>
 
@@ -308,11 +378,13 @@ const ManualTrading = observer(() => {
                             </div>
 
                             <input
-                                type='number'
-                                min='0.35'
-                                step='0.01'
+                                type="number"
+                                min="0.35"
+                                step="0.01"
                                 value={stake}
-                                onChange={e => setStake(e.target.value)}
+                                onChange={e =>
+                                    setStake(e.target.value)
+                                }
                                 style={{
                                     width: '100%',
                                     boxSizing: 'border-box',
@@ -320,7 +392,8 @@ const ManualTrading = observer(() => {
                                     borderRadius: '8px',
                                     background: '#111827',
                                     color: '#ffffff',
-                                    border: '1px solid #334155',
+                                    border:
+                                        '1px solid #334155',
                                 }}
                             />
                         </label>
@@ -338,28 +411,44 @@ const ManualTrading = observer(() => {
 
                             <select
                                 value={duration}
-                                onChange={e => setDuration(e.target.value)}
+                                onChange={e =>
+                                    setDuration(e.target.value)
+                                }
                                 style={{
                                     width: '100%',
                                     padding: '12px',
                                     borderRadius: '8px',
                                     background: '#111827',
                                     color: '#ffffff',
-                                    border: '1px solid #334155',
+                                    border:
+                                        '1px solid #334155',
                                 }}
                             >
-                                <option value='1'>1 tick</option>
-                                <option value='3'>3 ticks</option>
-                                <option value='5'>5 ticks</option>
-                                <option value='10'>10 ticks</option>
+                                <option value="1">
+                                    1 tick
+                                </option>
+
+                                <option value="3">
+                                    3 ticks
+                                </option>
+
+                                <option value="5">
+                                    5 ticks
+                                </option>
+
+                                <option value="10">
+                                    10 ticks
+                                </option>
                             </select>
                         </label>
                     </div>
 
                     <button
-                        type='button'
+                        type="button"
                         onClick={buy_trade}
-                        disabled={is_trading || !is_connected}
+                        disabled={
+                            is_trading || !is_connected
+                        }
                         style={{
                             width: '100%',
                             marginTop: '18px',
@@ -378,7 +467,9 @@ const ManualTrading = observer(() => {
                                     : 'pointer',
                         }}
                     >
-                        {is_trading ? 'Trading...' : 'Buy Trade'}
+                        {is_trading
+                            ? 'Trading...'
+                            : 'Buy Trade'}
                     </button>
 
                     <div
