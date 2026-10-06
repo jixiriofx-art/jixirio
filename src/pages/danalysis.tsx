@@ -35,22 +35,34 @@ const Danalysis = observer(() => {
 
         subscribe();
 
-        const subscription = api_base.api.onMessage().subscribe((message: any) => {
-            if (!mounted) return;
+        const subscription = api_base.api
+            .onMessage()
+            .subscribe((message: any) => {
+                if (!mounted) return;
 
-            const data = message?.data ?? message;
+                const data = message?.data ?? message;
 
-            if (data?.tick?.symbol === symbol) {
-                const price = Number(data.tick.quote);
+                if (data?.tick?.symbol === symbol) {
+                    const quote = String(data.tick.quote ?? '');
+                    const price = Number(data.tick.quote);
 
-                if (Number.isFinite(price)) {
-                    const last_digit = Number(String(price).replace('.', '').slice(-1));
+                    if (Number.isFinite(price)) {
+                        const numeric_part = quote.replace(/[^0-9]/g, '');
+                        const last_digit = numeric_part
+                            ? Number(numeric_part.slice(-1))
+                            : null;
 
-                    setTick(price);
-                    setDigits(prev => [...prev.slice(-99), last_digit]);
+                        if (last_digit !== null && Number.isFinite(last_digit)) {
+                            setTick(price);
+
+                            setDigits(prev => [
+                                ...prev.slice(-999),
+                                last_digit,
+                            ]);
+                        }
+                    }
                 }
-            }
-        });
+            });
 
         return () => {
             mounted = false;
@@ -58,13 +70,74 @@ const Danalysis = observer(() => {
         };
     }, [symbol]);
 
+    const total_ticks = digits.length;
+
+    const digit_counts = Array.from({ length: 10 }, (_, digit) =>
+        digits.filter(value => value === digit).length
+    );
+
     const even_count = digits.filter(digit => digit % 2 === 0).length;
-    const odd_count = digits.length - even_count;
+    const odd_count = total_ticks - even_count;
 
     const over_2_count = digits.filter(digit => digit > 2).length;
     const under_2_count = digits.filter(digit => digit < 2).length;
 
-    const last_digit = digits.length ? digits[digits.length - 1] : null;
+    const under_5_count = digits.filter(digit => digit < 5).length;
+    const under_6_count = digits.filter(digit => digit < 6).length;
+    const under_7_count = digits.filter(digit => digit < 7).length;
+    const over_4_count = digits.filter(digit => digit > 4).length;
+
+    const last_digit =
+        digits.length > 0 ? digits[digits.length - 1] : null;
+
+    const even_percentage =
+        total_ticks > 0
+            ? ((even_count / total_ticks) * 100).toFixed(1)
+            : '0.0';
+
+    const odd_percentage =
+        total_ticks > 0
+            ? ((odd_count / total_ticks) * 100).toFixed(1)
+            : '0.0';
+
+    const get_percentage = (count: number) =>
+        total_ticks > 0
+            ? `${((count / total_ticks) * 100).toFixed(1)}%`
+            : '0.0%';
+
+    const hottest_digit =
+        total_ticks > 0
+            ? digit_counts.indexOf(Math.max(...digit_counts))
+            : null;
+
+    const coldest_digit =
+        total_ticks > 0
+            ? digit_counts.indexOf(Math.min(...digit_counts))
+            : null;
+
+    const get_analysis = () => {
+        if (total_ticks < 20) {
+            return 'Collecting more ticks for a stronger analysis.';
+        }
+
+        if (even_count > odd_count * 1.15) {
+            return 'Even digits are currently appearing more frequently.';
+        }
+
+        if (odd_count > even_count * 1.15) {
+            return 'Odd digits are currently appearing more frequently.';
+        }
+
+        if (over_2_count > under_2_count * 1.5) {
+            return 'Digits above 2 are dominating the recent sample.';
+        }
+
+        if (under_2_count > over_2_count * 1.5) {
+            return 'Digits below 2 are dominating the recent sample.';
+        }
+
+        return 'No strong digit imbalance detected yet.';
+    };
 
     return (
         <div
@@ -88,6 +161,7 @@ const Danalysis = observer(() => {
             >
                 <div>
                     <h2 style={{ margin: 0 }}>Danalysis</h2>
+
                     <p
                         style={{
                             margin: '6px 0 0',
@@ -104,6 +178,7 @@ const Danalysis = observer(() => {
                         setSymbol(event.target.value);
                         setDigits([]);
                         setTick(null);
+                        setStatus('Changing market...');
                     }}
                     style={{
                         padding: '10px 12px',
@@ -130,12 +205,23 @@ const Danalysis = observer(() => {
                 }}
             >
                 <strong>{status}</strong>
+
+                <div
+                    style={{
+                        marginTop: '5px',
+                        opacity: 0.7,
+                        fontSize: '13px',
+                    }}
+                >
+                    Sample: {total_ticks} / 1000 ticks
+                </div>
             </div>
 
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gridTemplateColumns:
+                        'repeat(auto-fit, minmax(160px, 1fr))',
                     gap: '12px',
                     marginBottom: '16px',
                 }}
@@ -148,6 +234,7 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Current price</div>
+
                     <strong style={{ fontSize: '20px' }}>
                         {tick !== null ? tick : '--'}
                     </strong>
@@ -161,6 +248,7 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Last digit</div>
+
                     <strong style={{ fontSize: '20px' }}>
                         {last_digit !== null ? last_digit : '--'}
                     </strong>
@@ -174,7 +262,14 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Even</div>
-                    <strong style={{ fontSize: '20px' }}>{even_count}</strong>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {even_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {even_percentage}%
+                    </div>
                 </div>
 
                 <div
@@ -185,14 +280,82 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Odd</div>
-                    <strong style={{ fontSize: '20px' }}>{odd_count}</strong>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {odd_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {odd_percentage}%
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style={{
+                    padding: '16px',
+                    borderRadius: '10px',
+                    marginBottom: '16px',
+                    background: 'var(--general-section-1)',
+                }}
+            >
+                <h3 style={{ marginTop: 0 }}>Digit frequency</h3>
+
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                            'repeat(5, minmax(0, 1fr))',
+                        gap: '8px',
+                    }}
+                >
+                    {digit_counts.map((count, digit) => (
+                        <div
+                            key={digit}
+                            style={{
+                                textAlign: 'center',
+                                padding: '10px 4px',
+                                borderRadius: '8px',
+                                background:
+                                    'var(--general-main-1)',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: '18px',
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {digit}
+                            </div>
+
+                            <div
+                                style={{
+                                    fontSize: '13px',
+                                    marginTop: '3px',
+                                }}
+                            >
+                                {count}
+                            </div>
+
+                            <div
+                                style={{
+                                    fontSize: '11px',
+                                    opacity: 0.65,
+                                }}
+                            >
+                                {get_percentage(count)}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
+                    gridTemplateColumns:
+                        'repeat(auto-fit, minmax(150px, 1fr))',
                     gap: '12px',
                     marginBottom: '16px',
                 }}
@@ -205,9 +368,14 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Over 2</div>
+
                     <strong style={{ fontSize: '20px' }}>
                         {over_2_count}
                     </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(over_2_count)}
+                    </div>
                 </div>
 
                 <div
@@ -218,9 +386,151 @@ const Danalysis = observer(() => {
                     }}
                 >
                     <div>Under 2</div>
+
                     <strong style={{ fontSize: '20px' }}>
                         {under_2_count}
                     </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(under_2_count)}
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        padding: '16px',
+                        borderRadius: '10px',
+                        background: 'var(--general-section-1)',
+                    }}
+                >
+                    <div>Under 5</div>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {under_5_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(under_5_count)}
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        padding: '16px',
+                        borderRadius: '10px',
+                        background: 'var(--general-section-1)',
+                    }}
+                >
+                    <div>Under 6</div>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {under_6_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(under_6_count)}
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        padding: '16px',
+                        borderRadius: '10px',
+                        background: 'var(--general-section-1)',
+                    }}
+                >
+                    <div>Under 7</div>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {under_7_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(under_7_count)}
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        padding: '16px',
+                        borderRadius: '10px',
+                        background: 'var(--general-section-1)',
+                    }}
+                >
+                    <div>Over 4</div>
+
+                    <strong style={{ fontSize: '20px' }}>
+                        {over_4_count}
+                    </strong>
+
+                    <div style={{ opacity: 0.7 }}>
+                        {get_percentage(over_4_count)}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style={{
+                    padding: '16px',
+                    borderRadius: '10px',
+                    marginBottom: '16px',
+                    background: 'var(--general-section-1)',
+                }}
+            >
+                <h3 style={{ marginTop: 0 }}>AI-style analysis</h3>
+
+                <div
+                    style={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        marginBottom: '12px',
+                    }}
+                >
+                    {get_analysis()}
+                </div>
+
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '12px',
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: '12px',
+                            borderRadius: '8px',
+                            background: 'var(--general-main-1)',
+                        }}
+                    >
+                        <div style={{ opacity: 0.7 }}>
+                            Hottest digit
+                        </div>
+
+                        <strong style={{ fontSize: '22px' }}>
+                            {hottest_digit !== null
+                                ? hottest_digit
+                                : '--'}
+                        </strong>
+                    </div>
+
+                    <div
+                        style={{
+                            padding: '12px',
+                            borderRadius: '8px',
+                            background: 'var(--general-main-1)',
+                        }}
+                    >
+                        <div style={{ opacity: 0.7 }}>
+                            Coldest digit
+                        </div>
+
+                        <strong style={{ fontSize: '22px' }}>
+                            {coldest_digit !== null
+                                ? coldest_digit
+                                : '--'}
+                        </strong>
+                    </div>
                 </div>
             </div>
 
@@ -245,7 +555,7 @@ const Danalysis = observer(() => {
                             Waiting for ticks...
                         </span>
                     ) : (
-                        digits.slice(-30).map((digit, index) => (
+                        digits.slice(-50).map((digit, index) => (
                             <span
                                 key={`${index}-${digit}`}
                                 style={{
