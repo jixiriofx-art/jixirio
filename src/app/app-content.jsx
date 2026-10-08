@@ -296,10 +296,6 @@ const AppContent = observer(() => {
 
 export default AppContent;
 
-After pasting, scroll all the way to the bottom and make sure the very last line is:
+Important: the code block above ends at "export default AppContent;". There is no instruction text that belongs in the file.
 
-"export default AppContent;"
-
-Then Commit changes.
-
-Don't deploy/retry manually afterward. Netlify should automatically build the new commit.
+After you paste it, commit once. Then stop — don't manually retry the deploy.
