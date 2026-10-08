@@ -295,7 +295,3 @@ const AppContent = observer(() => {
 });
 
 export default AppContent;
-
-Important: the code block above ends at "export default AppContent;". There is no instruction text that belongs in the file.
-
-After you paste it, commit once. Then stop — don't manually retry the deploy.
