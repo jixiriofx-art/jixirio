@@ -27,191 +27,285 @@ import './app.scss';
 import 'react-toastify/dist/ReactToastify.css';
 import '../components/bot-notification/bot-notification.scss';
 
-// App Builder live-preview branding listener. Mounted only in the preview deployment
-// (NEXT_PUBLIC_APP_BUILD === 'true'); the inline check is constant-folded by rsbuild so
-// the import — and all of src/preview/ — is dead-code-eliminated from standalone partner
-// builds (where the BFF strips src/preview/ entirely).
 const PreviewBranding =
-    process.env.NEXT_PUBLIC_APP_BUILD === 'true' ? lazy(() => import('../preview/preview-branding')) : null;
+process.env.NEXT_PUBLIC_APP_BUILD === 'true'
+? lazy(() => import('../preview/preview-branding'))
+: null;
 
 const AppContent = observer(() => {
-    const [is_api_initialized, setIsApiInitialized] = React.useState(false);
-    const [is_loading, setIsLoading] = React.useState(true);
-    const [has_entered, setHasEntered] = React.useState(false);
+const [is_api_initialized, setIsApiInitialized] = React.useState(false);
+const [is_loading, setIsLoading] = React.useState(true);
 
-    const store = useStore();
-    const { app, transactions, common, client } = store;
-    const { is_dark_mode_on } = useThemeSwitcher();
+/*
+ * Keep the landing-page state across the OAuth page reload.
+ *
+ * Before OAuth:
+ *   Landing -> Deriv Login
+ *
+ * After OAuth:
+ *   Deriv -> Jixirio -> Dashboard
+ *
+ * sessionStorage survives the OAuth redirect but is cleared when the
+ * browser tab/session ends.
+ */
+const [has_entered, setHasEntered] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
 
-    const { recovered_transactions, recoverPendingContracts } = transactions;
-    const is_subscribed_to_msg_listener = React.useRef(false);
-    const msg_listener = React.useRef(null);
-    const { connectionStatus } = useApiBase();
+    const authInfo = localStorage.getItem('auth_info');
+    const activeLoginId = localStorage.getItem('active_loginid');
+    const entered = sessionStorage.getItem('jixirio_has_entered');
 
-    // Initialize dev mode keyboard shortcuts
-    useDevMode();
-
-    // Warn (once) when the OAuth app id isn't configured, so a developer running
-    // locally understands why Log in / Sign up are disabled. Skipped inside the
-    // App Builder static preview, which intentionally runs without env vars.
-    useEffect(() => {
-        if (isPreviewMode()) return;
-        if (!process.env.NEXT_PUBLIC_DERIV_APP_ID) {
-            botNotification(localize('Waiting for environment variables to be set…'), undefined, { type: 'warning' });
-        }
-    }, []);
-
-    const livechat_client_information = {
-        is_client_store_initialized: client?.is_logged_in ? true : !!client,
-        is_logged_in: client?.is_logged_in,
-        loginid: client?.loginid,
-        currency: client?.currency,
-        residence: client?.residence,
-        email: '',
-        first_name: '',
-        last_name: '',
-    };
-
-    useLiveChat(livechat_client_information);
-
-    // NOTE: Disabled Intercom until further notice
-    // const token = V2GetActiveToken() ?? null;
-    // useIntercom(token);
-
-    useEffect(() => {
-        if (connectionStatus === CONNECTION_STATUS.OPENED) {
-            setIsApiInitialized(true);
-            common.setSocketOpened(true);
-        } else if (connectionStatus !== CONNECTION_STATUS.OPENED) {
-            common.setSocketOpened(false);
-        }
-    }, [common, connectionStatus]);
-
-    const { current_language } = common;
-    const html = document.documentElement;
-    React.useEffect(() => {
-        html?.setAttribute('lang', current_language.toLowerCase());
-        html?.setAttribute('dir', current_language.toLowerCase() === 'ar' ? 'rtl' : 'ltr');
-    }, [current_language, html]);
-
-    const handleMessage = React.useCallback(
-        ({ data }) => {
-            if (data?.msg_type === 'proposal_open_contract' && !data?.error) {
-                const { proposal_open_contract } = data;
-                if (
-                    proposal_open_contract?.status !== 'open' &&
-                    !recovered_transactions?.includes(proposal_open_contract?.contract_id)
-                ) {
-                    recoverPendingContracts(proposal_open_contract);
-                }
-            }
-        },
-        [recovered_transactions, recoverPendingContracts]
+    return Boolean(
+        (authInfo && activeLoginId) ||
+            entered === 'true'
     );
+});
 
-    React.useEffect(() => {
-        setSmartChartsPublicPath(getUrlBase('/js/smartcharts/'));
-    }, []);
+const store = useStore();
+const { app, transactions, common, client } = store;
+const { is_dark_mode_on } = useThemeSwitcher();
 
-    React.useEffect(() => {
-        // Check if api is initialized and then subscribe to the api messages
-        // Also we should only subscribe to the messages once user is logged in
-        // And is not already subscribed to the messages
-        if (!is_subscribed_to_msg_listener.current && client.is_logged_in && is_api_initialized && api_base?.api) {
-            is_subscribed_to_msg_listener.current = true;
-            msg_listener.current = api_base.api.onMessage()?.subscribe(handleMessage);
-        }
-        return () => {
-            if (is_subscribed_to_msg_listener.current && msg_listener.current) {
-                is_subscribed_to_msg_listener.current = false;
-                msg_listener.current.unsubscribe?.();
+const { recovered_transactions, recoverPendingContracts } = transactions;
+const is_subscribed_to_msg_listener = React.useRef(false);
+const msg_listener = React.useRef(null);
+const { connectionStatus } = useApiBase();
+
+useDevMode();
+
+useEffect(() => {
+    if (isPreviewMode()) return;
+
+    if (!process.env.NEXT_PUBLIC_DERIV_APP_ID) {
+        botNotification(
+            localize('Waiting for environment variables to be set…'),
+            undefined,
+            { type: 'warning' }
+        );
+    }
+}, []);
+
+const livechat_client_information = {
+    is_client_store_initialized: client?.is_logged_in ? true : !!client,
+    is_logged_in: client?.is_logged_in,
+    loginid: client?.loginid,
+    currency: client?.currency,
+    residence: client?.residence,
+    email: '',
+    first_name: '',
+    last_name: '',
+};
+
+useLiveChat(livechat_client_information);
+
+useEffect(() => {
+    if (connectionStatus === CONNECTION_STATUS.OPENED) {
+        setIsApiInitialized(true);
+        common.setSocketOpened(true);
+    } else {
+        common.setSocketOpened(false);
+    }
+}, [common, connectionStatus]);
+
+const { current_language } = common;
+const html = document.documentElement;
+
+React.useEffect(() => {
+    html?.setAttribute('lang', current_language.toLowerCase());
+    html?.setAttribute(
+        'dir',
+        current_language.toLowerCase() === 'ar' ? 'rtl' : 'ltr'
+    );
+}, [current_language, html]);
+
+const handleMessage = React.useCallback(
+    ({ data }) => {
+        if (data?.msg_type === 'proposal_open_contract' && !data?.error) {
+            const { proposal_open_contract } = data;
+
+            if (
+                proposal_open_contract?.status !== 'open' &&
+                !recovered_transactions?.includes(
+                    proposal_open_contract?.contract_id
+                )
+            ) {
+                recoverPendingContracts(proposal_open_contract);
             }
-        };
-    }, [is_api_initialized, client.is_logged_in, client.loginid, handleMessage, connectionStatus]);
-
-    const init = () => {
-        ServerTime.init(common);
-        app.setDBotEngineStores();
-        ApiHelpers.setInstance(app.api_helpers_store);
-        import('@/utils/gtm').then(({ default: GTM }) => {
-            GTM.init(store);
-        });
-    };
-
-    const changeActiveSymbolLoadingState = () => {
-        init();
-
-        const retrieveActiveSymbols = () => {
-            const { active_symbols } = ApiHelpers.instance;
-
-            active_symbols.retrieveActiveSymbols(true).then(() => {
-                setIsLoading(false);
-            });
-        };
-
-        if (ApiHelpers?.instance?.active_symbols) {
-            retrieveActiveSymbols();
-        } else {
-            // This is a workaround to fix the issue where the active symbols are not loaded immediately
-            // when the API is initialized. Should be replaced with RxJS pubsub
-            const intervalId = setInterval(() => {
-                if (ApiHelpers?.instance?.active_symbols) {
-                    clearInterval(intervalId);
-                    retrieveActiveSymbols();
-                }
-            }, 1000);
         }
-    };
+    },
+    [recovered_transactions, recoverPendingContracts]
+);
 
-    React.useEffect(() => {
-        if (is_api_initialized) {
-            init();
-            setIsLoading(true);
-            if (!client.is_logged_in) {
-                changeActiveSymbolLoadingState();
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [is_api_initialized]);
+React.useEffect(() => {
+    setSmartChartsPublicPath(getUrlBase('/js/smartcharts/'));
+}, []);
 
-    React.useEffect(() => {
-        if (client.is_logged_in && is_api_initialized) {
-            changeActiveSymbolLoadingState();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [is_api_initialized, client.loginid]);
+React.useEffect(() => {
+    if (
+        !is_subscribed_to_msg_listener.current &&
+        client.is_logged_in &&
+        is_api_initialized &&
+        api_base?.api
+    ) {
+        is_subscribed_to_msg_listener.current = true;
 
-    if (common?.error) return null;
-    if (!has_entered) {
-    return <JixirioLanding onEnter={() => setHasEntered(true)} />;
+        msg_listener.current = api_base.api
+            .onMessage()
+            ?.subscribe(handleMessage);
     }
 
-    return (
-        <React.Fragment>
-            {PreviewBranding && (
-                <Suspense fallback={null}>
-                    <PreviewBranding uiReady={!is_loading} />
-                </Suspense>
-            )}
-            {is_loading ? (
-                <ChunkLoader message={localize('Initializing Deriv Bot account...')} />
-            ) : (
-                <AuthLoadingWrapper>
-                    <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
-                        <BlocklyLoading />
-                        <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
-                            <Audio />
-                            <Main />
-                            <BotBuilder />
-                            <BotStopped />
-                            <TransactionDetailsModal />
-                            <ToastContainer limit={3} draggable={false} />
-                        </div>
-                    </ThemeProvider>
-                </AuthLoadingWrapper>
-            )}
-        </React.Fragment>
-    );
+    return () => {
+        if (
+            is_subscribed_to_msg_listener.current &&
+            msg_listener.current
+        ) {
+            is_subscribed_to_msg_listener.current = false;
+            msg_listener.current.unsubscribe?.();
+        }
+    };
+}, [
+    is_api_initialized,
+    client.is_logged_in,
+    client.loginid,
+    handleMessage,
+    connectionStatus,
+]);
+
+const init = () => {
+    ServerTime.init(common);
+    app.setDBotEngineStores();
+    ApiHelpers.setInstance(app.api_helpers_store);
+
+    import('@/utils/gtm').then(({ default: GTM }) => {
+        GTM.init(store);
+    });
+};
+
+const changeActiveSymbolLoadingState = () => {
+    init();
+
+    const retrieveActiveSymbols = () => {
+        const { active_symbols } = ApiHelpers.instance;
+
+        if (!active_symbols) return;
+
+        active_symbols
+            .retrieveActiveSymbols(true)
+            .then(() => {
+                setIsLoading(false);
+            })
+            .catch(() => {
+                setIsLoading(false);
+            });
+    };
+
+    if (ApiHelpers?.instance?.active_symbols) {
+        retrieveActiveSymbols();
+    } else {
+        const intervalId = setInterval(() => {
+            if (ApiHelpers?.instance?.active_symbols) {
+                clearInterval(intervalId);
+                retrieveActiveSymbols();
+            }
+        }, 1000);
+
+        /*
+         * Prevent an endless loading screen if the API helper never
+         * becomes available.
+         */
+        setTimeout(() => {
+            clearInterval(intervalId);
+            setIsLoading(false);
+        }, 10000);
+    }
+};
+
+React.useEffect(() => {
+    if (is_api_initialized) {
+        init();
+        setIsLoading(true);
+
+        if (!client.is_logged_in) {
+            changeActiveSymbolLoadingState();
+        }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [is_api_initialized]);
+
+React.useEffect(() => {
+    if (client.is_logged_in && is_api_initialized) {
+        changeActiveSymbolLoadingState();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [is_api_initialized, client.loginid]);
+
+/*
+ * When the user has successfully authenticated with Deriv, make sure
+ * Jixirio remains inside the application instead of returning to the
+ * landing screen after the OAuth redirect.
+ */
+React.useEffect(() => {
+    if (client?.is_logged_in || localStorage.getItem('auth_info')) {
+        sessionStorage.setItem('jixirio_has_entered', 'true');
+
+        if (!has_entered) {
+            setHasEntered(true);
+        }
+    }
+}, [client?.is_logged_in, has_entered]);
+
+const handleEnter = () => {
+    sessionStorage.setItem('jixirio_has_entered', 'true');
+    setHasEntered(true);
+};
+
+if (common?.error) return null;
+
+if (!has_entered) {
+    return <JixirioLanding onEnter={handleEnter} />;
+}
+
+return (
+    <React.Fragment>
+        {PreviewBranding && (
+            <Suspense fallback={null}>
+                <PreviewBranding uiReady={!is_loading} />
+            </Suspense>
+        )}
+
+        {is_loading ? (
+            <ChunkLoader
+                message={localize(
+                    'Initializing Deriv Bot account...'
+                )}
+            />
+        ) : (
+            <AuthLoadingWrapper>
+                <ThemeProvider
+                    theme={is_dark_mode_on ? 'dark' : 'light'}
+                >
+                    <BlocklyLoading />
+
+                    <div
+                        className='bot-dashboard bot'
+                        data-testid='dt_bot_dashboard'
+                    >
+                        <Audio />
+                        <Main />
+                        <BotBuilder />
+                        <BotStopped />
+                        <TransactionDetailsModal />
+
+                        <ToastContainer
+                            limit={3}
+                            draggable={false}
+                        />
+                    </div>
+                </ThemeProvider>
+            </AuthLoadingWrapper>
+        )}
+    </React.Fragment>
+);
+
 });
 
 export default AppContent;
