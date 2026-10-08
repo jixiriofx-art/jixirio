@@ -78,7 +78,6 @@ const AppContent = observer(() => {
         loginid: client?.loginid,
         currency: client?.currency,
         residence: client?.residence,
-        loginid: client?.loginid,
         email: '',
         first_name: '',
         last_name: '',
@@ -86,12 +85,6 @@ const AppContent = observer(() => {
 
     useLiveChat(livechat_client_information);
 
-    /*
-     * The Deriv connection normally tells us when the API is ready.
-     *
-     * We also have a safety timeout so Jixirio can never remain stuck on
-     * the loading screen forever if the WebSocket event is delayed.
-     */
     useEffect(() => {
         if (connectionStatus === CONNECTION_STATUS.OPENED) {
             setIsApiInitialized(true);
@@ -214,10 +207,6 @@ const AppContent = observer(() => {
                 }
             }, 500);
 
-            /*
-             * Never allow the application to remain on the loading screen
-             * indefinitely.
-             */
             setTimeout(() => {
                 clearInterval(intervalId);
                 setIsLoading(false);
@@ -230,7 +219,6 @@ const AppContent = observer(() => {
 
         init();
         setIsLoading(true);
-
         changeActiveSymbolLoadingState();
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,10 +232,6 @@ const AppContent = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_api_initialized, client.loginid]);
 
-    /*
-     * Once the user has entered or authenticated, keep them inside
-     * Jixirio after OAuth redirects.
-     */
     React.useEffect(() => {
         if (client?.is_logged_in || localStorage.getItem('auth_info')) {
             sessionStorage.setItem('jixirio_has_entered', 'true');
@@ -279,9 +263,7 @@ const AppContent = observer(() => {
 
             {is_loading ? (
                 <ChunkLoader
-                    message={localize(
-                        'Initializing Jixirio...'
-                    )}
+                    message={localize('Initializing Jixirio...')}
                 />
             ) : (
                 <AuthLoadingWrapper>
@@ -314,17 +296,10 @@ const AppContent = observer(() => {
 
 export default AppContent;
 
-Important: I spotted one duplicate "loginid" line in the object above while preparing it. Before you paste, use the corrected version below for that small section:
+After pasting, scroll all the way to the bottom and make sure the very last line is:
 
-const livechat_client_information = {
-    is_client_store_initialized: client?.is_logged_in ? true : !!client,
-    is_logged_in: client?.is_logged_in,
-    loginid: client?.loginid,
-    currency: client?.currency,
-    residence: client?.residence,
-    email: '',
-    first_name: '',
-    last_name: '',
-};
+"export default AppContent;"
 
-So replace that whole file, then commit once. After that, we test.
+Then Commit changes.
+
+Don't deploy/retry manually afterward. Netlify should automatically build the new commit.
