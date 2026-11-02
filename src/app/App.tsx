@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import React from 'react';
 import {
@@ -80,12 +81,12 @@ function App() {
         });
 
     React.useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
 
         const hasCallback =
-            urlParams.has('code') ||
-            urlParams.has('error') ||
-            urlParams.has('error_description');
+            params.has('code') ||
+            params.has('error') ||
+            params.has('error_description');
 
         if (!hasCallback) return;
 
@@ -103,7 +104,7 @@ function App() {
 
                 if (!authInfo?.access_token) {
                     throw new Error(
-                        'Deriv authentication returned no access token.'
+                        'Deriv did not return an access token.'
                     );
                 }
 
@@ -118,7 +119,7 @@ function App() {
 
                 if (!accounts || accounts.length === 0) {
                     throw new Error(
-                        'No Deriv accounts were returned after authentication.'
+                        'No Deriv accounts were returned.'
                     );
                 }
 
@@ -140,14 +141,13 @@ function App() {
                     isDemo ? 'demo' : 'real'
                 );
 
-                // Start the authenticated WebSocket before loading AppRoot.
-                const { api_base } = await import(
-                    '@/external/bot-skeleton'
-                );
-
-                await api_base.init(true);
+                // app-root.tsx will initialise the authenticated
+                // WebSocket after this callback has completed.
             } catch (error) {
-                console.error('[Jixirio] OAuth callback failed:', error);
+                console.error(
+                    '[Jixirio] OAuth callback failed:',
+                    error
+                );
             } finally {
                 cleanupUrl(window.location.origin);
                 setIsOAuthCallbackProcessing(false);
@@ -157,11 +157,12 @@ function App() {
         void handleCallback();
     }, []);
 
-    // Do not mount the normal app while OAuth is being processed.
     if (isOAuthCallbackProcessing) {
         return (
             <ChunkLoader
-                message={localize('Please wait while we connect to the server...')}
+                message={localize(
+                    'Please wait while we connect to the server...'
+                )}
             />
         );
     }
