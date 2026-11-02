@@ -9,7 +9,7 @@ import {
 } from 'react-router';
 import { cleanupUrl, handleOAuthCallback } from '@/external/deriv-core';
 import ChunkLoader from '@/components/loader/chunk-loader';
-import LocalStorageSyncWrapper from '@/components/local-storage-sync-wrapper';
+import LocalStorageSyncWrapper from '@/components/localStorage-sync-wrapper';
 import RoutePromptDialog from '@/components/route-prompt-dialog';
 import { useAccountSwitching } from '@/hooks/useAccountSwitching';
 import { useLanguageFromURL } from '@/hooks/useLanguageFromURL';
@@ -140,9 +140,6 @@ function App() {
                     'account_type',
                     isDemo ? 'demo' : 'real'
                 );
-
-                // app-root.tsx will initialise the authenticated
-                // WebSocket after this callback has completed.
             } catch (error) {
                 console.error(
                     '[Jixirio] OAuth callback failed:',
