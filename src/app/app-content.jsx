@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ToastContainer } from 'react-toastify';
@@ -56,6 +57,10 @@ const AppContent = observer(() => {
     const { recovered_transactions, recoverPendingContracts } = transactions;
     const is_subscribed_to_msg_listener = React.useRef(false);
     const msg_listener = React.useRef(null);
+
+    // Prevent duplicate active-symbol requests.
+    const activeSymbolsLoadingRef = React.useRef(false);
+
     const { connectionStatus } = useApiBase();
 
     useDevMode();
@@ -177,47 +182,65 @@ const AppContent = observer(() => {
     };
 
     const changeActiveSymbolLoadingState = () => {
+        // Avoid starting the same initialization twice.
+        if (activeSymbolsLoadingRef.current) return;
+
+        activeSymbolsLoadingRef.current = true;
+
         init();
 
-        const retrieveActiveSymbols = () => {
-            const { active_symbols } = ApiHelpers.instance;
+        let intervalId;
+        let finished = false;
 
-            if (!active_symbols) {
-                setIsLoading(false);
-                return;
+        const finishLoading = () => {
+            if (finished) return;
+
+            finished = true;
+
+            if (intervalId) {
+                window.clearInterval(intervalId);
             }
 
-            active_symbols
-                .retrieveActiveSymbols(true)
-                .then(() => {
-                    setIsLoading(false);
-                })
-                .catch(() => {
-                    setIsLoading(false);
-                });
+            window.clearTimeout(watchdogTimer);
+
+            activeSymbolsLoadingRef.current = false;
+            setIsLoading(false);
+        };
+
+        // Never leave the application on the loading screen indefinitely.
+        const watchdogTimer = window.setTimeout(() => {
+            finishLoading();
+        }, 12000);
+
+        const retrieveSymbols = () => {
+            const activeSymbols = ApiHelpers?.instance?.active_symbols;
+
+            if (!activeSymbols) return;
+
+            if (intervalId) {
+                window.clearInterval(intervalId);
+            }
+
+            Promise.resolve()
+                .then(() => activeSymbols.retrieveActiveSymbols(true))
+                .then(finishLoading)
+                .catch(finishLoading);
         };
 
         if (ApiHelpers?.instance?.active_symbols) {
-            retrieveActiveSymbols();
+            retrieveSymbols();
         } else {
-            const intervalId = setInterval(() => {
+            intervalId = window.setInterval(() => {
                 if (ApiHelpers?.instance?.active_symbols) {
-                    clearInterval(intervalId);
-                    retrieveActiveSymbols();
+                    retrieveSymbols();
                 }
             }, 500);
-
-            setTimeout(() => {
-                clearInterval(intervalId);
-                setIsLoading(false);
-            }, 6000);
         }
     };
 
     React.useEffect(() => {
         if (!is_api_initialized) return;
 
-        init();
         setIsLoading(true);
         changeActiveSymbolLoadingState();
 
