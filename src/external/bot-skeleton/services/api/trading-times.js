@@ -1,6 +1,9 @@
+
 import { getTradingTimes, TRADING_TIMES } from '../../../../components/shared/utils/common-data';
 import PendingPromise from '../../utils/pending-promise';
 import { api_base } from './api-base';
+
+const TRADING_TIMES_TIMEOUT = 8000;
 
 export default class TradingTimes {
     constructor({ ws, server_time }) {
@@ -42,8 +45,6 @@ export default class TradingTimes {
                         this.last_update_moment = next_update_moment.clone();
                     }
 
-                    // Retain the current market open close status, because the trade times
-                    // will now be the following day:
                     const is_open_map = {};
 
                     Object.keys(this.trading_times).forEach(symbol_name => {
@@ -56,12 +57,15 @@ export default class TradingTimes {
                         this.trading_times[symbol_name].is_opened = is_open_map[symbol_name];
                     });
 
-                    // next update date will be 00:00 hours (UTC) of the following day:
                     next_update_moment.set({ hour: 0, minute: 0, second: 0 });
                     next_update_date = next_update_moment.toDate();
                 }
 
-                const wait_period = next_update_date - this.server_time.local().toDate();
+                const wait_period = Math.max(
+                    1000,
+                    next_update_date - this.server_time.local().toDate()
+                );
+
                 this.update_timer = setTimeout(periodicUpdate, wait_period);
             };
 
@@ -73,16 +77,31 @@ export default class TradingTimes {
 
     async updateTradingTimes() {
         const last_update_date = this.last_update_moment.format('YYYY-MM-DD');
+        let timeoutId;
 
         try {
-            // Check if API is available
             if (!api_base.api && !this.ws) {
                 this.setTradingTimes();
                 return;
             }
 
-            const response = await (api_base.api?.send({ trading_times: last_update_date }) ||
-                this.ws?.send({ trading_times: last_update_date }));
+            const request =
+                api_base.api?.send({ trading_times: last_update_date }) ||
+                this.ws?.send({ trading_times: last_update_date });
+
+            if (!request) {
+                this.setTradingTimes();
+                return;
+            }
+
+            const response = await Promise.race([
+                Promise.resolve(request),
+                new Promise((_, reject) => {
+                    timeoutId = setTimeout(() => {
+                        reject(new Error('Trading times request timed out'));
+                    }, TRADING_TIMES_TIMEOUT);
+                }),
+            ]);
 
             if (response?.error) {
                 this.setTradingTimes();
@@ -104,7 +123,6 @@ export default class TradingTimes {
                 trading_times: { markets },
             } = response;
 
-            // Process markets within the try block
             markets?.forEach(market => {
                 const { submarkets } = market;
 
@@ -114,24 +132,29 @@ export default class TradingTimes {
                     symbols?.forEach(symbol_obj => {
                         const { times, underlying_symbol } = symbol_obj;
 
-                        // Validate symbol before processing
                         if (
                             !underlying_symbol ||
                             typeof underlying_symbol !== 'string' ||
                             underlying_symbol.trim() === ''
                         ) {
-                            console.warn(`[TradingTimes] Invalid symbol in API response:`, symbol_obj);
                             return;
                         }
 
-                        // Validate times data
                         if (!times || !times.open || !times.close) {
-                            console.warn(`[TradingTimes] Invalid times data for symbol ${underlying_symbol}:`, times);
                             return;
                         }
+
                         const { open, close } = times;
-                        const is_open_all_day = open.length === 1 && open[0] === '00:00:00' && close[0] === '23:59:59';
-                        const is_closed_all_day = open.length === 1 && open[0] === '--' && close[0] === '--';
+
+                        const is_open_all_day =
+                            open.length === 1 &&
+                            open[0] === '00:00:00' &&
+                            close[0] === '23:59:59';
+
+                        const is_closed_all_day =
+                            open.length === 1 &&
+                            open[0] === '--' &&
+                            close[0] === '--';
 
                         let processed_times;
 
@@ -141,6 +164,7 @@ export default class TradingTimes {
                                 close: getUTCDate(close[index]),
                             }));
                         }
+
                         this.trading_times[underlying_symbol] = {
                             is_open_all_day,
                             is_closed_all_day,
@@ -150,31 +174,31 @@ export default class TradingTimes {
                 });
             });
 
-            // Inject additional 1s volatility indices that may not be in the API response
             this.injectAdditionalTradingTimes();
 
-            // If no trading times were processed, use fallback
             if (Object.keys(this.trading_times).length === 0) {
                 this.setTradingTimes();
             }
         } catch (error) {
+            console.warn('[TradingTimes] Using fallback trading times:', error);
             this.setTradingTimes();
-            return;
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         }
     }
 
     injectAdditionalTradingTimes() {
-        // Additional 1s volatility indices to inject if not present in trading times response
         const additionalSymbols = ['1HZ15V', '1HZ30V', '1HZ90V'];
 
         additionalSymbols.forEach(symbol => {
             if (!this.trading_times[symbol]) {
-                // Add trading times for 1s volatility indices (they are open 24/7)
                 this.trading_times[symbol] = {
                     is_open_all_day: true,
                     is_closed_all_day: false,
                     times: undefined,
-                    is_opened: true, // Always open for volatility indices
+                    is_opened: true,
                 };
             }
         });
@@ -184,19 +208,19 @@ export default class TradingTimes {
         this.trading_times = {};
 
         TRADING_TIMES.SYMBOLS.forEach(symbol => {
-            // Validate symbol before processing
             if (symbol && typeof symbol === 'string' && symbol.trim() !== '') {
                 try {
                     const tradingTimeData = getTradingTimes(symbol);
-                    // Only add if we get valid data
+
                     if (tradingTimeData && typeof tradingTimeData === 'object') {
                         this.trading_times[symbol] = tradingTimeData;
                     }
                 } catch (error) {
-                    console.warn(`[TradingTimes] Failed to get trading times for symbol: ${symbol}`, error);
+                    console.warn(
+                        `[TradingTimes] Failed to get trading times for symbol: ${symbol}`,
+                        error
+                    );
                 }
-            } else {
-                console.warn(`[TradingTimes] Invalid symbol encountered: ${symbol}`);
             }
         });
     }
@@ -237,13 +261,12 @@ export default class TradingTimes {
 
     nextUpdateDate() {
         const now = this.server_time.local().toDate();
-
         let nextDate;
 
         Object.keys(this.trading_times).forEach(symbol_name => {
             const { times, is_open_all_day, is_closed_all_day } = this.trading_times[symbol_name];
 
-            if (is_open_all_day || is_closed_all_day) {
+            if (is_open_all_day || is_closed_all_day || !times) {
                 return;
             }
 
@@ -253,6 +276,7 @@ export default class TradingTimes {
                 if (open > now && (!nextDate || open < nextDate)) {
                     nextDate = open;
                 }
+
                 if (close > now && (!nextDate || close < nextDate)) {
                     nextDate = close;
                 }
@@ -269,11 +293,9 @@ export default class TradingTimes {
             return false;
         }
 
-        const isOpened = this.trading_times[symbol_name].is_opened;
-        return isOpened;
+        return this.trading_times[symbol_name].is_opened;
     }
 
-    // Method to get display name for symbols (used by active symbols)
     getSymbolDisplayName(symbol) {
         return TRADING_TIMES.SYMBOL_DISPLAY_NAMES[symbol] || symbol;
     }
