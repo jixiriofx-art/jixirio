@@ -1,3 +1,4 @@
+
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import classNames from 'classnames';
@@ -44,6 +45,7 @@ import Danalysis from '../danalysis';
 import Dashboard from '../dashboard';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
+import BestBots from './best-bots';
 import './main.scss';
 
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
@@ -611,11 +613,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-best-bots'
                             >
-                                <JixirioSection
-                                    id='id-best-bots'
-                                    title='Best Bots'
-                                    description='Explore carefully selected strategies and discover bots built for different trading approaches.'
-                                />
+                                <BestBots />
                             </div>
 
                             {/* AI ANALYSIS */}
