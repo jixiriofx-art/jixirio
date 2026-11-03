@@ -1,49 +1,64 @@
 
 .best-bots {
+    display: block;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
     padding: 24px;
     color: #f4eee5;
-    overflow-x: hidden;
+    overflow-x: clip;
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
 
     &__header {
-        margin-bottom: 28px;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 24px;
 
         h2 {
-            margin: 8px 0 14px;
+            margin: 8px 0 10px;
             color: #e8d9c5;
-            font-size: 28px;
+            font-size: 24px;
+            line-height: 1.25;
             font-weight: 700;
         }
 
         p {
+            max-width: 100%;
             margin: 0;
             color: #aaa49c;
-            font-size: 15px;
+            font-size: 13px;
             line-height: 1.5;
+            overflow-wrap: anywhere;
         }
     }
 
     &__table-wrap {
+        display: block;
         width: 100%;
         max-width: 100%;
         min-width: 0;
-        overflow-x: hidden;
+        overflow-x: auto;
         border-radius: 8px;
+        -webkit-overflow-scrolling: touch;
     }
 
     &__table {
         width: 100%;
         max-width: 100%;
-        table-layout: fixed;
         border-collapse: collapse;
+        table-layout: fixed;
         background: #171a19;
 
         th,
         td {
-            box-sizing: border-box;
+            min-width: 0;
+            padding: 12px;
             text-align: left;
             vertical-align: top;
             overflow-wrap: anywhere;
@@ -51,9 +66,9 @@
         }
 
         th {
-            padding: 13px 10px;
             color: #e8d9c5;
-            font-size: 14px;
+            font-size: 13px;
+            line-height: 1.4;
             font-weight: 700;
             border-bottom: 1px solid rgba(167, 179, 162, 0.25);
         }
@@ -71,9 +86,8 @@
         }
 
         td {
-            padding: 14px 10px;
-            border-bottom: 1px solid rgba(167, 179, 162, 0.2);
             background: #202321;
+            border-bottom: 1px solid rgba(167, 179, 162, 0.2);
         }
     }
 
@@ -81,18 +95,20 @@
         color: #f1e5d6;
         font-size: 13px;
         font-weight: 700;
-        line-height: 1.55;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
 
         span {
             color: #a276ed;
-            margin-right: 2px;
+            margin-right: 3px;
         }
     }
 
     &__description {
         color: #c3beb7;
-        font-size: 13px;
-        line-height: 1.65;
+        font-size: 12px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
     }
 
     &__action {
@@ -100,13 +116,15 @@
 
         button {
             max-width: 100%;
-            padding: 10px 9px;
+            padding: 9px 12px;
             border: 0;
             border-radius: 7px;
             background: #7135e8;
             color: #fff;
-            font-size: 13px;
+            font-size: 12px;
+            line-height: 1.2;
             font-weight: 700;
+            white-space: nowrap;
             cursor: pointer;
 
             &:hover {
@@ -116,55 +134,107 @@
     }
 }
 
-@media (max-width: 600px) {
+/* Phone layout: bot name and LOAD button on top,
+   description gets the full row beneath them. */
+@media screen and (max-width: 600px) {
     .best-bots {
-        padding: 18px 12px;
+        padding: 16px 12px 28px;
 
         &__header {
-            margin-bottom: 22px;
+            margin-bottom: 18px;
 
             h2 {
-                font-size: 25px;
+                font-size: 21px;
+                line-height: 1.3;
             }
 
             p {
-                font-size: 14px;
+                font-size: 12px;
+                line-height: 1.5;
             }
+        }
+
+        &__table-wrap {
+            overflow: visible;
+        }
+
+        &__table,
+        &__table tbody {
+            display: block;
+            width: 100%;
+            max-width: 100%;
         }
 
         &__table {
-            th {
-                padding: 11px 7px;
-                font-size: 12px;
+            table-layout: auto;
+            background: transparent;
+
+            thead {
+                display: none;
+            }
+
+            tbody tr {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    'name action'
+                    'description description';
+                align-items: start;
+                width: 100%;
+                min-width: 0;
+                margin-bottom: 12px;
+                border: 1px solid rgba(167, 179, 162, 0.2);
+                border-radius: 10px;
+                overflow: hidden;
+                background: #202321;
             }
 
             td {
-                padding: 12px 7px;
-            }
-
-            th:nth-child(1) {
-                width: 31%;
-            }
-
-            th:nth-child(2) {
-                width: 47%;
-            }
-
-            th:nth-child(3) {
-                width: 22%;
+                display: block;
+                min-width: 0;
+                padding: 11px;
+                border: 0;
             }
         }
 
-        &__name,
-        &__description {
+        &__name {
+            grid-area: name;
             font-size: 12px;
+            line-height: 1.4;
+            padding-right: 5px !important;
+        }
+
+        &__description {
+            grid-area: description;
+            width: 100%;
+            max-width: 100%;
+            padding-top: 3px !important;
+            color: #c3beb7;
+            font-size: 11px;
+            line-height: 1.55;
+            overflow-wrap: anywhere;
         }
 
         &__action {
+            grid-area: action;
+            padding-left: 4px !important;
+            text-align: right !important;
+
             button {
-                padding: 9px 7px;
-                font-size: 12px;
+                padding: 8px 11px;
+                font-size: 11px;
             }
+        }
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .best-bots {
+        padding-right: 9px;
+        padding-left: 9px;
+
+        &__description {
+            font-size: 10.5px;
         }
     }
 }
