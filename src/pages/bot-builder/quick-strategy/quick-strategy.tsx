@@ -9,11 +9,10 @@ import { config as qs_config } from '@/external/bot-skeleton';
 import { useStore } from '@/hooks/useStore';
 import { localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
-// Removed import for rudderStackSendCloseEvent as per V2 requirements - no close events needed
 import DesktopFormWrapper from './form-wrappers/desktop-form-wrapper';
 import MobileFormWrapper from './form-wrappers/mobile-form-wrapper';
 import MobileQSFooter from './form-wrappers/mobile-qs-footer';
-import { QsSteps } from './form-wrappers/trade-constants';
+import { QsSteps, STRATEGY_TRADE_ASSOCIATIONS } from './form-wrappers/trade-constants';
 import LossThresholdWarningDialog from './parts/loss-threshold-warning-dialog';
 import { STRATEGIES } from './config';
 import Form from './form';
@@ -166,7 +165,6 @@ const FormikWrapper: React.FC<TFormikWrapper> = observer(({ children }) => {
                                     }
                                 } else if (typeof validation === 'object') {
                                     if (validation?.type) {
-                                        // Use dynamic value if available
                                         const value = validation.getDynamicValue
                                             ? validation.getDynamicValue(quick_strategy)
                                             : validation.value;
@@ -208,12 +206,23 @@ const FormikWrapper: React.FC<TFormikWrapper> = observer(({ children }) => {
 const QuickStrategy = observer(() => {
     const { quick_strategy } = useStore();
     const { isDesktop } = useDevice();
-    const { is_open, setFormVisibility } = quick_strategy;
+    const { is_open, setFormVisibility, additional_data, selected_strategy } = quick_strategy;
 
     const [current_step, setCurrentStep] = React.useState(QsSteps.StrategySelect);
     const [selected_trade_type, setSelectedTradeType] = React.useState('');
 
-    // Prevent body scrolling when modal is open
+    React.useEffect(() => {
+        if (is_open && additional_data?.open_at_configuration) {
+            const strategy_association = STRATEGY_TRADE_ASSOCIATIONS.find(
+                item => item.name === selected_strategy
+            );
+
+            setSelectedTradeType(strategy_association?.parent?.[0] ?? localize('Options'));
+            setCurrentStep(QsSteps.StrategyVerified);
+            quick_strategy.setAdditionalData({ open_at_configuration: false });
+        }
+    }, [is_open, additional_data?.open_at_configuration, selected_strategy, quick_strategy]);
+
     React.useEffect(() => {
         if (is_open) {
             document.body.style.overflow = 'hidden';
@@ -227,7 +236,6 @@ const QuickStrategy = observer(() => {
     }, [is_open]);
 
     const handleClose = () => {
-        // Removed close event tracking as per V2 requirements
         setFormVisibility(false);
     };
 
@@ -252,7 +260,6 @@ const QuickStrategy = observer(() => {
                         <MobileFullPageModal
                             is_modal_open={is_open}
                             className='quick-strategy__wrapper'
-                            // Split localize calls are intentional - these are separate translatable strings
                             header={`${localize('Step {{current_step}}/2:', {
                                 current_step: current_step === QsSteps.StrategyCompleted ? 2 : 1,
                             })} ${localize('Choose your strategy')}`}
