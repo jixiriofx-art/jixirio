@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useStore } from '@/hooks/useStore';
 import { DBOT_TABS } from '@/constants/bot-contents';
@@ -10,26 +9,31 @@ type Bot = {
     name: string;
     description: string;
     strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN';
+    comingSoon?: boolean;
 };
 
 const bots: Bot[] = [
     {
         number: 1,
         name: 'Jixirio Universal Strategy Bot',
-        description: 'Martingale strategy with configurable market, contract, stake and risk controls.',
+        description:
+            'Martingale strategy with configurable market, contract, stake and risk controls.',
         strategy: 'MARTINGALE',
     },
     {
         number: 2,
         name: 'Jixirio D’Alembert Strategy Bot',
-        description: 'D’Alembert strategy with configurable market, contract, stake and risk controls.',
+        description:
+            'D’Alembert strategy with configurable market, contract, stake and risk controls.',
         strategy: 'D_ALEMBERT',
     },
     {
         number: 3,
         name: 'MAMBA X-MAN PRO V1',
-        description: 'Jixirio recreation with configurable trading and risk-management settings.',
+        description:
+            'Jixirio recreation with configurable trading and risk-management settings.',
         strategy: 'MAMBA_XMAN',
+        comingSoon: true,
     },
 ];
 
@@ -70,18 +74,12 @@ const BestBots = () => {
     const [error, setError] = useState('');
 
     const handleLoad = async (bot: Bot) => {
-        if (loadingStrategy) return;
+        if (loadingStrategy || bot.comingSoon) return;
 
         setLoadingStrategy(bot.strategy);
         setError('');
 
         try {
-            if (bot.strategy === 'MAMBA_XMAN') {
-                throw new Error(
-                    'MAMBA X-MAN PRO V1 is not ready yet. Choose one of the available Jixirio strategies.'
-                );
-            }
-
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
             const workspace = await waitForBlocklyWorkspace(blockly_store);
@@ -91,12 +89,37 @@ const BestBots = () => {
                     ? await import('../../xml/martingale_max-stake.xml')
                     : await import('../../xml/dalembert_max-stake.xml');
 
-            const strategyXml = strategyModule.default;
+            let strategyXml = strategyModule.default;
 
-            if (typeof strategyXml !== 'string' || !strategyXml.trim()) {
+            if (
+                typeof strategyXml !== 'string' ||
+                !strategyXml.trim()
+            ) {
                 throw new Error(
                     'The selected bot strategy file is empty or could not be loaded.'
                 );
+            }
+
+            // Correct the stale D’Alembert variable ID before loading.
+            if (bot.strategy === 'D_ALEMBERT') {
+                const staleVariableId = 'o((rBg*rL/qm;RU%PM7_';
+                const correctVariableId = 'Xv=?/_{i5i7(YfFJqUM2';
+
+                if (!strategyXml.includes(staleVariableId)) {
+                    throw new Error(
+                        'The D’Alembert strategy template has changed. Loading was stopped to prevent an invalid bot.'
+                    );
+                }
+
+                strategyXml = strategyXml
+                    .split(staleVariableId)
+                    .join(correctVariableId);
+
+                if (strategyXml.includes(staleVariableId)) {
+                    throw new Error(
+                        'The D’Alembert variable correction failed.'
+                    );
+                }
             }
 
             const strategyId =
@@ -121,13 +144,14 @@ const BestBots = () => {
 
             if (!hasTradeDefinition) {
                 throw new Error(
-                    'The bot did not load into the workspace. Please try again; the strategy has not been started.'
+                    'The bot did not load into the workspace. The strategy has not been started.'
                 );
             }
 
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
         } catch (err) {
             console.error('Failed to load Jixirio bot:', err);
+
             setError(
                 err instanceof Error
                     ? err.message
@@ -173,11 +197,16 @@ const BestBots = () => {
                                     <button
                                         type='button'
                                         onClick={() => handleLoad(bot)}
-                                        disabled={loadingStrategy !== null}
+                                        disabled={
+                                            loadingStrategy !== null ||
+                                            !!bot.comingSoon
+                                        }
                                     >
-                                        {loadingStrategy === bot.strategy
-                                            ? 'LOADING...'
-                                            : 'LOAD'}
+                                        {bot.comingSoon
+                                            ? 'COMING SOON'
+                                            : loadingStrategy === bot.strategy
+                                              ? 'LOADING...'
+                                              : 'LOAD'}
                                     </button>
                                 </td>
                             </tr>
