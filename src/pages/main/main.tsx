@@ -629,55 +629,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-ai-analysis'
                             >
-                                <JixirioSection
-                                    id='id-ai-analysis'
-                                    title='AI Analysis'
-                                    description='Read the market before you risk the trade.'
-                                >
-                                    <div className='jixirio-section__grid'>
-                                        <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>
-                                                AI SCANNER
-                                            </span>
-                                            <h2>Scan the market</h2>
-                                            <p>
-                                                Find potential setups across
-                                                supported Deriv markets.
-                                            </p>
-                                            <button type='button'>
-                                                Start scanning
-                                            </button>
-                                        </div>
-
-                                        <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>
-                                                ANALYSIS
-                                            </span>
-                                            <h2>Analyze a setup</h2>
-                                            <p>
-                                                Break down market conditions
-                                                before entering a trade.
-                                            </p>
-                                            <button type='button'>
-                                                Analyze
-                                            </button>
-                                        </div>
-
-                                        <div className='jixirio-card'>
-                                            <span className='jixirio-card__label'>
-                                                MATCHING BOT
-                                            </span>
-                                            <h2>Find a matching bot</h2>
-                                            <p>
-                                                Match market conditions with
-                                                an available strategy.
-                                            </p>
-                                            <button type='button'>
-                                                Find bot
-                                            </button>
-                                        </div>
-                                    </div>
-                                </JixirioSection>
+                                <Danalysis />
                             </div>
 
                             {/* DANALYSIS */}
