@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useStore } from '@/hooks/useStore';
 import './best-bots.scss';
@@ -31,13 +30,13 @@ const BestBots = () => {
     const { dashboard, quick_strategy } = useStore();
 
     const handleLoad = (strategy: string) => {
-        // Switch to the Bot Builder tab.
-        dashboard.setActiveTab(1);
-
-        // Select the requested existing Quick Strategy.
         quick_strategy.setSelectedStrategy(strategy);
 
-        // Open its configuration form.
+        quick_strategy.setAdditionalData({
+            open_at_configuration: true,
+        });
+
+        dashboard.setActiveTab(1);
         quick_strategy.setFormVisibility(true);
     };
 
