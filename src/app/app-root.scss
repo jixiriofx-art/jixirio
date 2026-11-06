@@ -1,12 +1,129 @@
+
+/* =========================================
+   JIXIRIO — GLOBAL RESPONSIVE FOUNDATION
+   ========================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+#root {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    min-width: 0;
+}
+
+/* Prevent application containers from exceeding the screen */
+
+.app-root,
+.bot-dashboard,
+.main,
+.main__container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Allow flex and grid children to shrink */
+
+.app-root *,
+.bot-dashboard *,
+.main *,
+.main__container * {
+    min-width: 0;
+}
+
+/* Keep media inside their containers */
+
+img,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+}
+
+/* Prevent long messages and text from stretching layouts */
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+td,
+th,
+li,
+a {
+    overflow-wrap: anywhere;
+}
+
+/* Keep code readable without stretching the page */
+
+pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+code {
+    overflow-wrap: anywhere;
+}
+
+/* Main application loading screen */
+
 .app-root {
-    height: 100vh;
-    width: 100vw;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.6rem;
+}
 
-    .load-message {
-        margin-top: 6rem;
+.app-root .load-message {
+    margin-top: 6rem;
+}
+
+/* Mobile responsiveness */
+
+@media screen and (max-width: 768px) {
+    html,
+    body,
+    #root {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .app-root {
+        width: 100%;
+        min-height: 100vh;
+        padding: 12px;
+    }
+
+    .bot-dashboard,
+    .main,
+    .main__container {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
 }
