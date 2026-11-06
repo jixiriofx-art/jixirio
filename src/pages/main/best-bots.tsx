@@ -1,11 +1,13 @@
 
 import React from 'react';
+import { useStore } from '@/hooks/useStore';
 import './best-bots.scss';
 
 type Bot = {
     number: number;
     name: string;
     description: string;
+    strategy: string;
 };
 
 const bots: Bot[] = [
@@ -13,21 +15,30 @@ const bots: Bot[] = [
         number: 1,
         name: 'Jixirio Universal Strategy Bot',
         description:
-            'A flexible manual trading bot designed for Even/Odd, Over/Under, Matches/Differs, Rise/Fall, Higher/Lower and other compatible Deriv contract types. Select your market and configure your trade before placing it.',
+            'Open the Quick Strategy builder to configure a Deriv contract and use the Martingale stake-management strategy. Choose your market, contract type and trade settings before running.',
+        strategy: 'MARTINGALE',
     },
     {
         number: 2,
-        name: 'Jixirio Precision Entry Bot',
+        name: 'Jixirio D’Alembert Strategy Bot',
         description:
-            'A selective Rise/Fall strategy that uses moving-average trend confirmation to help identify potential entries. Includes configurable trade settings and risk controls. Test on a demo account before using real funds.',
+            'Open the Quick Strategy builder with the D’Alembert stake-management strategy selected. Configure your market, contract type and trade settings before running.',
+        strategy: 'D_ALEMBERT',
     },
 ];
 
 const BestBots = () => {
-    const handleLoad = (botName: string) => {
-        window.alert(
-            `${botName} is being prepared. Its working Blockly strategy will be connected in the next implementation step.`
-        );
+    const { dashboard, quick_strategy } = useStore();
+
+    const handleLoad = (strategy: string) => {
+        // Switch to the Bot Builder tab.
+        dashboard.setActiveTab(1);
+
+        // Select the requested existing Quick Strategy.
+        quick_strategy.setSelectedStrategy(strategy);
+
+        // Open its configuration form.
+        quick_strategy.setFormVisibility(true);
     };
 
     return (
@@ -35,8 +46,8 @@ const BestBots = () => {
             <div className='best-bots__header'>
                 <h2>Best Bots</h2>
                 <p>
-                    Discover our trading strategies designed for different
-                    Deriv market types.
+                    Choose a strategy to configure in the Jixirio Bot Builder.
+                    Always test with a demo account first.
                 </p>
             </div>
 
@@ -64,7 +75,7 @@ const BestBots = () => {
                                 <td className='best-bots__action'>
                                     <button
                                         type='button'
-                                        onClick={() => handleLoad(bot.name)}
+                                        onClick={() => handleLoad(bot.strategy)}
                                     >
                                         LOAD
                                     </button>
