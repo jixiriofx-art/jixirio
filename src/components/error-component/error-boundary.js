@@ -9,6 +9,9 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch = (error, info) => {
+        console.error('[Jixirio] Uncaught React error:', error);
+        console.error('[Jixirio] Component stack:', info?.componentStack);
+
         if (window.TrackJS) window.TrackJS.console.log(this.props.root_store);
 
         this.setState({
@@ -17,7 +20,17 @@ class ErrorBoundary extends React.Component {
             info,
         });
     };
-    render = () => (this.state.hasError ? <ErrorComponent should_show_refresh={true} /> : this.props.children);
+
+    render = () =>
+        this.state.hasError ? (
+            <ErrorComponent
+                header="Jixirio diagnostic"
+                message={this.state.error?.message || 'Unknown application error.'}
+                should_show_refresh={true}
+            />
+        ) : (
+            this.props.children
+        );
 }
 
 ErrorBoundary.propTypes = {
