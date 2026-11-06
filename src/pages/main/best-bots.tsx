@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '@/hooks/useStore';
+import { DBOT_TABS } from '@/constants/bot-contents';
 import { save_types } from '@/external/bot-skeleton/constants/save-type';
 import './best-bots.scss';
 
@@ -15,43 +16,52 @@ const bots: Bot[] = [
     {
         number: 1,
         name: 'Jixirio Universal Strategy Bot',
-        description:
-            'Martingale strategy with configurable market, contract, stake and risk controls.',
+        description: 'Martingale strategy with configurable market, contract, stake and risk controls.',
         strategy: 'MARTINGALE',
     },
     {
         number: 2,
         name: 'Jixirio D’Alembert Strategy Bot',
-        description:
-            'D’Alembert strategy with configurable market, contract, stake and risk controls.',
+        description: 'D’Alembert strategy with configurable market, contract, stake and risk controls.',
         strategy: 'D_ALEMBERT',
     },
     {
         number: 3,
         name: 'MAMBA X-MAN PRO V1',
-        description:
-            'Jixirio recreation with configurable trading and risk-management settings.',
+        description: 'Jixirio recreation with configurable trading and risk-management settings.',
         strategy: 'MAMBA_XMAN',
     },
 ];
 
 const waitForBlocklyWorkspace = async (
     blocklyStore: { is_loading: boolean },
-    timeout = 15000
+    timeout = 20000
 ) => {
     const started = Date.now();
 
     while (Date.now() - started < timeout) {
         const workspace = window.Blockly?.derivWorkspace;
+        const builder = document.getElementById('scratch_div');
+        const builderIsVisible =
+            !!builder && builder.getBoundingClientRect().width > 0;
 
-        if (workspace && !blocklyStore.is_loading) {
+        if (
+            workspace &&
+            typeof workspace.getTopBlocks === 'function' &&
+            builderIsVisible &&
+            !blocklyStore.is_loading
+        ) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            window.Blockly.svgResize(workspace);
             return workspace;
         }
 
         await new Promise(resolve => setTimeout(resolve, 200));
     }
 
-    throw new Error('Blockly workspace failed to initialize.');
+    throw new Error(
+        'The Bot Builder did not finish opening. Please try loading the bot again.'
+    );
 };
 
 const BestBots = () => {
@@ -68,38 +78,60 @@ const BestBots = () => {
         try {
             if (bot.strategy === 'MAMBA_XMAN') {
                 throw new Error(
-                    'MAMBA X-MAN PRO V1 requires its own Blockly strategy template.'
+                    'MAMBA X-MAN PRO V1 is not ready yet. Choose one of the available Jixirio strategies.'
                 );
             }
 
-            dashboard.setActiveTab(1);
+            dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
-            await waitForBlocklyWorkspace(blockly_store);
+            const workspace = await waitForBlocklyWorkspace(blockly_store);
 
             const strategyModule =
                 bot.strategy === 'MARTINGALE'
                     ? await import('../../xml/martingale_max-stake.xml')
                     : await import('../../xml/dalembert_max-stake.xml');
 
-            const strategyId = `jixirio-${bot.strategy.toLowerCase()}-${Date.now()}`;
+            const strategyXml = strategyModule.default;
+
+            if (typeof strategyXml !== 'string' || !strategyXml.trim()) {
+                throw new Error(
+                    'The selected bot strategy file is empty or could not be loaded.'
+                );
+            }
+
+            const strategyId =
+                `jixirio-${bot.strategy.toLowerCase()}-${Date.now()}`;
 
             await load_modal.loadStrategyToBuilder(
                 {
                     id: strategyId,
                     name: bot.name,
-                    xml: strategyModule.default,
+                    xml: strategyXml,
                     save_type: save_types.UNSAVED,
                 },
-                true
+                false
             );
 
-            dashboard.setActiveTab(1);
+            window.Blockly.svgResize(workspace);
+
+            const loadedBlocks = workspace.getAllBlocks(false);
+            const hasTradeDefinition = loadedBlocks.some(
+                block => block.type === 'trade_definition'
+            );
+
+            if (!hasTradeDefinition) {
+                throw new Error(
+                    'The bot did not load into the workspace. Please try again; the strategy has not been started.'
+                );
+            }
+
+            dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
         } catch (err) {
             console.error('Failed to load Jixirio bot:', err);
             setError(
                 err instanceof Error
                     ? err.message
-                    : 'Unable to load the selected bot.'
+                    : 'Unable to load the selected bot. Please try again.'
             );
         } finally {
             setLoadingStrategy(null);
