@@ -1,4 +1,3 @@
-
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 /* eslint-disable no-underscore-dangle */
 import { action, computed, makeObservable, observable } from 'mobx';
@@ -136,6 +135,8 @@ export default class FlyoutStore implements IFlyoutStore {
             clearTimeout(this.flyout_width_timer);
             this.flyout_width_timer = undefined;
         }
+
+        this.flyout = null;
     }
 
     initFlyout() {
@@ -157,29 +158,39 @@ export default class FlyoutStore implements IFlyoutStore {
             theme: window?.Blockly?.Themes?.zelos_renderer,
         });
 
-        if (workspace.horizontalLayout) {
-            this.flyout = new window.Blockly.HorizontalFlyout(flyoutWorkspaceOptions);
-        } else {
-            this.flyout = new window.Blockly.VerticalFlyout(flyoutWorkspaceOptions);
-        }
+        try {
+            if (workspace.horizontalLayout) {
+                this.flyout = new window.Blockly.HorizontalFlyout(flyoutWorkspaceOptions);
+            } else {
+                this.flyout = new window.Blockly.VerticalFlyout(flyoutWorkspaceOptions);
+            }
 
-        if (!this.flyout?.workspace_) {
+            if (!this.flyout?.workspace_) {
+                this.flyout = null;
+                console.warn('Blockly flyout workspace could not be initialized.');
+                return;
+            }
+
+            this.flyout.targetWorkspace = workspace;
+            this.flyout.workspace_.targetWorkspace = workspace;
+            this.flyout.workspace_.getGesture = workspace.getGesture.bind(workspace);
+
+            const variable_map = workspace.getVariableMap();
+
+            if (!variable_map) {
+                this.flyout = null;
+                console.warn('Blockly main workspace variable map is unavailable.');
+                return;
+            }
+
+            workspace.VariableMap = variable_map;
+
+            if (typeof this.flyout.workspace_.createPotentialVariableMap === 'function') {
+                this.flyout.workspace_.createPotentialVariableMap();
+            }
+        } catch (error) {
             this.flyout = null;
-            console.warn('Blockly flyout workspace could not be initialized.');
-            return;
-        }
-
-        this.flyout.targetWorkspace = workspace;
-        this.flyout.workspace_.targetWorkspace = workspace;
-
-        // A flyout connected to a workspace uses the main workspace gesture.
-        this.flyout.workspace_.getGesture = workspace.getGesture.bind(workspace);
-
-        // Use the main workspace variable map.
-        workspace.VariableMap = workspace.getVariableMap();
-
-        if (typeof this.flyout.workspace_.createPotentialVariableMap === 'function') {
-            this.flyout.workspace_.createPotentialVariableMap();
+            console.error('Blockly flyout initialization failed:', error);
         }
     }
 
@@ -187,35 +198,84 @@ export default class FlyoutStore implements IFlyoutStore {
      * Initialises a workspace unique to the passed block_node.
      */
     initBlockWorkspace(el_block_workspace: HTMLElement, block_node: Node) {
-        const workspace = window.Blockly.inject(el_block_workspace, this.options);
+        const Blockly = window.Blockly;
+        const main_workspace = Blockly?.derivWorkspace;
 
-        workspace.targetWorkspace = window.Blockly.derivWorkspace;
+        if (
+            !Blockly ||
+            !main_workspace ||
+            typeof main_workspace.getVariableMap !== 'function' ||
+            !el_block_workspace ||
+            !block_node ||
+            !this.flyout
+        ) {
+            console.warn('Blockly block preview skipped because its workspace is not ready.');
+            return;
+        }
 
-        const block = window.Blockly.Xml.domToBlock(block_node, workspace);
-        const block_hw = block.getHeightWidth();
+        let workspace = null;
 
-        block.isInFlyout = true;
+        try {
+            workspace = Blockly.inject(el_block_workspace, this.options);
 
-        el_block_workspace.style.height = `${Math.ceil(block_hw.height * this.options.zoom.startScale) + 1}px`;
-        el_block_workspace.style.width = `${Math.ceil(block_hw.width * this.options.zoom.startScale) + 1}px`;
-        block.moveBy(1, 1);
+            if (!workspace || typeof workspace.getVariableMap !== 'function') {
+                workspace?.dispose?.();
+                console.warn('Blockly could not create the block preview workspace.');
+                return;
+            }
 
-        const block_svg_root = block.getSvgRoot();
+            workspace.targetWorkspace = main_workspace;
 
-        this.block_listeners.push(
-            window?.Blockly?.browserEvents?.conditionalBind(block_svg_root, 'mousedown', null, event => {
-                GTM?.pushDataLayer?.({
-                    event: 'dbot_drag_block',
-                    block_type: block.type,
-                });
-                this.flyout.blockMouseDown(block)(event as window.Blockly.Events.UiBase);
-            }),
-            window?.Blockly?.browserEvents?.bind(block_svg_root, 'mouseout', block, block.removeSelect),
-            window?.Blockly?.browserEvents?.bind(block_svg_root, 'mouseover', block, block.addSelect)
-        );
+            const block = Blockly.Xml.domToBlock(block_node, workspace);
 
-        this.block_workspaces.push(workspace);
-        window.Blockly.svgResize(workspace);
+            if (!block) {
+                workspace.dispose();
+                return;
+            }
+
+            const block_hw = block.getHeightWidth();
+
+            block.isInFlyout = true;
+
+            el_block_workspace.style.height = `${Math.ceil(block_hw.height * this.options.zoom.startScale) + 1}px`;
+            el_block_workspace.style.width = `${Math.ceil(block_hw.width * this.options.zoom.startScale) + 1}px`;
+            block.moveBy(1, 1);
+
+            const block_svg_root = block.getSvgRoot();
+
+            if (!block_svg_root) {
+                workspace.dispose();
+                return;
+            }
+
+            const listeners = [
+                Blockly?.browserEvents?.conditionalBind(block_svg_root, 'mousedown', null, event => {
+                    GTM?.pushDataLayer?.({
+                        event: 'dbot_drag_block',
+                        block_type: block.type,
+                    });
+
+                    if (this.flyout?.blockMouseDown) {
+                        this.flyout.blockMouseDown(block)(event as window.Blockly.Events.UiBase);
+                    }
+                }),
+                Blockly?.browserEvents?.bind(block_svg_root, 'mouseout', block, block.removeSelect),
+                Blockly?.browserEvents?.bind(block_svg_root, 'mouseover', block, block.addSelect),
+            ].filter(Boolean);
+
+            this.block_listeners.push(...listeners);
+            this.block_workspaces.push(workspace);
+
+            Blockly.svgResize(workspace);
+        } catch (error) {
+            try {
+                workspace?.dispose?.();
+            } catch (dispose_error) {
+                console.warn('Blockly preview cleanup failed:', dispose_error);
+            }
+
+            console.error('Blockly block preview initialization failed:', error);
+        }
     }
 
     getFlyout() {
@@ -244,7 +304,7 @@ export default class FlyoutStore implements IFlyoutStore {
     private cleanupBlockWorkspaces() {
         try {
             this.block_listeners.forEach(listener => {
-                if (listener && typeof window.Blockly.browserEvents.unbind === 'function') {
+                if (listener && typeof window.Blockly?.browserEvents?.unbind === 'function') {
                     window.Blockly.browserEvents.unbind(listener);
                 }
             });
@@ -381,4 +441,4 @@ export default class FlyoutStore implements IFlyoutStore {
     get first_get_variable_block_index() {
         return this.flyout_content.length - this.variables_blocks_count;
     }
-}
+        }
