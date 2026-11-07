@@ -26,15 +26,23 @@ const BotBuilder = observer(() => {
     const { onMount, onUnmount } = app;
     const el_ref = React.useRef<HTMLInputElement | null>(null);
 
-    // TODO: fix
-    // const isMounted = useIsMounted();
-    // const { data: remote_config_data } = useRemoteConfig(isMounted());
     let deleted_block_id: null | string = null;
 
     React.useEffect(() => {
         onMount();
         return () => onUnmount();
     }, [onMount, onUnmount]);
+
+    // Resize Blockly after its container becomes visible.
+    React.useEffect(() => {
+        if (active_tab !== 1 || is_preview_on_popup || is_loading) return;
+
+        const frame = window.requestAnimationFrame(() => {
+            blockly_store.setContainerSize();
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [active_tab, is_preview_on_popup, is_loading, blockly_store]);
 
     React.useEffect(() => {
         const workspace = window.Blockly?.derivWorkspace;
@@ -67,6 +75,7 @@ const BotBuilder = observer(() => {
         is_blockly_listener_registered.current = false;
         window.Blockly?.derivWorkspace?.removeChangeListener(handleBlockChangeOnBotRun);
     };
+
     React.useEffect(() => {
         const workspace = window.Blockly?.derivWorkspace;
         if (workspace && !is_blockly_delete_listener_registered.current) {
@@ -124,7 +133,6 @@ const BotBuilder = observer(() => {
                 </div>
             </div>
             {active_tab === 1 && <BotBuilderTourHandler is_mobile={!isDesktop} />}
-            {/* removed this outside from toolbar becuase it needs to loaded seperately without dependency */}
             <LoadModal />
             <SaveModal />
             {is_open && <QuickStrategy1 />}
