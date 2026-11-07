@@ -8,6 +8,7 @@ import { useStore } from '@/hooks/useStore';
 import { localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import { TBlocklyEvents } from 'Types';
+import { DBOT_TABS } from '@/constants/bot-contents';
 import LoadModal from '../../components/load-modal';
 import SaveModal from '../dashboard/bot-list/save-modal';
 import BotBuilderTourHandler from '../tutorials/dbot-tours/bot-builder-tour';
@@ -19,26 +20,54 @@ const BotBuilder = observer(() => {
     const { active_tab, active_tour, is_preview_on_popup } = dashboard;
     const { is_open } = quick_strategy;
     const { is_running } = run_panel;
-    const { is_loading } = useStore().blockly_store;
     const blockly_store = useStore().blockly_store;
     const is_blockly_listener_registered = React.useRef(false);
     const is_blockly_delete_listener_registered = React.useRef(false);
     const { isDesktop } = useDevice();
     const { onMount, onUnmount } = app;
-    const el_ref = React.useRef<HTMLInputElement | null>(null);
 
     let deleted_block_id: null | string = null;
 
+    // Initialize Blockly only after its container becomes visible.
     React.useEffect(() => {
-        onMount();
+        if (active_tab !== DBOT_TABS.BOT_BUILDER || is_preview_on_popup) {
+            return;
+        }
+
+        let cancelled = false;
+
+        onMount().catch(error => {
+            console.error('[Jixirio] Bot Builder initialization failed:', error);
+
+            if (!cancelled) {
+                botNotification(
+                    error instanceof Error
+                        ? error.message
+                        : 'Bot Builder initialization failed. Please reload and try again.',
+                    undefined,
+                    { type: 'error' }
+                );
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [active_tab, is_preview_on_popup, onMount]);
+
+    // Clean up only when the Bot Builder component unmounts.
+    React.useEffect(() => {
         return () => onUnmount();
-    }, [onMount, onUnmount]);
+    }, [onUnmount]);
 
     React.useEffect(() => {
-        if (active_tab !== 1 || is_preview_on_popup || is_loading) return;
+        if (active_tab !== DBOT_TABS.BOT_BUILDER || is_preview_on_popup || blockly_store.is_loading) {
+            return;
+        }
 
         const frame = window.requestAnimationFrame(() => {
             const workspace = window.Blockly?.derivWorkspace;
+
             if (workspace) {
                 window.Blockly.svgResize(workspace);
                 blockly_store.setContainerSize();
@@ -46,10 +75,11 @@ const BotBuilder = observer(() => {
         });
 
         return () => window.cancelAnimationFrame(frame);
-    }, [active_tab, is_preview_on_popup, is_loading, blockly_store]);
+    }, [active_tab, is_preview_on_popup, blockly_store.is_loading, blockly_store]);
 
     React.useEffect(() => {
         const workspace = window.Blockly?.derivWorkspace;
+
         if (workspace && is_running && !is_blockly_listener_registered.current) {
             is_blockly_listener_registered.current = true;
             workspace.addChangeListener(handleBlockChangeOnBotRun);
@@ -67,6 +97,7 @@ const BotBuilder = observer(() => {
 
     const handleBlockChangeOnBotRun = (e: Event) => {
         const { is_reset_button_clicked } = toolbar;
+
         if (e.type !== 'selected' && !is_reset_button_clicked) {
             botNotification(notification_message().workspace_change);
             removeBlockChangeListener();
@@ -82,26 +113,32 @@ const BotBuilder = observer(() => {
 
     React.useEffect(() => {
         const workspace = window.Blockly?.derivWorkspace;
+
         if (workspace && !is_blockly_delete_listener_registered.current) {
             is_blockly_delete_listener_registered.current = true;
             workspace.addChangeListener(handleBlockDelete);
         }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [is_loading]);
+    }, [blockly_store.is_loading]);
 
     const handleBlockDelete = (e: TBlocklyEvents) => {
         const { is_reset_button_clicked, setResetButtonState } = toolbar;
+
         if (e.type === 'undo') {
             deleted_block_id = null;
             return;
         }
+
         if (e.type === 'delete' && !is_reset_button_clicked) {
             deleted_block_id = e.blockId;
         }
+
         if (e.type === 'selected' && deleted_block_id === e.oldElementId) {
             handleBlockDeleteNotification();
             deleted_block_id = null;
         }
+
         if (
             e.type === 'change' &&
             e.name === 'AMOUNT_LIMITS' &&
@@ -126,16 +163,21 @@ const BotBuilder = observer(() => {
         <>
             <div
                 className={classNames('bot-builder', {
-                    'bot-builder--active': active_tab === 1 && !is_preview_on_popup,
+                    'bot-builder--active':
+                        active_tab === DBOT_TABS.BOT_BUILDER && !is_preview_on_popup,
                     'bot-builder--inactive': is_preview_on_popup,
                     'bot-builder--tour-active': active_tour,
                 })}
             >
-                <div id='scratch_div' ref={el_ref}>
+                <div id='scratch_div'>
                     <WorkspaceWrapper />
                 </div>
             </div>
-            {active_tab === 1 && <BotBuilderTourHandler is_mobile={!isDesktop} />}
+
+            {active_tab === DBOT_TABS.BOT_BUILDER && (
+                <BotBuilderTourHandler is_mobile={!isDesktop} />
+            )}
+
             <LoadModal />
             <SaveModal />
             {is_open && <QuickStrategy1 />}
