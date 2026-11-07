@@ -1,3 +1,4 @@
+
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 /* eslint-disable no-underscore-dangle */
 import { action, computed, makeObservable, observable } from 'mobx';
@@ -48,6 +49,8 @@ export default class FlyoutStore implements IFlyoutStore {
     block_workspaces = [];
     flyout_min_width = 440;
     flyout_width_timer: ReturnType<typeof setTimeout> | undefined = undefined;
+    flyout_init_timer: ReturnType<typeof setTimeout> | undefined = undefined;
+
     options = {
         renderer: 'zelos',
         media: `${window.__webpack_public_path__}assets/media/`,
@@ -97,18 +100,38 @@ export default class FlyoutStore implements IFlyoutStore {
     }
 
     onMount() {
-        this.initFlyout();
-        window.addEventListener('click', this.onClickOutsideFlyout);
+        const initialize = () => {
+            const workspace = window.Blockly?.derivWorkspace;
+
+            if (!workspace || typeof workspace.getVariableMap !== 'function') {
+                this.flyout_init_timer = setTimeout(initialize, 100);
+                return;
+            }
+
+            if (!this.flyout) {
+                this.initFlyout();
+            }
+
+            if (this.flyout) {
+                window.addEventListener('click', this.onClickOutsideFlyout);
+            }
+        };
+
+        initialize();
     }
 
     onUnmount() {
         window.removeEventListener('click', this.onClickOutsideFlyout);
-        // Enhanced cleanup on unmount to prevent memory leaks
+
+        if (this.flyout_init_timer) {
+            clearTimeout(this.flyout_init_timer);
+            this.flyout_init_timer = undefined;
+        }
+
         this.cleanupBlockWorkspaces();
         this.flyout_content = [];
         this.selected_category = null;
 
-        // Clean up flyout width timer
         if (this.flyout_width_timer) {
             clearTimeout(this.flyout_width_timer);
             this.flyout_width_timer = undefined;
@@ -116,7 +139,16 @@ export default class FlyoutStore implements IFlyoutStore {
     }
 
     initFlyout() {
-        const workspace = window.Blockly.derivWorkspace;
+        const workspace = window.Blockly?.derivWorkspace;
+
+        if (
+            !workspace ||
+            typeof workspace.getVariableMap !== 'function' ||
+            typeof workspace.getGesture !== 'function'
+        ) {
+            console.warn('Blockly main workspace is not ready. Flyout initialization skipped.');
+            return;
+        }
 
         const flyoutWorkspaceOptions = new window.Blockly.Options({
             parentWorkspace: workspace,
@@ -131,23 +163,28 @@ export default class FlyoutStore implements IFlyoutStore {
             this.flyout = new window.Blockly.VerticalFlyout(flyoutWorkspaceOptions);
         }
 
+        if (!this.flyout?.workspace_) {
+            this.flyout = null;
+            console.warn('Blockly flyout workspace could not be initialized.');
+            return;
+        }
+
         this.flyout.targetWorkspace = workspace;
         this.flyout.workspace_.targetWorkspace = workspace;
 
-        // A flyout connected to a workspace doesn't have its own current gesture.
-        this.flyout.workspace_.getGesture = this.flyout.targetWorkspace.getGesture.bind(this.flyout.targetWorkspace_);
+        // A flyout connected to a workspace uses the main workspace gesture.
+        this.flyout.workspace_.getGesture = workspace.getGesture.bind(workspace);
 
-        // Get variables from the main workspace rather than the target workspace.
-        workspace.VariableMap = this.flyout.targetWorkspace.getVariableMap();
+        // Use the main workspace variable map.
+        workspace.VariableMap = workspace.getVariableMap();
 
-        this.flyout.workspace_.createPotentialVariableMap();
+        if (typeof this.flyout.workspace_.createPotentialVariableMap === 'function') {
+            this.flyout.workspace_.createPotentialVariableMap();
+        }
     }
 
     /**
-     * Intialises a workspace unique to the passed block_node
-     * @param {Element} el_block_workspace Element where window.Blockly.Workspace will be mounted on
-     * @param {Element} block_node DOM of a window.Blockly.Block
-     * @memberof FlyoutStore
+     * Initialises a workspace unique to the passed block_node.
      */
     initBlockWorkspace(el_block_workspace: HTMLElement, block_node: Node) {
         const workspace = window.Blockly.inject(el_block_workspace, this.options);
@@ -155,18 +192,14 @@ export default class FlyoutStore implements IFlyoutStore {
         workspace.targetWorkspace = window.Blockly.derivWorkspace;
 
         const block = window.Blockly.Xml.domToBlock(block_node, workspace);
-        // Using block.getHeightWidth() here because getDimentions() also calls window.Blockly.Xml.domToBlock
         const block_hw = block.getHeightWidth();
 
         block.isInFlyout = true;
 
-        // Update block workspace widths to accommodate block widths.
-        // addind 1px to highet and then moving the block 1px down to make block top border visible
         el_block_workspace.style.height = `${Math.ceil(block_hw.height * this.options.zoom.startScale) + 1}px`;
         el_block_workspace.style.width = `${Math.ceil(block_hw.width * this.options.zoom.startScale) + 1}px`;
         block.moveBy(1, 1);
 
-        // Use original Blockly flyout functionality to create block on drag.
         const block_svg_root = block.getSvgRoot();
 
         this.block_listeners.push(
@@ -190,17 +223,12 @@ export default class FlyoutStore implements IFlyoutStore {
     }
 
     /**
-     * Parses XML contents passed by window.Blockly.Toolbox. Supports all default
-     * window.Blockly.Flyout elements i.e. <block>, <label>, <button> in their
-     * original format, e.g. <label text="Hello World" />
-     * @param {Element[]} xml_list list of XML nodes
-     * @memberof FlyoutStore
+     * Parses XML contents passed by window.Blockly.Toolbox.
      */
     setContents(xml_list: Element[], search_term = '') {
         const text_limit = 20;
         const processed_xml = xml_list;
 
-        // Enhanced cleanup to prevent memory leaks
         this.cleanupBlockWorkspaces();
 
         this.is_help_content = false;
@@ -208,17 +236,12 @@ export default class FlyoutStore implements IFlyoutStore {
         this.flyout_content = xml_list;
 
         this.setFlyoutWidth(processed_xml);
-
-        // Show flyout when content is set (especially for search results)
         this.setVisibility(true);
 
-        // apparently setFlyoutWidth doesn't calculate blocks dimentions until they're visible
-        // using setTimeout is a workaround to solve this issue
         setTimeout(() => this.setFlyoutWidth(processed_xml), 50);
     }
 
     private cleanupBlockWorkspaces() {
-        // More thorough cleanup of listeners and workspaces
         try {
             this.block_listeners.forEach(listener => {
                 if (listener && typeof window.Blockly.browserEvents.unbind === 'function') {
@@ -244,18 +267,13 @@ export default class FlyoutStore implements IFlyoutStore {
     }
 
     /**
-     * Walks through xmlList and finds width of the longest block while setting
-     * height and width (in workspace pixels) attributes on each of the block nodes.
-     * @param {Element[]} xmlList
-     * @memberof FlyoutStore
+     * Calculates the width of the flyout based on its XML blocks.
      */
     setFlyoutWidth(xmlList: Element[]) {
-        // Throttle flyout width calculations to prevent excessive DOM operations
         if (this.flyout_width_timer) {
             clearTimeout(this.flyout_width_timer);
         }
 
-        // Browser-specific throttle delay (Safari/Firefox)
         const throttleDelay = browserOptimizer.getThrottleDelay();
 
         this.flyout_width_timer = setTimeout(() => {
@@ -264,7 +282,6 @@ export default class FlyoutStore implements IFlyoutStore {
     }
 
     private calculateFlyoutWidth(xmlList: Element[]) {
-        // Browser-specific DOM operation wrapper (Safari/Firefox)
         browserOptimizer.safeDOMOperation(() => {
             let longest_block_width = 0;
 
@@ -277,6 +294,7 @@ export default class FlyoutStore implements IFlyoutStore {
 
                         node.setAttribute('width', String(Math.ceil(block_hw.width * this.options.zoom.startScale)));
                         node.setAttribute('height', String(Math.ceil(block_hw.height * this.options.zoom.startScale)));
+
                         longest_block_width = Math.max(
                             longest_block_width,
                             Math.ceil(block_hw.width * this.options.zoom.startScale)
@@ -294,8 +312,6 @@ export default class FlyoutStore implements IFlyoutStore {
 
     /**
      * Sets whether the flyout is visible or not.
-     * @param {boolean} is_visible
-     * @memberof FlyoutStore
      */
     setVisibility(is_visible: boolean) {
         this.is_visible = is_visible;
@@ -305,13 +321,15 @@ export default class FlyoutStore implements IFlyoutStore {
             this.flyout_content = [];
         }
 
-        window.Blockly.derivWorkspace.isFlyoutVisible = is_visible;
+        const workspace = window.Blockly?.derivWorkspace;
+
+        if (workspace) {
+            workspace.isFlyoutVisible = is_visible;
+        }
     }
 
     /**
      * Sets whether the flyout is search or not.
-     * @param {boolean} is_search
-     * @memberof FlyoutStore
      */
     setIsSearchFlyout(is_search: boolean) {
         this.is_search_flyout = is_search;
@@ -329,7 +347,7 @@ export default class FlyoutStore implements IFlyoutStore {
      * Close the flyout on click outside itself or parent toolbox.
      */
     onClickOutsideFlyout(event: MouseEvent) {
-        if (!this.is_visible || !window.Blockly.derivWorkspace) {
+        if (!this.is_visible || !window.Blockly?.derivWorkspace) {
             return;
         }
 
@@ -339,6 +357,7 @@ export default class FlyoutStore implements IFlyoutStore {
         const is_flyout_click = path.some(
             el => (el as Element).classList && (el as Element).classList.contains('flyout')
         );
+
         const is_search_focus = this.root_store.toolbox.is_search_focus;
         const isToolboxClick = () => toolbox?.contains(event.target as Node);
 
