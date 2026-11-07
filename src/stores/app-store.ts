@@ -61,32 +61,33 @@ export default class AppStore {
             return;
         }
 
+        // Keep the builder in its loading state until Blockly has really
+        // finished initializing. Do not abandon initialization after 15s.
         blockly_store.setLoading(true);
 
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
         let workspaceInitialized = false;
 
         try {
-            const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => {
-                    reject(
-                        new Error(
-                            'Blockly workspace initialization timed out after 15 seconds.'
-                        )
-                    );
-                }, WORKSPACE_INIT_TIMEOUT_MS);
-            });
+            timeoutId = setTimeout(() => {
+                console.warn(
+                    `[Jixirio] Blockly is still initializing after ${WORKSPACE_INIT_TIMEOUT_MS / 1000} seconds. Waiting for it to finish.`
+                );
+            }, WORKSPACE_INIT_TIMEOUT_MS);
 
-            await Promise.race([
-                DBot.initWorkspace(
-                    '/',
-                    this.dbot_store,
-                    this.api_helpers_store,
-                    ui.is_mobile,
-                    false
-                ),
-                timeoutPromise,
-            ]);
+            await DBot.initWorkspace(
+                '/',
+                this.dbot_store,
+                this.api_helpers_store,
+                ui.is_mobile,
+                false
+            );
+
+            if (!window.Blockly?.derivWorkspace) {
+                throw new Error(
+                    'Blockly initialization finished without creating a workspace.'
+                );
+            }
 
             workspaceInitialized = true;
             blockly_store.setContainerSize();
@@ -100,7 +101,6 @@ export default class AppStore {
                 clearTimeout(timeoutId);
             }
 
-            // Always release the loading overlay, even if initialization fails.
             blockly_store.setLoading(false);
         }
 
