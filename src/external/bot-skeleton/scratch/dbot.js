@@ -70,7 +70,6 @@ class DBot {
                                 }
                             })
                             .catch(error => {
-                                // Error getting trade type categories
                                 console.error('Error fetching trade type categories:', error);
                             });
                         that.symbol = symbol;
@@ -101,7 +100,6 @@ class DBot {
                                 }
                             })
                             .catch(error => {
-                                // Error getting trade types
                                 console.error('Error fetching trade types:', error);
                             });
                     }
@@ -127,8 +125,11 @@ class DBot {
                         workspaceScale = zoom_scale;
                     }
                 }
+
                 const el_scratch_div = document.getElementById('scratch_div');
+
                 if (!el_scratch_div) {
+                    reject(new Error('[Jixirio] Bot Builder container #scratch_div was not mounted.'));
                     return;
                 }
 
@@ -140,6 +141,10 @@ class DBot {
                     scrollbars: true,
                     theme: window.Blockly.Themes.zelos_renderer,
                 });
+
+                if (!this.workspace || typeof this.workspace.getVariableMap !== 'function') {
+                    throw new Error('[Jixirio] Blockly failed to create a valid workspace.');
+                }
 
                 this.workspace.RTL = isDbotRTL();
 
@@ -170,7 +175,6 @@ class DBot {
                 this.addBeforeRunFunction(this.checkForErroredBlocks.bind(this));
                 this.addBeforeRunFunction(this.checkForRequiredBlocks.bind(this));
 
-                // Push main.xml to workspace and reset the undo stack.
                 this.workspace.current_strategy_id = window.Blockly.utils.idGenerator.genUid();
 
                 window.Blockly.derivWorkspace.strategy_to_load = main_xml;
@@ -202,18 +206,14 @@ class DBot {
                 window.dispatchEvent(new Event('resize'));
                 window.addEventListener('dragover', DBot.handleDragOver);
                 window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
-                // disable overflow
                 el_scratch_div.parentNode.style.overflow = 'hidden';
                 resolve();
             } catch (error) {
-                // TODO: Handle error.
                 reject(error);
-                throw error;
             }
         });
     }
 
-    /** Compare stored strategy xml with currently running xml */
     isStrategyUpdated(current_xml_dom, recent_files) {
         if (recent_files && recent_files.length) {
             const stored_strategy = recent_files.filter(
@@ -231,8 +231,6 @@ class DBot {
         return true;
     }
 
-    /** Saves the current workspace to local storage
-     * and update saved status if strategy changes  */
     async saveRecentWorkspace() {
         const current_xml_dom = this?.workspace ? Blockly?.Xml?.workspaceToDom(this.workspace) : null;
         try {
@@ -246,11 +244,6 @@ class DBot {
         }
     }
 
-    /**
-     * Allows you to add a function that needs to be executed before running the bot. Each
-     * function needs to return true in order for the bot to run.
-     * @param {Function} func Function to execute which returns true/false.
-     */
     addBeforeRunFunction(func) {
         this.before_run_funcs.push(func);
     }
@@ -265,10 +258,7 @@ class DBot {
         }
         this.interpreter = Interpreter();
     }
-    /**
-     * Runs the bot. Does a sanity check before attempting to generate the
-     * JavaScript code that's fed to the interpreter.
-     */
+
     runBot() {
         if (api_base.is_stopping) return;
 
@@ -293,10 +283,6 @@ class DBot {
         }
     }
 
-    /**
-     * Generates the code that is passed to the interpreter.
-     * @param {Object} limitations Optional limitations (legacy argument)
-     */
     generateCode(limitations = {}) {
         return `
             var BinaryBotPrivateInit;
@@ -308,7 +294,6 @@ class DBot {
             var BinaryBotPrivateTickAnalysisList = [];
             var BinaryBotPrivateHasCalledTradeOptions = false;
 
-           
             function recursiveList(list, final_list){
                 for(var i=0; i < list.length; i++){
                     if(typeof(list[i]) === 'object'){
@@ -316,7 +301,6 @@ class DBot {
                     }
                     if(typeof(list[i]) == 'number'){
                         final_list.push(list[i]);   
-                                  
                     }
                 }
                 return final_list;
@@ -364,14 +348,9 @@ class DBot {
                     break;
                 }
             }
-            
-            `;
+        `;
     }
 
-    /**
-     * Instructs the interpreter to stop the bot. If there is an active trade
-     * that trade will be completed first to reflect correct contract status in UI.
-     */
     async stopBot() {
         if (api_base.is_stopping) return;
 
@@ -385,9 +364,6 @@ class DBot {
         forgetAccumulatorsProposalRequest(this);
     }
 
-    /**
-     * Immediately instructs the interpreter to terminate the WS connection and bot.
-     */
     async terminateBot() {
         if (this.interpreter) {
             await this.interpreter.terminateSession();
@@ -401,10 +377,6 @@ class DBot {
         api_base.terminate();
     };
 
-    /**
-     * Unselects any selected block before running the bot.
-     */
-    // eslint-disable-next-line class-methods-use-this
     unselectBlocks() {
         if (window.Blockly.getSelected()) {
             window.Blockly.getSelected().unselect();
@@ -412,9 +384,6 @@ class DBot {
         return true;
     }
 
-    /**
-     * Disable blocks outside of any main or independent blocks.
-     */
     disableStrayBlocks() {
         const top_blocks = this.workspace.getTopBlocks();
         top_blocks.forEach(block => {
@@ -425,9 +394,6 @@ class DBot {
         return true;
     }
 
-    /**
-     * Disable blocks and their optional children.
-     */
     disableBlocksRecursively(block) {
         block.setDisabled(true);
         if (block.nextConnection?.targetConnection) {
@@ -435,17 +401,12 @@ class DBot {
         }
     }
 
-    /**
-     * Check if there are any blocks highlighted for errors.
-     */
     checkForErroredBlocks() {
-        // Force a check on value inputs.
         this.valueInputLimitationsListener({}, true);
 
         const all_blocks = this.workspace.getAllBlocks(true);
         const error_blocks = all_blocks
             .filter(block => block.is_error_highlighted && !block.disabled)
-            // filter out duplicated error message
             .filter((block, index, self) => index === self.findIndex(b => b.error_message === block.error_message));
 
         if (!error_blocks.length) {
@@ -482,20 +443,10 @@ class DBot {
         this.workspace?.getAllBlocks().forEach(block => block.setErrorHighlighted(false));
     }
 
-    /**
-     * Checks whether the workspace contains all required blocks before running the strategy.
-     */
     checkForRequiredBlocks() {
         return isAllRequiredBlocksEnabled(this.workspace);
     }
 
-    /**
-     * Checks all blocks in the workspace to see if they need to be highlighted
-     * in case one of their inputs is not populated, returns an empty value, or doesn't
-     * pass the custom validator.
-     * Note: The value passed to the custom validator is always a string value
-     * @param {window.Blockly.Event} event Workspace event
-     */
     valueInputLimitationsListener(event, force_check = false) {
         if (!force_check && (!this.workspace || this.workspace.isDragging())) {
             return;
@@ -551,7 +502,6 @@ class DBot {
                 isChangeInMyInputs(block) ||
                 isParentEnabledEvent(block)
             ) {
-                // Unhighlight disabled blocks and their optional children.
                 if (block.disabled) {
                     const unhighlightRecursively = child_blocks => {
                         child_blocks.forEach(child_block => {
@@ -564,7 +514,6 @@ class DBot {
                     return;
                 }
 
-                // No required inputs, ignore this block.
                 if (!block.getRequiredValueInputs) {
                     return;
                 }
@@ -572,14 +521,13 @@ class DBot {
                 const required_inputs_object = block.getRequiredValueInputs();
                 const required_input_names = Object.keys(required_inputs_object);
                 const should_highlight = required_input_names.some(input_name => {
-                    const is_selected = window.Blockly.getSelected() === block; // Don't highlight selected blocks.
-                    const is_disabled = block.disabled || block.getInheritedDisabled(); // Don't highlight disabled blocks.
+                    const is_selected = window.Blockly.getSelected() === block;
+                    const is_disabled = block.disabled || block.getInheritedDisabled();
 
                     if (is_selected || is_disabled) {
                         return false;
                     }
 
-                    // Don't unhighlight collapsed blocks with highlighted descendants.
                     if (block.isCollapsed() && block.hasErrorHighlightedDescendant()) {
                         return true;
                     }
@@ -597,14 +545,10 @@ class DBot {
                         );
                         const inputValidatorFn = required_inputs_object[input_name];
 
-                        // If a custom validator was supplied, use this to determine whether
-                        // the block should be highlighted.
                         if (typeof inputValidatorFn === 'function') {
                             return !!inputValidatorFn(value);
                         }
 
-                        // If there's no custom validator, only check if input was populated and
-                        // doesn't return an empty value.
                         return !value;
                     }
 
@@ -612,13 +556,11 @@ class DBot {
                 });
 
                 if (should_highlight) {
-                    // Remove select highlight in favour of error highlight.
                     block.removeSelect();
                 }
 
                 block.setErrorHighlighted(should_highlight, block.error_message || undefined);
 
-                // Automatically expand blocks that have been highlighted.
                 if (force_check && (block.is_error_highlighted || block.hasErrorHighlightedDescendant())) {
                     let current_collapsed_block = block;
                     while (current_collapsed_block) {
@@ -630,9 +572,6 @@ class DBot {
         });
     }
 
-    /**
-     * Checks whether the workspace contains non-silent notification blocks. Returns array of names for audio files to be played.
-     */
     getStrategySounds() {
         const all_blocks = this.workspace.getAllBlocks();
         const notify_blocks = all_blocks.filter(block => block.type === 'notify');
@@ -652,7 +591,7 @@ class DBot {
     static handleDragOver(event) {
         event.stopPropagation();
         event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy'; // eslint-disable-line no-param-reassign
+        event.dataTransfer.dropEffect = 'copy';
     }
 
     static handleDropOver(event, handleFileChange) {
