@@ -1,3 +1,4 @@
+
 import { save_types } from '../constants';
 import { config } from '../constants/config';
 import { api_base } from '../services/api/api-base';
@@ -245,7 +246,30 @@ class DBot {
     }
 
     shouldRunBot() {
-        return this.before_run_funcs.every(func => !!func());
+        const activeWorkspace = window.Blockly?.derivWorkspace;
+
+        if (!activeWorkspace || typeof activeWorkspace.getVariableMap !== 'function') {
+            globalObserver.emit(
+                'ui.log.error',
+                '[Jixirio] Bot Builder workspace is not ready. Load a bot first.'
+            );
+            return false;
+        }
+
+        this.workspace = activeWorkspace;
+
+        if (!this.before_run_funcs.length) {
+            return false;
+        }
+
+        return this.before_run_funcs.every(func => {
+            try {
+                return !!func();
+            } catch (error) {
+                globalObserver.emit('Error', error);
+                return false;
+            }
+        });
     }
 
     async initializeInterpreter() {
@@ -280,7 +304,12 @@ class DBot {
     }
 
     generateCode(limitations = {}) {
-        const workspace = this.workspace;
+        const activeWorkspace = window.Blockly?.derivWorkspace;
+        const workspace =
+            activeWorkspace && typeof activeWorkspace.getVariableMap === 'function'
+                ? activeWorkspace
+                : this.workspace;
+
         const generator = window.Blockly?.JavaScript?.javascriptGenerator;
 
         if (
@@ -289,8 +318,12 @@ class DBot {
             !generator ||
             typeof generator.workspaceToCode !== 'function'
         ) {
-            throw new Error('[Jixirio] Bot Builder workspace is not ready. Please load a bot before running.');
+            throw new Error(
+                '[Jixirio] Bot Builder workspace is not ready. Please load a bot before running.'
+            );
         }
+
+        this.workspace = workspace;
 
         return `
             var BinaryBotPrivateInit;
