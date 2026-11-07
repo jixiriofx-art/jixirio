@@ -1,7 +1,6 @@
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/devices' as *;
 
-/* Keep Blockly measurable even while the builder is inactive. */
 .bot-builder {
     display: block;
     position: absolute;
@@ -12,7 +11,7 @@
     visibility: hidden;
     pointer-events: none;
     overflow: hidden;
-    background: #080d1a;
+    background: #ffffff;
 }
 
 .bot-builder--active {
@@ -21,6 +20,7 @@
     top: auto;
     visibility: visible;
     pointer-events: auto;
+    background: #ffffff;
 }
 
 .bot-builder--inactive {
@@ -33,10 +33,7 @@
     height: var(--bot-content-height, calc(100vh - 22rem));
     min-height: 420px;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 75% 20%, rgba(0, 230, 118, 0.045), transparent 30%),
-        radial-gradient(circle at 15% 80%, rgba(56, 189, 248, 0.04), transparent 28%),
-        linear-gradient(145deg, #080d1a, #04060d);
+    background: #ffffff;
 }
 
 .injectionDiv {
@@ -46,40 +43,29 @@
     min-height: 420px;
     touch-action: pan-x pan-y;
     overflow: hidden;
-    background: transparent;
+    background: #ffffff;
 }
 
-.blocklySvg {
-    background: transparent !important;
-}
-
+.blocklySvg,
 .blocklyWorkspace {
-    background: transparent;
+    background: #ffffff !important;
 }
 
 .blocklyMainBackground {
-    fill: #080d1a !important;
+    fill: #ffffff !important;
 }
 
 .blocklyFlyoutBackground {
-    fill: #0b1120 !important;
-    fill-opacity: 0.98;
+    fill: #f1f5f9 !important;
+    fill-opacity: 1;
 }
 
 .blocklyToolboxDiv {
-    background: #0a0f1d !important;
+    background: #f8fafc !important;
 }
 
-.blocklyScrollbarHandle {
-    fill: rgba(148, 163, 184, 0.28) !important;
-}
-
-.blocklyScrollbarBackground {
-    fill: rgba(15, 23, 42, 0.35) !important;
-}
-
-.blocklyMainWorkspaceScrollbar {
-    display: none;
+.blocklyText {
+    fill: #172033 !important;
 }
 
 .blocklyText.blocklyTextRootBlockHeader {
@@ -89,7 +75,19 @@
     font-style: normal;
     line-height: 1.43;
     letter-spacing: normal;
-    fill: $color-white;
+    fill: #172033 !important;
+}
+
+.blocklyScrollbarHandle {
+    fill: #94a3b8 !important;
+}
+
+.blocklyScrollbarBackground {
+    fill: #e2e8f0 !important;
+}
+
+.blocklyMainWorkspaceScrollbar {
+    display: none;
 }
 
 @include mobile-or-tablet-screen {
