@@ -15,11 +15,12 @@ import QuickStrategy1 from './quick-strategy';
 import WorkspaceWrapper from './workspace-wrapper';
 
 const BotBuilder = observer(() => {
-    const { dashboard, app, run_panel, toolbar, quick_strategy, blockly_store } = useStore();
+    const { dashboard, app, run_panel, toolbar, quick_strategy } = useStore();
     const { active_tab, active_tour, is_preview_on_popup } = dashboard;
     const { is_open } = quick_strategy;
     const { is_running } = run_panel;
-    const { is_loading } = blockly_store;
+    const { is_loading } = useStore().blockly_store;
+    const blockly_store = useStore().blockly_store;
     const is_blockly_listener_registered = React.useRef(false);
     const is_blockly_delete_listener_registered = React.useRef(false);
     const { isDesktop } = useDevice();
@@ -33,12 +34,15 @@ const BotBuilder = observer(() => {
         return () => onUnmount();
     }, [onMount, onUnmount]);
 
-    // Resize Blockly after its container becomes visible.
     React.useEffect(() => {
         if (active_tab !== 1 || is_preview_on_popup || is_loading) return;
 
         const frame = window.requestAnimationFrame(() => {
-            blockly_store.setContainerSize();
+            const workspace = window.Blockly?.derivWorkspace;
+            if (workspace) {
+                window.Blockly.svgResize(workspace);
+                blockly_store.setContainerSize();
+            }
         });
 
         return () => window.cancelAnimationFrame(frame);
@@ -82,7 +86,6 @@ const BotBuilder = observer(() => {
             is_blockly_delete_listener_registered.current = true;
             workspace.addChangeListener(handleBlockDelete);
         }
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_loading]);
 
