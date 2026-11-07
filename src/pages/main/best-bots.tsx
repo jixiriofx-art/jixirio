@@ -39,7 +39,7 @@ const bots: Bot[] = [
 
 const waitForBlocklyWorkspace = async (
     blocklyStore: { is_loading: boolean },
-    timeout = 20000
+    timeout = 30000
 ) => {
     const started = Date.now();
 
@@ -51,12 +51,17 @@ const waitForBlocklyWorkspace = async (
 
         if (
             workspace &&
+            typeof workspace.getVariableMap === 'function' &&
             typeof workspace.getTopBlocks === 'function' &&
             builderIsVisible &&
             !blocklyStore.is_loading
         ) {
-            await new Promise(resolve => setTimeout(resolve, 150));
-            window.Blockly.svgResize(workspace);
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            if (typeof window.Blockly?.svgResize === 'function') {
+                window.Blockly.svgResize(workspace);
+            }
+
             return workspace;
         }
 
@@ -64,12 +69,12 @@ const waitForBlocklyWorkspace = async (
     }
 
     throw new Error(
-        'The Bot Builder did not finish opening. Please try loading the bot again.'
+        'Blockly workspace could not initialize. Please try loading again.'
     );
 };
 
 const BestBots = () => {
-    const { dashboard, load_modal, blockly_store } = useStore();
+    const { app, dashboard, load_modal, blockly_store } = useStore();
     const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
     const [error, setError] = useState('');
 
@@ -81,6 +86,19 @@ const BestBots = () => {
 
         try {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
+
+            // Allow the Bot Builder container to become visible.
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+            // Retry workspace initialization if the first attempt failed.
+            const currentWorkspace = window.Blockly?.derivWorkspace;
+
+            if (
+                !currentWorkspace ||
+                typeof currentWorkspace.getVariableMap !== 'function'
+            ) {
+                await app.onMount();
+            }
 
             const workspace = await waitForBlocklyWorkspace(blockly_store);
 
@@ -100,14 +118,13 @@ const BestBots = () => {
                 );
             }
 
-            // Correct the stale D’Alembert variable ID before loading.
             if (bot.strategy === 'D_ALEMBERT') {
                 const staleVariableId = 'o((rBg*rL/qm;RU%PM7_';
                 const correctVariableId = 'Xv=?/_{i5i7(YfFJqUM2';
 
                 if (!strategyXml.includes(staleVariableId)) {
                     throw new Error(
-                        'The D’Alembert strategy template has changed. Loading was stopped to prevent an invalid bot.'
+                        'The D’Alembert strategy template has changed. Loading was stopped.'
                     );
                 }
 
@@ -135,7 +152,9 @@ const BestBots = () => {
                 false
             );
 
-            window.Blockly.svgResize(workspace);
+            if (typeof window.Blockly?.svgResize === 'function') {
+                window.Blockly.svgResize(workspace);
+            }
 
             const loadedBlocks = workspace.getAllBlocks(false);
             const hasTradeDefinition = loadedBlocks.some(
@@ -144,13 +163,13 @@ const BestBots = () => {
 
             if (!hasTradeDefinition) {
                 throw new Error(
-                    'The bot did not load into the workspace. The strategy has not been started.'
+                    'The bot did not load into the workspace. It has not been started.'
                 );
             }
 
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
         } catch (err) {
-            console.error('Failed to load Jixirio bot:', err);
+            console.error('[Jixirio] Failed to load bot:', err);
 
             setError(
                 err instanceof Error
