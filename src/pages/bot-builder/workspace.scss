@@ -1,10 +1,30 @@
+
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/devices' as *;
 
+/* Main Blockly builder container */
+.bot-builder {
+    display: none;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    background: #080d1a;
+}
+
+.bot-builder--active {
+    display: block;
+}
+
+.bot-builder--inactive {
+    display: none;
+}
+
 #scratch_div {
     position: relative;
-    width: calc(100vw - 3.2rem);
-    height: var(--bot-content-height);
+    width: 100%;
+    height: var(--bot-content-height, calc(100vh - 22rem));
+    min-height: 420px;
     top: 0;
     overflow: hidden;
     background:
@@ -19,11 +39,50 @@
             transparent 28%
         ),
         linear-gradient(145deg, #080d1a, #04060d);
+}
 
-    @include mobile-or-tablet-screen {
-        width: 100%;
-        height: var(--bot-content-height);
-    }
+/* Blockly workspace viewport */
+.injectionDiv {
+    position: relative;
+    width: 100%;
+    height: 100% !important;
+    min-height: 420px;
+    touch-action: pan-x pan-y;
+    overflow: hidden;
+    background: transparent;
+}
+
+.blocklySvg {
+    background: transparent !important;
+}
+
+.blocklyWorkspace {
+    background: transparent;
+}
+
+.blocklyMainBackground {
+    fill: #080d1a !important;
+}
+
+.blocklyFlyoutBackground {
+    fill: #0b1120 !important;
+    fill-opacity: 0.98;
+}
+
+.blocklyToolboxDiv {
+    background: #0a0f1d !important;
+}
+
+.blocklyScrollbarHandle {
+    fill: rgba(148, 163, 184, 0.28) !important;
+}
+
+.blocklyScrollbarBackground {
+    fill: rgba(15, 23, 42, 0.35) !important;
+}
+
+.blocklyMainWorkspaceScrollbar {
+    display: none;
 }
 
 /* Blockly root block header */
@@ -37,62 +96,31 @@
     fill: $color-white;
 }
 
-/* Keep the workspace clean — scrolling is handled by Blockly */
-.blocklyMainWorkspaceScrollbar {
-    display: none;
-}
-
-/* Blockly workspace viewport */
-.injectionDiv {
-    height: calc(100vh - 16.4rem);
-    position: relative;
-    touch-action: none;
-    overflow: hidden;
-    background: transparent;
-}
-
-/* Subtle workspace grid */
-.blocklySvg {
-    background: transparent !important;
-}
-
-/* Keep Blockly's canvas inside the Jixirio shell */
-.blocklyWorkspace {
-    background: transparent;
-}
-
-/* Dark Blockly surface */
-.blocklyMainBackground {
-    fill: #080d1a !important;
-}
-
-/* Blockly flyout */
-.blocklyFlyoutBackground {
-    fill: #0b1120 !important;
-    fill-opacity: 0.98;
-}
-
-/* Blockly toolbox */
-.blocklyToolboxDiv {
-    background: #0a0f1d !important;
-}
-
-/* Blockly scrollbars */
-.blocklyScrollbarHandle {
-    fill: rgba(148, 163, 184, 0.28) !important;
-}
-
-.blocklyScrollbarBackground {
-    fill: rgba(15, 23, 42, 0.35) !important;
-}
-
-/* Mobile workspace */
+/* Mobile builder */
 @include mobile-or-tablet-screen {
+    #scratch_div {
+        width: 100%;
+        height: var(--bot-content-height, calc(100dvh - 22rem));
+        min-height: 380px;
+    }
+
     .injectionDiv {
-        height: calc(100vh - 13rem);
+        width: 100%;
+        height: 100% !important;
+        min-height: 380px;
     }
 
     .blocklyFlyout {
         max-width: 85vw;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    #scratch_div {
+        min-height: 360px;
+    }
+
+    .injectionDiv {
+        min-height: 360px;
     }
 }
