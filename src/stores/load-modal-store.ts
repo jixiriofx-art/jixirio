@@ -1,3 +1,4 @@
+
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
 import { action, computed, makeObservable, observable, reaction } from 'mobx';
@@ -211,7 +212,7 @@ export default class LoadModalStore {
         if (this.local_workspace) {
             this.local_workspace = null;
         }
-        this.setActiveTabIndex(0); // Reset to first tab.
+        this.setActiveTabIndex(0);
         this.setLoadedLocalFile(null);
     };
 
@@ -289,19 +290,36 @@ export default class LoadModalStore {
     };
 
     loadStrategyToBuilder = async (strategy: TStrategy, is_show_notification: boolean = true) => {
-        if (strategy?.id) {
-            await load({
-                block_string: strategy.xml,
-                strategy_id: strategy.id,
-                file_name: strategy.name,
-                workspace: window.Blockly?.derivWorkspace,
-                from: strategy.save_type,
-                drop_event: {},
-                showIncompatibleStrategyDialog: false,
-                show_snackbar: is_show_notification,
-            });
-            window.Blockly.derivWorkspace.strategy_to_load = strategy.xml;
+        if (!strategy?.id || !strategy?.xml) {
+            throw new Error('Invalid bot strategy. Missing ID or XML.');
         }
+
+        const workspace = window.Blockly?.derivWorkspace;
+
+        if (!workspace || typeof workspace.getVariableMap !== 'function') {
+            throw new Error('Blockly workspace is not ready.');
+        }
+
+        await load({
+            block_string: strategy.xml,
+            strategy_id: strategy.id,
+            file_name: strategy.name,
+            workspace,
+            from: strategy.save_type,
+            drop_event: {},
+            showIncompatibleStrategyDialog: false,
+            show_snackbar: is_show_notification,
+        });
+
+        const loadedCorrectly =
+            workspace.current_strategy_id === strategy.id &&
+            workspace.getAllBlocks(false).some(block => block.type === 'trade_definition');
+
+        if (!loadedCorrectly) {
+            throw new Error('The strategy failed to load into the Bot Builder.');
+        }
+
+        workspace.strategy_to_load = strategy.xml;
     };
 
     refreshStrategiesTheme = async () => {
@@ -366,8 +384,6 @@ export default class LoadModalStore {
             this.updateXmlValuesOnStrategySelection();
         } else if (this.recent_workspace) {
             setTimeout(() => {
-                // Dispose of recent workspace when switching away from Recent tab.
-                // Process in next cycle so user doesn't have to wait.
                 this.recent_workspace?.dispose();
                 this.recent_workspace = null;
             });
@@ -383,7 +399,6 @@ export default class LoadModalStore {
             }
         }
 
-        // Dispose of local workspace when switching away from Local tab.
         else if (this.local_workspace) {
             setTimeout(() => {
                 this.local_workspace?.dispose();
@@ -392,7 +407,6 @@ export default class LoadModalStore {
             }, 0);
         }
 
-        // Forget about drop zone when not on Local tab.
         if (this.tab_name !== tabs_title.TAB_LOCAL && this.drop_zone) {
             this.drop_zone.removeEventListener('drop', event => this.handleFileChange(event, false));
         }
