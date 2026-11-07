@@ -1,444 +1,622 @@
-// @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
-/* eslint-disable no-underscore-dangle */
-import { action, computed, makeObservable, observable } from 'mobx';
-import { config } from '@/external/bot-skeleton';
-import { browserOptimizer } from '@/utils/browser-performance-optimizer';
-import GTM from '@/utils/gtm';
-import RootStore from './root-store';
+import { save_types } from '../constants';
+import { config } from '../constants/config';
+import { api_base } from '../services/api/api-base';
+import ApiHelpers from '../services/api/api-helpers';
+import Interpreter from '../services/tradeEngine/utils/interpreter';
+import { compareXml, observer as globalObserver } from '../utils';
+import { getSavedWorkspaces, saveWorkspaceToRecent } from '../utils/local-storage';
+import { isDbotRTL } from '../utils/workspace';
+import main_xml from './xml/main.xml';
+import { forgetAccumulatorsProposalRequest } from './accumulators-proposal-handler';
+import { loadBlockly } from './blockly';
+import DBotStore from './dbot-store';
+import { isAllRequiredBlocksEnabled, updateDisabledBlocks, validateErrorOnBlockDelete } from './utils';
 
-export interface IFlyoutStore {
-    block_listeners: unknown[];
-    block_workspaces: Element[];
-    flyout_min_width: number;
-    options: {
-        media: string;
-        move: { scrollbars: boolean; drag: boolean; wheel: boolean };
-        zoom: { startScale: number };
-        sounds: boolean;
-    };
-    is_help_content: boolean;
-    flyout_content: Element[];
-    flyout_width: number;
-    is_visible: boolean;
-    is_search_flyout: boolean;
-    is_loading: boolean;
-    search_term: string;
-    selected_category: Element | null;
-    onMount: () => void;
-    onUnmount: () => void;
-    initFlyout: () => void;
-    initBlockWorkspace: (el_block_workspace: HTMLElement, block_node: Node) => void;
-    getFlyout: () => Element;
-    setContents: (xml_list: Element[], search_term: string) => void;
-    setFlyoutWidth: (xmlList: Element[]) => void;
-    setVisibility: (is_visible: boolean) => void;
-    setIsSearchFlyout: (is_search: boolean) => void;
-    setSelectedCategory: (selected_category: Element | null) => void;
-    getSelectedCategory: () => Element | null;
-    onClickOutsideFlyout: (event: unknown) => void;
-    refreshCategory: () => void;
-    variables_blocks_count: number;
-    first_get_variable_block_index: number;
-}
-
-export default class FlyoutStore implements IFlyoutStore {
-    root_store: RootStore;
-    flyout = null;
-    block_listeners = [];
-    block_workspaces = [];
-    flyout_min_width = 440;
-    flyout_width_timer: ReturnType<typeof setTimeout> | undefined = undefined;
-    flyout_init_timer: ReturnType<typeof setTimeout> | undefined = undefined;
-
-    options = {
-        renderer: 'zelos',
-        media: `${window.__webpack_public_path__}assets/media/`,
-        move: { scrollbars: false, drag: true, wheel: false },
-        zoom: { startScale: config().workspaces.flyoutWorkspacesStartScale },
-        sounds: false,
-        theme: window?.Blockly?.Themes?.zelos_renderer,
-    };
-
-    is_help_content = false;
-    flyout_content: Element[] = [];
-    flyout_width = this.flyout_min_width;
-    is_visible = false;
-    is_search_flyout = false;
-    is_loading = false;
-    search_term = '';
-    selected_category: Element | null = null;
-
-    constructor(root_store: RootStore) {
-        makeObservable(this, {
-            is_help_content: observable,
-            flyout_content: observable,
-            flyout_width: observable,
-            is_visible: observable,
-            is_search_flyout: observable,
-            is_loading: observable,
-            search_term: observable,
-            selected_category: observable,
-            onMount: action.bound,
-            onUnmount: action.bound,
-            initFlyout: action.bound,
-            initBlockWorkspace: action.bound,
-            getFlyout: action.bound,
-            setContents: action.bound,
-            setFlyoutWidth: action.bound,
-            setVisibility: action.bound,
-            setIsSearchFlyout: action.bound,
-            setSelectedCategory: action.bound,
-            getSelectedCategory: action.bound,
-            onClickOutsideFlyout: action.bound,
-            refreshCategory: action.bound,
-            variables_blocks_count: computed,
-            first_get_variable_block_index: computed,
-        });
-
-        this.root_store = root_store;
+class DBot {
+    constructor() {
+        this.interpreter = null;
+        this.workspace = null;
+        this.before_run_funcs = [];
+        this.symbol = null;
+        this.is_bot_running = false;
     }
 
-    onMount() {
-        const initialize = () => {
-            const workspace = window.Blockly?.derivWorkspace;
+    async initWorkspace(public_path, store, api_helpers_store, is_mobile, is_dark_mode) {
+        await loadBlockly(is_dark_mode);
+        const recent_files = await getSavedWorkspaces();
+        this.interpreter = Interpreter();
 
-            if (!workspace || typeof workspace.getVariableMap !== 'function') {
-                this.flyout_init_timer = setTimeout(initialize, 100);
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        var that = this;
+        window.Blockly.Blocks.trade_definition_tradetype.onchange = function (event) {
+            if (!this.workspace || window.Blockly.derivWorkspace.isFlyoutVisible || this.workspace.isDragging()) {
                 return;
             }
 
-            if (!this.flyout) {
-                this.initFlyout();
-            }
+            this.enforceLimitations();
 
-            if (this.flyout) {
-                window.addEventListener('click', this.onClickOutsideFlyout);
+            const { name, type } = event;
+
+            if (type === window.Blockly.Events.BLOCK_CHANGE) {
+                const is_symbol_list_change = name === 'SYMBOL_LIST';
+                const is_trade_type_cat_list_change = name === 'TRADETYPECAT_LIST';
+
+                if (is_symbol_list_change || is_trade_type_cat_list_change) {
+                    const { contracts_for } = ApiHelpers?.instance ?? {};
+                    const top_parent_block = this.getTopParent();
+                    const market_block = top_parent_block.getChildByType('trade_definition_market');
+                    const market = market_block.getFieldValue('MARKET_LIST');
+                    const submarket = market_block.getFieldValue('SUBMARKET_LIST');
+                    const symbol = market_block.getFieldValue('SYMBOL_LIST');
+                    const category = this.getFieldValue('TRADETYPECAT_LIST');
+                    const trade_type = this.getFieldValue('TRADETYPE_LIST');
+                    const is_trade_type_accumulator = trade_type === 'accumulator';
+                    if (!is_trade_type_accumulator) forgetAccumulatorsProposalRequest(that);
+
+                    if (is_symbol_list_change) {
+                        contracts_for
+                            ?.getTradeTypeCategories?.(market, submarket, symbol)
+                            .then(categories => {
+                                const category_field = this.getField('TRADETYPECAT_LIST');
+                                if (category_field) {
+                                    category_field.updateOptions(categories, {
+                                        default_value: category,
+                                        should_pretend_empty: true,
+                                        event_group: event.group,
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching trade type categories:', error);
+                            });
+                        that.symbol = symbol;
+                        if (
+                            !that.is_bot_running &&
+                            that.interpreter &&
+                            !this.workspace.options.readOnly &&
+                            symbol !== that.interpreter.bot.tradeEngine.symbol
+                        ) {
+                            const run_button = document.querySelector('#db-animation__run-button');
+                            if (run_button) run_button.disabled = true;
+
+                            that.interpreter.unsubscribeFromTicksService().then(async () => {
+                                await that.interpreter?.bot.tradeEngine.watchTicks(symbol);
+                            });
+                        }
+                    } else if (is_trade_type_cat_list_change && event.blockId === this.id) {
+                        contracts_for
+                            ?.getTradeTypes?.(market, submarket, symbol, category)
+                            .then(trade_types => {
+                                const trade_type_field = this.getField('TRADETYPE_LIST');
+                                if (trade_type_field) {
+                                    trade_type_field.updateOptions(trade_types, {
+                                        default_value: trade_type,
+                                        should_pretend_empty: true,
+                                        event_group: event.group,
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching trade types:', error);
+                            });
+                    }
+                }
             }
         };
 
-        initialize();
+        return new Promise((resolve, reject) => {
+            __webpack_public_path__ = public_path; // eslint-disable-line no-global-assign
+            ApiHelpers.setInstance(api_helpers_store);
+            DBotStore.setInstance(store);
+            const window_width = window.innerWidth;
+            try {
+                let workspaceScale = 0.7;
+
+                const { handleFileChange } = DBotStore.instance;
+                if (window_width < 1640) {
+                    if (is_mobile) {
+                        workspaceScale = 0.6;
+                    } else {
+                        const scratch_div_width = document.getElementById('scratch_div')?.offsetWidth;
+                        const zoom_scale = scratch_div_width / window_width / 1.5;
+                        workspaceScale = zoom_scale;
+                    }
+                }
+
+                const el_scratch_div = document.getElementById('scratch_div');
+
+                if (!el_scratch_div) {
+                    reject(new Error('[Jixirio] Bot Builder container #scratch_div was not mounted.'));
+                    return;
+                }
+
+                this.workspace = window.Blockly.inject(el_scratch_div, {
+                    media: `${window.__webpack_public_path__}assets/media/`,
+                    renderer: 'zelos',
+                    trashcan: !is_mobile,
+                    zoom: { wheel: true, startScale: workspaceScale },
+                    scrollbars: true,
+                    theme: window.Blockly.Themes.zelos_renderer,
+                });
+
+                if (!this.workspace || typeof this.workspace.getVariableMap !== 'function') {
+                    throw new Error('[Jixirio] Blockly failed to create a valid workspace.');
+                }
+
+                this.workspace.RTL = isDbotRTL();
+                this.workspace.cached_xml = { main: main_xml };
+
+                this.workspace.addChangeListener(this.valueInputLimitationsListener.bind(this));
+                this.workspace.addChangeListener(event => updateDisabledBlocks(this.workspace, event));
+                this.workspace.addChangeListener(event => this.workspace.dispatchBlockEventEffects(event));
+                this.workspace.addChangeListener(event => {
+                    if (event.type === 'drag' && !event.isStart && !is_mobile) validateErrorOnBlockDelete();
+                    if (event.type == window.Blockly.Events.BLOCK_CHANGE) {
+                        const block = this.workspace.getBlockById(event.blockId);
+                        if (is_mobile && block && event.element == 'collapsed') {
+                            block.contextMenu = false;
+                        }
+                    }
+                });
+
+                window.Blockly.derivWorkspace = this.workspace;
+
+                const varDB = new window.Blockly.Names('window');
+                varDB.variableMap = window.Blockly.derivWorkspace.getVariableMap();
+
+                window.Blockly.JavaScript.variableDB_ = varDB;
+
+                this.addBeforeRunFunction(this.unselectBlocks.bind(this));
+                this.addBeforeRunFunction(this.disableStrayBlocks.bind(this));
+                this.addBeforeRunFunction(this.checkForErroredBlocks.bind(this));
+                this.addBeforeRunFunction(this.checkForRequiredBlocks.bind(this));
+
+                this.workspace.current_strategy_id = window.Blockly.utils.idGenerator.genUid();
+
+                window.Blockly.derivWorkspace.strategy_to_load = main_xml;
+                window.Blockly.getMainWorkspace().strategy_to_load = main_xml;
+                window.Blockly.getMainWorkspace().RTL = isDbotRTL();
+
+                let file_name = config().default_file_name;
+                if (recent_files && recent_files.length) {
+                    const latest_file = recent_files[0];
+                    window.Blockly.derivWorkspace.strategy_to_load = latest_file.xml;
+                    window.Blockly.getMainWorkspace().strategy_to_load = latest_file.xml;
+                    file_name = latest_file.name;
+                    window.Blockly.derivWorkspace.current_strategy_id = latest_file.id;
+                    window.Blockly.getMainWorkspace().current_strategy_id = latest_file.id;
+                }
+
+                const event_group = `dbot-load${Date.now()}`;
+                window.Blockly.Events.setGroup(event_group);
+                window.Blockly.Xml.domToWorkspace(
+                    window.Blockly.utils.xml.textToDom(window.Blockly.derivWorkspace.strategy_to_load),
+                    this.workspace
+                );
+                const { save_modal } = DBotStore.instance;
+
+                save_modal.updateBotName(file_name);
+                this.workspace.cleanUp(0, is_mobile ? 60 : 56);
+                this.workspace.clearUndo();
+
+                window.dispatchEvent(new Event('resize'));
+                window.addEventListener('dragover', DBot.handleDragOver);
+                window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
+                el_scratch_div.parentNode.style.overflow = 'hidden';
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
-    onUnmount() {
-        window.removeEventListener('click', this.onClickOutsideFlyout);
-
-        if (this.flyout_init_timer) {
-            clearTimeout(this.flyout_init_timer);
-            this.flyout_init_timer = undefined;
+    isStrategyUpdated(current_xml_dom, recent_files) {
+        if (recent_files && recent_files.length) {
+            const stored_strategy = recent_files.filter(
+                strategy => strategy?.id === this.workspace?.current_strategy_id
+            )?.[0];
+            if (stored_strategy?.xml) {
+                const stored_strategy_xml = stored_strategy?.xml;
+                const current_xml = window.Blockly.Xml.domToText(current_xml_dom);
+                const is_same_strategy = compareXml(stored_strategy_xml, current_xml);
+                if (is_same_strategy) {
+                    return false;
+                }
+            }
         }
-
-        this.cleanupBlockWorkspaces();
-        this.flyout_content = [];
-        this.selected_category = null;
-
-        if (this.flyout_width_timer) {
-            clearTimeout(this.flyout_width_timer);
-            this.flyout_width_timer = undefined;
-        }
-
-        this.flyout = null;
+        return true;
     }
 
-    initFlyout() {
-        const workspace = window.Blockly?.derivWorkspace;
+    async saveRecentWorkspace() {
+        const current_xml_dom = this?.workspace ? Blockly?.Xml?.workspaceToDom(this.workspace) : null;
+        try {
+            const recent_files = await getSavedWorkspaces();
+            if (current_xml_dom && this.isStrategyUpdated(current_xml_dom, recent_files)) {
+                await saveWorkspaceToRecent(current_xml_dom, save_types.UNSAVED);
+            }
+        } catch (error) {
+            globalObserver.emit('Error', error);
+            await saveWorkspaceToRecent(current_xml_dom, save_types.UNSAVED);
+        }
+    }
+
+    addBeforeRunFunction(func) {
+        this.before_run_funcs.push(func);
+    }
+
+    shouldRunBot() {
+        return this.before_run_funcs.every(func => !!func());
+    }
+
+    async initializeInterpreter() {
+        if (this.interpreter) {
+            await this.interpreter.terminateSession();
+        }
+        this.interpreter = Interpreter();
+    }
+
+    runBot() {
+        if (api_base.is_stopping) return;
+
+        try {
+            api_base.is_stopping = false;
+            const code = this.generateCode();
+            if (!this.interpreter.bot.tradeEngine.checkTicksPromiseExists()) this.interpreter = Interpreter();
+
+            this.is_bot_running = true;
+
+            api_base.setIsRunning(true);
+            this.interpreter.run(code).catch(error => {
+                globalObserver.emit('Error', error);
+                this.stopBot();
+            });
+        } catch (error) {
+            globalObserver.emit('Error', error);
+
+            if (this.interpreter) {
+                this.stopBot();
+            }
+        }
+    }
+
+    generateCode(limitations = {}) {
+        const workspace = this.workspace;
+        const generator = window.Blockly?.JavaScript?.javascriptGenerator;
 
         if (
             !workspace ||
             typeof workspace.getVariableMap !== 'function' ||
-            typeof workspace.getGesture !== 'function'
+            !generator ||
+            typeof generator.workspaceToCode !== 'function'
         ) {
-            console.warn('Blockly main workspace is not ready. Flyout initialization skipped.');
-            return;
+            throw new Error('[Jixirio] Bot Builder workspace is not ready. Please load a bot before running.');
         }
 
-        const flyoutWorkspaceOptions = new window.Blockly.Options({
-            parentWorkspace: workspace,
-            rtl: workspace.RTL,
-            horizontalLayout: true,
-            theme: window?.Blockly?.Themes?.zelos_renderer,
+        return `
+            var BinaryBotPrivateInit;
+            var BinaryBotPrivateStart;
+            var BinaryBotPrivateBeforePurchase;
+            var BinaryBotPrivateDuringPurchase;
+            var BinaryBotPrivateAfterPurchase;
+            var BinaryBotPrivateLastTickTime;
+            var BinaryBotPrivateTickAnalysisList = [];
+            var BinaryBotPrivateHasCalledTradeOptions = false;
+
+            function recursiveList(list, final_list){
+                for(var i=0; i < list.length; i++){
+                    if(typeof(list[i]) === 'object'){
+                        recursiveList(list[i], final_list);
+                    }
+                    if(typeof(list[i]) == 'number'){
+                        final_list.push(list[i]);
+                    }
+                }
+                return final_list;
+            }
+
+            function BinaryBotPrivateRun(f, arg) {
+                if (f) return f(arg);
+                return false;
+            }
+            function BinaryBotPrivateTickAnalysis() {
+                var currentTickTime = Bot.getLastTick(true);
+                while (currentTickTime === 'MarketIsClosed') {
+                    sleep(5);
+                    currentTickTime = Bot.getLastTick(true);
+                }
+                currentTickTime = currentTickTime.epoch;
+                if (currentTickTime === BinaryBotPrivateLastTickTime) {
+                    return;
+                }
+                BinaryBotPrivateLastTickTime = currentTickTime;
+                for (var BinaryBotPrivateI = 0; BinaryBotPrivateI < BinaryBotPrivateTickAnalysisList.length; BinaryBotPrivateI++) {
+                    BinaryBotPrivateRun(BinaryBotPrivateTickAnalysisList[BinaryBotPrivateI]);
+                }
+            }
+            var BinaryBotPrivateLimitations = ${JSON.stringify(limitations)};
+            ${generator.workspaceToCode(workspace)}
+            BinaryBotPrivateRun(BinaryBotPrivateInit);
+            while (true) {
+                BinaryBotPrivateTickAnalysis();
+                BinaryBotPrivateRun(BinaryBotPrivateStart);
+                if (!BinaryBotPrivateHasCalledTradeOptions) {
+                    sleep(1);
+                    continue;
+                }
+                while (watch('before')) {
+                    BinaryBotPrivateTickAnalysis();
+                    BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
+                }
+                while (watch('during')) {
+                    BinaryBotPrivateTickAnalysis();
+                    BinaryBotPrivateRun(BinaryBotPrivateDuringPurchase);
+                }
+                BinaryBotPrivateTickAnalysis();
+                if (!BinaryBotPrivateRun(BinaryBotPrivateAfterPurchase)) {
+                    break;
+                }
+            }
+        `;
+    }
+
+    async stopBot() {
+        if (api_base.is_stopping) return;
+
+        api_base.setIsRunning(false);
+
+        await this.interpreter.stop();
+        this.is_bot_running = false;
+        this.interpreter = null;
+        this.interpreter = Interpreter();
+        await this.interpreter.bot.tradeEngine.watchTicks(this.symbol);
+        forgetAccumulatorsProposalRequest(this);
+    }
+
+    async terminateBot() {
+        if (this.interpreter) {
+            await this.interpreter.terminateSession();
+            this.interpreter = null;
+            this.interpreter = Interpreter();
+            await this.interpreter.bot.tradeEngine.watchTicks(this.symbol);
+        }
+    }
+
+    terminateConnection = () => {
+        api_base.terminate();
+    };
+
+    unselectBlocks() {
+        if (window.Blockly.getSelected()) {
+            window.Blockly.getSelected().unselect();
+        }
+        return true;
+    }
+
+    disableStrayBlocks() {
+        const top_blocks = this.workspace.getTopBlocks();
+        top_blocks.forEach(block => {
+            if (!block.isMainBlock() && !block.isIndependentBlock()) {
+                this.disableBlocksRecursively(block);
+            }
+        });
+        return true;
+    }
+
+    disableBlocksRecursively(block) {
+        block.setDisabled(true);
+        if (block.nextConnection?.targetConnection) {
+            this.disableBlocksRecursively(block.nextConnection.targetConnection.sourceBlock_);
+        }
+    }
+
+    checkForErroredBlocks() {
+        this.valueInputLimitationsListener({}, true);
+
+        const all_blocks = this.workspace.getAllBlocks(true);
+        const error_blocks = all_blocks
+            .filter(block => block.is_error_highlighted && !block.disabled)
+            .filter((block, index, self) => index === self.findIndex(b => b.error_message === block.error_message));
+
+        if (!error_blocks.length) {
+            return true;
+        }
+
+        this.workspace.centerOnBlock(error_blocks[0].id);
+        error_blocks.forEach(block => {
+            globalObserver.emit('ui.log.error', block.error_message);
         });
 
-        try {
-            if (workspace.horizontalLayout) {
-                this.flyout = new window.Blockly.HorizontalFlyout(flyoutWorkspaceOptions);
-            } else {
-                this.flyout = new window.Blockly.VerticalFlyout(flyoutWorkspaceOptions);
-            }
-
-            if (!this.flyout?.workspace_) {
-                this.flyout = null;
-                console.warn('Blockly flyout workspace could not be initialized.');
-                return;
-            }
-
-            this.flyout.targetWorkspace = workspace;
-            this.flyout.workspace_.targetWorkspace = workspace;
-            this.flyout.workspace_.getGesture = workspace.getGesture.bind(workspace);
-
-            const variable_map = workspace.getVariableMap();
-
-            if (!variable_map) {
-                this.flyout = null;
-                console.warn('Blockly main workspace variable map is unavailable.');
-                return;
-            }
-
-            workspace.VariableMap = variable_map;
-
-            if (typeof this.flyout.workspace_.createPotentialVariableMap === 'function') {
-                this.flyout.workspace_.createPotentialVariableMap();
-            }
-        } catch (error) {
-            this.flyout = null;
-            console.error('Blockly flyout initialization failed:', error);
-        }
+        return false;
     }
 
-    /**
-     * Initialises a workspace unique to the passed block_node.
-     */
-    initBlockWorkspace(el_block_workspace: HTMLElement, block_node: Node) {
-        const Blockly = window.Blockly;
-        const main_workspace = Blockly?.derivWorkspace;
+    centerAndHighlightBlock(block_id, should_animate = false) {
+        const block_to_highlight = this.workspace.getBlockById(block_id);
 
-        if (
-            !Blockly ||
-            !main_workspace ||
-            typeof main_workspace.getVariableMap !== 'function' ||
-            !el_block_workspace ||
-            !block_node ||
-            !this.flyout
-        ) {
-            console.warn('Blockly block preview skipped because its workspace is not ready.');
+        if (!block_to_highlight) {
             return;
         }
 
-        let workspace = null;
+        const all_blocks = this.workspace.getAllBlocks();
 
-        try {
-            workspace = Blockly.inject(el_block_workspace, this.options);
+        all_blocks.forEach(block => block.setErrorHighlighted(false));
+        if (should_animate) {
+            block_to_highlight.blink();
+        }
+        block_to_highlight.setErrorHighlighted(true);
 
-            if (!workspace || typeof workspace.getVariableMap !== 'function') {
-                workspace?.dispose?.();
-                console.warn('Blockly could not create the block preview workspace.');
-                return;
-            }
+        this.workspace.centerOnBlock(block_to_highlight.id);
+    }
 
-            workspace.targetWorkspace = main_workspace;
+    unHighlightAllBlocks() {
+        this.workspace?.getAllBlocks().forEach(block => block.setErrorHighlighted(false));
+    }
 
-            const block = Blockly.Xml.domToBlock(block_node, workspace);
+    checkForRequiredBlocks() {
+        return isAllRequiredBlocksEnabled(this.workspace);
+    }
 
-            if (!block) {
-                workspace.dispose();
-                return;
-            }
+    valueInputLimitationsListener(event, force_check = false) {
+        if (!force_check && (!this.workspace || this.workspace.isDragging())) {
+            return;
+        }
 
-            const block_hw = block.getHeightWidth();
+        window.Blockly.JavaScript.javascriptGenerator.init(this.workspace);
 
-            block.isInFlyout = true;
+        if (force_check) {
+            window.Blockly.hideChaff(false);
+        }
 
-            el_block_workspace.style.height = `${Math.ceil(block_hw.height * this.options.zoom.startScale) + 1}px`;
-            el_block_workspace.style.width = `${Math.ceil(block_hw.width * this.options.zoom.startScale) + 1}px`;
-            block.moveBy(1, 1);
-
-            const block_svg_root = block.getSvgRoot();
-
-            if (!block_svg_root) {
-                workspace.dispose();
-                return;
-            }
-
-            const listeners = [
-                Blockly?.browserEvents?.conditionalBind(block_svg_root, 'mousedown', null, event => {
-                    GTM?.pushDataLayer?.({
-                        event: 'dbot_drag_block',
-                        block_type: block.type,
-                    });
-
-                    if (this.flyout?.blockMouseDown) {
-                        this.flyout.blockMouseDown(block)(event as window.Blockly.Events.UiBase);
+        const isGlobalEndDragEvent = () => event.type === window.Blockly.Events.BLOCK_DRAG && !event.isStart;
+        const isGlobalDeleteEvent = () => event.type === window.Blockly.Events.BLOCK_DELETE;
+        const isGlobalCreateEvent = () => event.type === window.Blockly.Events.BLOCK_CREATE;
+        const isClickEvent = () =>
+            event.type === window.Blockly.Events.UI && (event.element === 'click' || event.element === 'selected');
+        const isChangeEvent = b => event.type === window.Blockly.Events.BLOCK_CHANGE && event.blockId === b.id;
+        const isChangeInMyInputs = b => {
+            if (event.type === window.Blockly.Events.BLOCK_CHANGE) {
+                return b.inputList.some(input => {
+                    if (input.connection) {
+                        const target_block = input.connection.targetBlock();
+                        return target_block && event.blockId === target_block.id;
                     }
-                }),
-                Blockly?.browserEvents?.bind(block_svg_root, 'mouseout', block, block.removeSelect),
-                Blockly?.browserEvents?.bind(block_svg_root, 'mouseover', block, block.addSelect),
-            ].filter(Boolean);
-
-            this.block_listeners.push(...listeners);
-            this.block_workspaces.push(workspace);
-
-            Blockly.svgResize(workspace);
-        } catch (error) {
-            try {
-                workspace?.dispose?.();
-            } catch (dispose_error) {
-                console.warn('Blockly preview cleanup failed:', dispose_error);
+                    return false;
+                });
             }
+            return false;
+        };
+        const isParentEnabledEvent = b => {
+            if (event.type === window.Blockly.Events.BLOCK_CHANGE && event.element === 'disabled') {
+                let parent_block = b.getParent();
 
-            console.error('Blockly block preview initialization failed:', error);
-        }
-    }
+                while (parent_block !== null) {
+                    if (parent_block.id === event.blockId) {
+                        return true;
+                    }
 
-    getFlyout() {
-        return this.flyout;
-    }
-
-    /**
-     * Parses XML contents passed by window.Blockly.Toolbox.
-     */
-    setContents(xml_list: Element[], search_term = '') {
-        const text_limit = 20;
-        const processed_xml = xml_list;
-
-        this.cleanupBlockWorkspaces();
-
-        this.is_help_content = false;
-        this.search_term = search_term.length > text_limit ? `${search_term.substring(0, text_limit)}...` : search_term;
-        this.flyout_content = xml_list;
-
-        this.setFlyoutWidth(processed_xml);
-        this.setVisibility(true);
-
-        setTimeout(() => this.setFlyoutWidth(processed_xml), 50);
-    }
-
-    private cleanupBlockWorkspaces() {
-        try {
-            this.block_listeners.forEach(listener => {
-                if (listener && typeof window.Blockly?.browserEvents?.unbind === 'function') {
-                    window.Blockly.browserEvents.unbind(listener);
+                    parent_block = parent_block.getParent();
                 }
-            });
-        } catch (error) {
-            console.warn('Error cleaning up block listeners:', error);
-        }
+            }
+            return false;
+        };
 
-        try {
-            this.block_workspaces.forEach(workspace => {
-                if (workspace && typeof workspace.dispose === 'function') {
-                    workspace.dispose();
+        this.workspace.getAllBlocks(true).forEach(block => {
+            if (
+                force_check ||
+                isGlobalEndDragEvent() ||
+                isGlobalDeleteEvent() ||
+                isGlobalCreateEvent() ||
+                isClickEvent() ||
+                isChangeEvent(block) ||
+                isChangeInMyInputs(block) ||
+                isParentEnabledEvent(block)
+            ) {
+                if (block.disabled) {
+                    const unhighlightRecursively = child_blocks => {
+                        child_blocks.forEach(child_block => {
+                            child_block.setErrorHighlighted(false);
+                            unhighlightRecursively(child_block.getChildren());
+                        });
+                    };
+
+                    unhighlightRecursively([block]);
+                    return;
                 }
-            });
-        } catch (error) {
-            console.warn('Error disposing block workspaces:', error);
-        }
 
-        this.block_listeners = [];
-        this.block_workspaces = [];
-    }
+                if (!block.getRequiredValueInputs) {
+                    return;
+                }
 
-    /**
-     * Calculates the width of the flyout based on its XML blocks.
-     */
-    setFlyoutWidth(xmlList: Element[]) {
-        if (this.flyout_width_timer) {
-            clearTimeout(this.flyout_width_timer);
-        }
+                const required_inputs_object = block.getRequiredValueInputs();
+                const required_input_names = Object.keys(required_inputs_object);
+                const should_highlight = required_input_names.some(input_name => {
+                    const is_selected = window.Blockly.getSelected() === block;
+                    const is_disabled = block.disabled || block.getInheritedDisabled();
 
-        const throttleDelay = browserOptimizer.getThrottleDelay();
+                    if (is_selected || is_disabled) {
+                        return false;
+                    }
 
-        this.flyout_width_timer = setTimeout(() => {
-            this.calculateFlyoutWidth(xmlList);
-        }, throttleDelay);
-    }
+                    if (block.isCollapsed() && block.hasErrorHighlightedDescendant()) {
+                        return true;
+                    }
 
-    private calculateFlyoutWidth(xmlList: Element[]) {
-        browserOptimizer.safeDOMOperation(() => {
-            let longest_block_width = 0;
+                    const input = block.getInput(input_name);
 
-            try {
-                xmlList.forEach((node: Element) => {
-                    const tag_name = node.tagName.toUpperCase();
-
-                    if (tag_name === window.Blockly.Xml.NODE_BLOCK) {
-                        const block_hw = window.Blockly.Block.getDimensions(node);
-
-                        node.setAttribute('width', String(Math.ceil(block_hw.width * this.options.zoom.startScale)));
-                        node.setAttribute('height', String(Math.ceil(block_hw.height * this.options.zoom.startScale)));
-
-                        longest_block_width = Math.max(
-                            longest_block_width,
-                            Math.ceil(block_hw.width * this.options.zoom.startScale)
+                    if (!input && !block.domToMutation) {
+                        // Detected a non-existent required input
+                    } else if (input && input?.connection) {
+                        const order = window.Blockly.JavaScript.javascriptGenerator.ORDER_ATOMIC;
+                        const value = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
+                            block,
+                            input_name,
+                            order
                         );
+                        const inputValidatorFn = required_inputs_object[input_name];
+
+                        if (typeof inputValidatorFn === 'function') {
+                            return !!inputValidatorFn(value);
+                        }
+
+                        return !value;
                     }
+
+                    return true;
                 });
 
-                this.flyout_width = Math.max(this.flyout_min_width, longest_block_width + 65);
-            } catch (error) {
-                console.warn('Error calculating flyout width:', error);
-                this.flyout_width = this.flyout_min_width;
+                if (should_highlight) {
+                    block.removeSelect();
+                }
+
+                block.setErrorHighlighted(should_highlight, block.error_message || undefined);
+
+                if (force_check && (block.is_error_highlighted || block.hasErrorHighlightedDescendant())) {
+                    let current_collapsed_block = block;
+                    while (current_collapsed_block) {
+                        current_collapsed_block.setCollapsed(false);
+                        current_collapsed_block = current_collapsed_block.getParent();
+                    }
+                }
             }
         });
     }
 
-    /**
-     * Sets whether the flyout is visible or not.
-     */
-    setVisibility(is_visible: boolean) {
-        this.is_visible = is_visible;
+    getStrategySounds() {
+        const all_blocks = this.workspace.getAllBlocks();
+        const notify_blocks = all_blocks.filter(block => block.type === 'notify');
+        const strategy_sounds = [];
 
-        if (!is_visible) {
-            this.setSelectedCategory(null);
-            this.flyout_content = [];
-        }
+        notify_blocks.forEach(block => {
+            const selected_sound = block.inputList[0].fieldRow[3].value_;
 
-        const workspace = window.Blockly?.derivWorkspace;
+            if (selected_sound !== 'silent') {
+                strategy_sounds.push(selected_sound);
+            }
+        });
 
-        if (workspace) {
-            workspace.isFlyoutVisible = is_visible;
-        }
+        return strategy_sounds;
     }
 
-    /**
-     * Sets whether the flyout is search or not.
-     */
-    setIsSearchFlyout(is_search: boolean) {
-        this.is_search_flyout = is_search;
+    static handleDragOver(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
     }
 
-    setSelectedCategory(selected_category: Element | null) {
-        this.selected_category = selected_category;
-    }
+    static handleDropOver(event, handleFileChange) {
+        const main_workspace_dom = document.getElementById('scratch_div');
+        const local_drag_zone = document.getElementById('load-strategy__local-dropzone-area');
 
-    getSelectedCategory() {
-        return this.selected_category;
-    }
-
-    /**
-     * Close the flyout on click outside itself or parent toolbox.
-     */
-    onClickOutsideFlyout(event: MouseEvent) {
-        if (!this.is_visible || !window.Blockly?.derivWorkspace) {
-            return;
-        }
-
-        const toolbox = document.getElementById('gtm-toolbox');
-        const path = event?.composedPath() || [];
-
-        const is_flyout_click = path.some(
-            el => (el as Element).classList && (el as Element).classList.contains('flyout')
-        );
-
-        const is_search_focus = this.root_store.toolbox.is_search_focus;
-        const isToolboxClick = () => toolbox?.contains(event.target as Node);
-
-        if (!is_flyout_click && !isToolboxClick() && !is_search_focus) {
-            this.setVisibility(false);
-            this.setSelectedCategory(null);
+        if (main_workspace_dom.contains(event.target)) {
+            handleFileChange(event);
+        } else if (local_drag_zone && local_drag_zone.contains(event.target)) {
+            handleFileChange(event, false);
+        } else {
+            event.stopPropagation();
+            event.preventDefault();
+            event.dataTransfer.effectAllowed = 'none';
+            event.dataTransfer.dropEffect = 'none';
         }
     }
+}
 
-    refreshCategory() {
-        const category = this.getSelectedCategory();
-        const { toolbox } = this.root_store;
-        const flyout_content = toolbox.getCategoryContents(category);
-        this.setContents(flyout_content);
-    }
-
-    get variables_blocks_count() {
-        return this.flyout_content.filter((block: Element) => block.getAttribute('type') === 'variables_get').length;
-    }
-
-    get first_get_variable_block_index() {
-        return this.flyout_content.length - this.variables_blocks_count;
-    }
-                         }
+export default new DBot();
