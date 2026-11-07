@@ -1,4 +1,3 @@
-// @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
@@ -11,18 +10,26 @@ type FlyoutBlockProps = {
 
 const FlyoutBlock = observer(({ block_node, should_hide_display_name }: FlyoutBlockProps) => {
     const { flyout } = useStore();
-    const { initBlockWorkspace } = flyout;
-
-    let el_block_workspace = React.useRef();
+    const blockWorkspaceRef = React.useRef<HTMLDivElement | null>(null);
 
     React.useEffect(() => {
-        initBlockWorkspace(el_block_workspace, block_node);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        const element = blockWorkspaceRef.current;
+
+        if (!element || !window.Blockly?.derivWorkspace) {
+            console.warn('[Jixirio] Flyout block workspace is not ready.');
+            return;
+        }
+
+        try {
+            flyout.initBlockWorkspace(element, block_node);
+        } catch (error) {
+            console.error('[Jixirio] Failed to initialize flyout block:', error);
+        }
+    }, [flyout, block_node]);
 
     return (
         <div
-            ref={el => (el_block_workspace = el)}
+            ref={blockWorkspaceRef}
             className={classNames({
                 'flyout__block-workspace--center': should_hide_display_name,
                 'flyout__block-workspace--top': !should_hide_display_name,
