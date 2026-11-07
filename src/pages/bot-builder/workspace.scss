@@ -1,19 +1,26 @@
-
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/devices' as *;
 
-/* Main Blockly builder container */
+/* Keep Blockly measurable even while the builder is inactive. */
 .bot-builder {
-    display: none;
-    position: relative;
+    display: block;
+    position: absolute;
+    left: -200vw;
+    top: 0;
     width: 100%;
     min-width: 0;
+    visibility: hidden;
+    pointer-events: none;
     overflow: hidden;
     background: #080d1a;
 }
 
 .bot-builder--active {
-    display: block;
+    position: relative;
+    left: 0;
+    top: auto;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .bot-builder--inactive {
@@ -25,23 +32,13 @@
     width: 100%;
     height: var(--bot-content-height, calc(100vh - 22rem));
     min-height: 420px;
-    top: 0;
     overflow: hidden;
     background:
-        radial-gradient(
-            circle at 75% 20%,
-            rgba(0, 230, 118, 0.045),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 15% 80%,
-            rgba(56, 189, 248, 0.04),
-            transparent 28%
-        ),
+        radial-gradient(circle at 75% 20%, rgba(0, 230, 118, 0.045), transparent 30%),
+        radial-gradient(circle at 15% 80%, rgba(56, 189, 248, 0.04), transparent 28%),
         linear-gradient(145deg, #080d1a, #04060d);
 }
 
-/* Blockly workspace viewport */
 .injectionDiv {
     position: relative;
     width: 100%;
@@ -85,7 +82,6 @@
     display: none;
 }
 
-/* Blockly root block header */
 .blocklyText.blocklyTextRootBlockHeader {
     font-size: calc(var(--text-size-sm) * 0.9);
     font-weight: normal;
@@ -96,7 +92,6 @@
     fill: $color-white;
 }
 
-/* Mobile builder */
 @include mobile-or-tablet-screen {
     #scratch_div {
         width: 100%;
