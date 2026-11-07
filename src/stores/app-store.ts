@@ -5,7 +5,6 @@ import { setCurrency } from '@/external/bot-skeleton/scratch/utils';
 import { TApiHelpersStore } from '@/types/stores.types';
 import RootStore from './root-store';
 
-const WORKSPACE_INIT_TIMEOUT_MS = 15000;
 const WORKSPACE_STORE_WAIT_MS = 60000;
 
 export default class AppStore {
@@ -69,10 +68,9 @@ export default class AppStore {
 
             while (!this.dbot_store || !this.api_helpers_store) {
                 if (Date.now() - store_wait_started >= WORKSPACE_STORE_WAIT_MS) {
-                    console.error(
-                        '[Jixirio] Blockly stores did not initialize within 60 seconds.'
+                    throw new Error(
+                        '[Jixirio] Blockly engine stores failed to initialize. Please reload the platform.'
                     );
-                    return;
                 }
 
                 await new Promise(resolve => setTimeout(resolve, 100));
@@ -83,33 +81,38 @@ export default class AppStore {
             try {
                 let workspace = window.Blockly?.derivWorkspace;
 
-                if (!workspace || typeof workspace.getVariableMap !== 'function') {
-                    let timeout_id: ReturnType<typeof setTimeout> | undefined;
-
-                    try {
-                        timeout_id = setTimeout(() => {
-                            console.warn(
-                                `[Jixirio] Blockly is still initializing after ${WORKSPACE_INIT_TIMEOUT_MS / 1000} seconds.`
-                            );
-                        }, WORKSPACE_INIT_TIMEOUT_MS);
-
-                        await DBot.initWorkspace(
-                            '/',
-                            this.dbot_store,
-                            this.api_helpers_store,
-                            ui.is_mobile,
-                            false
-                        );
-                    } finally {
-                        if (timeout_id) clearTimeout(timeout_id);
-                    }
+                if (
+                    !workspace ||
+                    typeof workspace.getVariableMap !== 'function'
+                ) {
+                    await DBot.initWorkspace(
+                        '/',
+                        this.dbot_store,
+                        this.api_helpers_store,
+                        ui.is_mobile,
+                        false
+                    );
 
                     workspace = window.Blockly?.derivWorkspace;
                 }
 
-                if (!workspace || typeof workspace.getVariableMap !== 'function') {
+                if (
+                    !workspace ||
+                    typeof workspace.getVariableMap !== 'function' ||
+                    typeof workspace.getAllBlocks !== 'function'
+                ) {
                     throw new Error(
-                        '[Jixirio] Blockly did not create a valid workspace.'
+                        '[Jixirio] Blockly failed to create its default Bot Builder workspace.'
+                    );
+                }
+
+                const hasTradeDefinition = workspace
+                    .getAllBlocks(false)
+                    .some(block => block.type === 'trade_definition');
+
+                if (!hasTradeDefinition) {
+                    throw new Error(
+                        '[Jixirio] The default bot structure did not load into Blockly.'
                     );
                 }
 
@@ -119,24 +122,27 @@ export default class AppStore {
                 this.registerOnAccountSwitch.call(this);
                 this.registerResidenceChangeReaction.call(this);
 
-                window.removeEventListener('click', this.onClickOutsideBlockly);
-                window.addEventListener('click', this.onClickOutsideBlockly);
+                window.removeEventListener(
+                    'click',
+                    this.onClickOutsideBlockly
+                );
+                window.addEventListener(
+                    'click',
+                    this.onClickOutsideBlockly
+                );
 
                 blockly_store.getCachedActiveTab();
 
                 requestAnimationFrame(() => {
+                    const activeWorkspace = window.Blockly?.derivWorkspace;
+
                     if (
-                        window.Blockly?.derivWorkspace &&
-                        typeof window.Blockly.svgResize === 'function'
+                        activeWorkspace &&
+                        typeof window.Blockly?.svgResize === 'function'
                     ) {
-                        window.Blockly.svgResize(window.Blockly.derivWorkspace);
+                        window.Blockly.svgResize(activeWorkspace);
                     }
                 });
-            } catch (error) {
-                console.error(
-                    '[Jixirio] Blockly workspace initialization failed:',
-                    error
-                );
             } finally {
                 blockly_store.setLoading(false);
             }
@@ -154,8 +160,11 @@ export default class AppStore {
         DBot.terminateConnection();
 
         if (window.Blockly?.derivWorkspace) {
-            clearInterval(window.Blockly.derivWorkspace.save_workspace_interval);
+            clearInterval(
+                window.Blockly.derivWorkspace.save_workspace_interval
+            );
             window.Blockly.derivWorkspace.dispose();
+            window.Blockly.derivWorkspace = null;
         }
 
         if (typeof this.disposeReloadOnLanguageChangeReaction === 'function') {
@@ -195,16 +204,17 @@ export default class AppStore {
             () => {
                 if (!window.Blockly?.derivWorkspace) return;
 
-                const trade_options_blocks = window.Blockly.derivWorkspace
-                    .getAllBlocks()
-                    .filter(
-                        b =>
-                            b.type === 'trade_definition_tradeoptions' ||
-                            b.type === 'trade_definition_multiplier' ||
-                            b.type === 'trade_definition_accumulator' ||
-                            (b.isDescendantOf('trade_definition_multiplier') &&
-                                b.category_ === 'trade_parameters')
-                    );
+                const trade_options_blocks =
+                    window.Blockly.derivWorkspace
+                        .getAllBlocks()
+                        .filter(
+                            b =>
+                                b.type === 'trade_definition_tradeoptions' ||
+                                b.type === 'trade_definition_multiplier' ||
+                                b.type === 'trade_definition_accumulator' ||
+                                (b.isDescendantOf('trade_definition_multiplier') &&
+                                    b.category_ === 'trade_parameters')
+                        );
 
                 trade_options_blocks.forEach(trade_options_block =>
                     setCurrency(trade_options_block)
@@ -326,4 +336,4 @@ export default class AppStore {
             }
         }
     };
-    }
+                    }
