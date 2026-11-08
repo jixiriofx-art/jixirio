@@ -6,7 +6,7 @@ const loadMarketIcon = (iconName: string, illustrativeOnly = false) =>
     lazy(() =>
         Promise.all([
             import('@deriv/quill-icons/Markets'),
-            import('@deriv/quill-icons/Illustrative'),
+            import('@deriv/quill-icons'),
         ]).then(([markets, illustrative]) => ({
             default: illustrativeOnly
                 ? illustrative.IllustrativeMarketsIcon
