@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, type ComponentType } from 'react';
 import type { IconSize } from '@deriv/quill-icons';
 
@@ -6,7 +5,7 @@ const loadTradeTypeIcon = (iconName: string) =>
     lazy(() =>
         Promise.all([
             import('@deriv/quill-icons/TradeTypes'),
-            import('@deriv/quill-icons/Illustrative'),
+            import('@deriv/quill-icons'),
         ]).then(([tradeTypes, illustrative]) => ({
             default:
                 (tradeTypes as Record<string, ComponentType<any>>)[iconName] ??
