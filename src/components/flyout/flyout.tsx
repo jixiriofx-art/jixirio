@@ -7,7 +7,7 @@ import { browserOptimizer } from '@/utils/browser-performance-optimizer';
 import { clickRateLimiter } from '@/utils/click-rate-limiter';
 import GTM from '@/utils/gtm';
 import { help_content_config } from '@/utils/help-content/help-content.config';
-import { LabelPairedCircleExclamationCaptionFillIcon } from '@deriv/quill-icons';
+import { LabelPairedCircleExclamationCaptionFillIcon } from '@deriv/quill-icons/LabelPaired';
 import { localize } from '@deriv-com/translations';
 import { getPlatformConfig } from '../shared';
 import Input from '../shared_ui/input';
