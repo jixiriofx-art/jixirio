@@ -1,6 +1,9 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
-import { StandaloneSortDownFillIcon, StandaloneSortUpFillIcon } from '@deriv/quill-icons';
+import {
+    StandaloneSortDownFillIcon,
+    StandaloneSortUpFillIcon,
+} from '@deriv/quill-icons/Standalone';
 
 type TArrowIndicatorProps = {
     className?: string;
