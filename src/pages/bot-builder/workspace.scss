@@ -1,3 +1,4 @@
+
 @use 'components/shared/styles/constants' as *;
 @use 'components/shared/styles/devices' as *;
 
@@ -53,6 +54,30 @@
 
 .blocklyMainBackground {
     fill: #ffffff !important;
+}
+
+/* Make the actual Blockly block bodies white, including in dark mode. */
+#scratch_div .blocklyPath {
+    fill: #ffffff !important;
+    stroke: #cbd5e1;
+    stroke-width: 1px;
+}
+
+/* Keep selected blocks clearly visible. */
+#scratch_div .blocklySelected > .blocklyPath {
+    fill: #ffffff !important;
+    stroke: #2563eb !important;
+    stroke-width: 2px !important;
+}
+
+#scratch_div .blocklySelected > .blocklyPathLight {
+    display: none;
+}
+
+#scratch_div .blocklyText,
+#scratch_div .blocklyNonEditableText > text,
+#scratch_div .blocklyEditableText > text {
+    fill: #172033 !important;
 }
 
 .blocklyFlyoutBackground {
