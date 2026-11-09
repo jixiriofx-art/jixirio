@@ -25,7 +25,12 @@ class ErrorBoundary extends React.Component {
         this.state.hasError ? (
             <ErrorComponent
                 header="Jixirio diagnostic"
-                message={this.state.error?.message || 'Unknown application error.'}
+                message={[
+                    this.state.error?.message || 'Unknown application error.',
+                    this.state.info?.componentStack
+                        ? `Component stack:\n${this.state.info.componentStack}`
+                        : 'Component stack unavailable.',
+                ].join('\n\n')}
                 should_show_refresh={true}
             />
         ) : (
