@@ -328,7 +328,7 @@ export default class LoadModalStore {
             );
         }
 
-        await load({
+        const loadResult = await load({
             block_string: strategy.xml,
             strategy_id: strategy.id,
             file_name: strategy.name,
@@ -338,6 +338,10 @@ export default class LoadModalStore {
             showIncompatibleStrategyDialog: false,
             show_snackbar: is_show_notification,
         });
+
+        if (loadResult?.error) {
+            throw new Error(`Bot strategy could not be loaded: ${loadResult.error}`);
+        }
 
         const loadedCorrectly =
             workspace.current_strategy_id === strategy.id &&
