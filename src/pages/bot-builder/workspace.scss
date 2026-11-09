@@ -152,3 +152,46 @@
         min-height: 360px;
     }
 }
+
+/* Mobile Blockly viewport: keep the canvas full-width and constrain the
+   toolbox so it cannot consume the workspace area on narrow screens. */
+@media screen and (max-width: 768px) {
+    #scratch_div {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+        overflow: hidden !important;
+    }
+
+    #scratch_div > .injectionDiv,
+    #scratch_div .blocklySvg {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    #scratch_div .blocklySvg {
+        height: 100% !important;
+    }
+
+    #scratch_div .blocklyToolboxDiv {
+        width: min(38vw, 15rem) !important;
+        max-width: 38vw !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    #scratch_div .blocklyFlyout {
+        max-width: 62vw;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    #scratch_div .blocklyToolboxDiv {
+        width: min(34vw, 9rem) !important;
+        max-width: 34vw !important;
+    }
+}
+
