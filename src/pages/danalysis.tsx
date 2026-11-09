@@ -48,6 +48,7 @@ const Danalysis = observer(() => {
     React.useEffect(() => {
         let mounted = true;
         let listener: any = null;
+        let subscriptionId: string | null = null;
         const attach = () => {
             const api = api_base.api;
             if (!api || listener) return;
@@ -69,7 +70,19 @@ const Danalysis = observer(() => {
                 setStatus('Live market data connected.');
             });
             try {
-                api.send({ ticks: symbol, subscribe: 1 });
+                Promise.resolve(api.send({ ticks: symbol, subscribe: 1 }))
+                    .then((response: any) => {
+                        subscriptionId = response?.subscription?.id || null;
+                        if (!mounted && subscriptionId) {
+                            return api.forget(subscriptionId);
+                        }
+                        return undefined;
+                    })
+                    .catch(() => {
+                        if (mounted) setStatus('Unable to connect to market data. Retrying...');
+                        listener?.unsubscribe?.();
+                        listener = null;
+                    });
             } catch {
                 listener?.unsubscribe?.();
                 listener = null;
@@ -82,6 +95,9 @@ const Danalysis = observer(() => {
             mounted = false;
             window.clearInterval(retry);
             listener?.unsubscribe?.();
+            if (subscriptionId) {
+                Promise.resolve(api_base.api?.forget(subscriptionId)).catch(() => undefined);
+            }
         };
     }, [symbol]);
 
