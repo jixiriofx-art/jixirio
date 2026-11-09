@@ -531,16 +531,19 @@ const AppWrapper = observer(() => {
             if (tab_index === BOT_BUILDER) {
                 window.requestAnimationFrame(() => {
                     window.requestAnimationFrame(() => {
-                        window.dispatchEvent(new Event('resize'));
+                        // Let the mobile tab finish painting before Blockly measures its SVG.
+                        window.setTimeout(() => {
+                            window.dispatchEvent(new Event('resize'));
 
-                        const workspace = window.Blockly?.derivWorkspace;
-                        if (
-                            workspace &&
-                            typeof window.Blockly?.svgResize === 'function'
-                        ) {
-                            window.Blockly.svgResize(workspace);
-                            blockly_store.setContainerSize();
-                        }
+                            const workspace = window.Blockly?.derivWorkspace;
+                            if (
+                                workspace &&
+                                typeof window.Blockly?.svgResize === 'function'
+                            ) {
+                                window.Blockly.svgResize(workspace);
+                                blockly_store.setContainerSize();
+                            }
+                        }, 100);
                     });
                 });
             }
