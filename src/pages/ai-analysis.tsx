@@ -13,12 +13,13 @@ const AIAnalysis = observer(() => {
 
     React.useEffect(() => {
         let active = true;
+        let loading = false;
         const loadMarkets = async () => {
+            if (!api_base.api || loading) return;
+            loading = true;
             try {
                 let available = api_base.active_symbols || [];
-                if (!available.length && api_base.api) {
-                    available = await api_base.getActiveSymbols();
-                }
+                if (!available.length) available = await api_base.getActiveSymbols();
                 if (!active) return;
                 const derived = available
                     .filter((item: any) => {
@@ -35,13 +36,17 @@ const AIAnalysis = observer(() => {
                 if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
                     setSymbol(derived[0].symbol);
                 }
-                setStatus(derived.length ? 'Deriv markets loaded. Select a market to begin.' : 'No derived markets are available yet. Connect to Deriv and retry.');
+                setStatus(derived.length ? 'Deriv markets loaded. Select a market to begin.' : 'No derived markets are available from this account.');
+                if (derived.length) window.clearInterval(retry);
             } catch {
-                if (active) setStatus('Could not load Deriv markets. Check your connection.');
+                if (active) setStatus('Could not load Deriv markets. Retrying connection...');
+            } finally {
+                loading = false;
             }
         };
+        const retry = window.setInterval(loadMarkets, 1000);
         loadMarkets();
-        return () => { active = false; };
+        return () => { active = false; window.clearInterval(retry); };
     }, []);
 
     React.useEffect(() => {
