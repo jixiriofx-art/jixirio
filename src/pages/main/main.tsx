@@ -593,14 +593,14 @@ const AppWrapper = observer(() => {
                                             height='24px'
                                             width='24px'
                                             fill='var(--text-general)'
-                                        >
-                                <BotBuilder />
-                            </div>
+                                        />
                                         <Localize i18n_default_text='Bot Builder' />
                                     </>
                                 }
                                 id='id-bot-builder'
-                            />
+                            >
+                                <BotBuilder />
+                            </div>
 
                             {/* BEST BOTS */}
                             <div
