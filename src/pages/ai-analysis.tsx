@@ -45,31 +45,38 @@ const AIAnalysis = observer(() => {
     }, []);
 
     React.useEffect(() => {
-        const api = api_base.api;
-        if (!api) {
-            setStatus('Connect your Deriv account to receive live market data.');
-            return;
-        }
         let active = true;
-        setPoints([]);
-        setCurrentPrice(null);
-        setStatus('Connecting to live tick stream...');
-        const listener = api.onMessage().subscribe((message: any) => {
-            if (!active) return;
-            const data = message?.data ?? message;
-            if (data?.tick?.symbol !== symbol) return;
-            const price = Number(data.tick.quote);
-            const epoch = Number(data.tick.epoch || Date.now() / 1000);
-            if (!Number.isFinite(price)) return;
-            setCurrentPrice(price);
-            setPoints(previous => [...previous.slice(-99), { price, epoch }]);
-            setStatus('Live Deriv data received.');
-        });
-        Promise.resolve(api.send({ ticks: symbol, subscribe: 1 })).catch(() => {
-            if (active) setStatus('Market subscription failed. Try selecting the market again.');
-        });
+        let listener: any = null;
+        const attach = () => {
+            const api = api_base.api;
+            if (!api || listener) return;
+            setPoints([]);
+            setCurrentPrice(null);
+            setStatus('Connecting to live tick stream...');
+            listener = api.onMessage().subscribe((message: any) => {
+                if (!active) return;
+                const data = message?.data ?? message;
+                if (data?.tick?.symbol !== symbol) return;
+                const price = Number(data.tick.quote);
+                const epoch = Number(data.tick.epoch || Date.now() / 1000);
+                if (!Number.isFinite(price)) return;
+                setCurrentPrice(price);
+                setPoints(previous => [...previous.slice(-99), { price, epoch }]);
+                setStatus('Live Deriv data received.');
+            });
+            try {
+                api.send({ ticks: symbol, subscribe: 1 });
+            } catch {
+                listener?.unsubscribe?.();
+                listener = null;
+                setStatus('Market subscription failed. Retrying...');
+            }
+        };
+        const retry = window.setInterval(attach, 1000);
+        attach();
         return () => {
             active = false;
+            window.clearInterval(retry);
             listener?.unsubscribe?.();
         };
     }, [symbol]);
