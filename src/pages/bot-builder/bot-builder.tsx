@@ -39,7 +39,7 @@ const BotBuilder = observer(() => {
         let frame_id = 0;
         let attempts = 0;
 
-        const initializeWhenVisible = async () => {
+        const initializeWhenVisible = async (): Promise<void> => {
             const container = document.getElementById('scratch_div');
             const builder = container?.closest('.bot-builder') as HTMLElement | null;
             const is_visible =
