@@ -48,6 +48,7 @@ const AIAnalysis = observer(() => {
     React.useEffect(() => {
         let active = true;
         let listener: any = null;
+        let subscriptionId: string | null = null;
         const attach = () => {
             const api = api_base.api;
             if (!api || listener) return;
@@ -66,7 +67,19 @@ const AIAnalysis = observer(() => {
                 setStatus('Live Deriv data received.');
             });
             try {
-                api.send({ ticks: symbol, subscribe: 1 });
+                Promise.resolve(api.send({ ticks: symbol, subscribe: 1 }))
+                    .then((response: any) => {
+                        subscriptionId = response?.subscription?.id || null;
+                        if (!active && subscriptionId) {
+                            return api.forget(subscriptionId);
+                        }
+                        return undefined;
+                    })
+                    .catch(() => {
+                        if (active) setStatus('Market subscription failed. Retrying...');
+                        listener?.unsubscribe?.();
+                        listener = null;
+                    });
             } catch {
                 listener?.unsubscribe?.();
                 listener = null;
@@ -79,6 +92,9 @@ const AIAnalysis = observer(() => {
             active = false;
             window.clearInterval(retry);
             listener?.unsubscribe?.();
+            if (subscriptionId) {
+                Promise.resolve(api_base.api?.forget(subscriptionId)).catch(() => undefined);
+            }
         };
     }, [symbol]);
 
