@@ -45,49 +45,42 @@ const Danalysis = observer(() => {
     }, []);
 
     React.useEffect(() => {
-        if (!api_base.api) {
-            setStatus('Connect Deriv to start analysis.');
-            return;
-        }
-
         let mounted = true;
-
-        const subscribe = async () => {
+        let listener: any = null;
+        const attach = () => {
+            const api = api_base.api;
+            if (!api || listener) return;
+            setStatus('Connecting to live tick data...');
+            listener = api.onMessage().subscribe((message: any) => {
+                if (!mounted) return;
+                const data = message?.data ?? message;
+                if (data?.tick?.symbol !== symbol) return;
+                const quote = String(data.tick.quote ?? '');
+                const price = Number(data.tick.quote);
+                if (!Number.isFinite(price)) return;
+                const decimalPart = quote.includes('.') ? quote.split('.')[1] : '';
+                const lastDigit = decimalPart.length > 0
+                    ? Number(decimalPart.slice(-1))
+                    : Number(String(Math.round(price)).slice(-1));
+                if (!Number.isInteger(lastDigit) || lastDigit < 0 || lastDigit > 9) return;
+                setTick(price);
+                setDigits(previous => [...previous.slice(-999), lastDigit]);
+                setStatus('Live market data connected.');
+            });
             try {
-                await api_base.api.send({ ticks: symbol, subscribe: 1 });
-                if (mounted) setStatus('Live market data connected.');
+                api.send({ ticks: symbol, subscribe: 1 });
             } catch {
-                if (mounted) setStatus('Unable to connect to market data.');
+                listener?.unsubscribe?.();
+                listener = null;
+                setStatus('Unable to connect to market data. Retrying...');
             }
         };
-
-        subscribe();
-
-        const subscription = api_base.api.onMessage().subscribe((message: any) => {
-            if (!mounted) return;
-
-            const data = message?.data ?? message;
-            if (data?.tick?.symbol !== symbol) return;
-
-            const quote = String(data.tick.quote ?? '');
-            const price = Number(data.tick.quote);
-
-            if (!Number.isFinite(price)) return;
-
-            const decimalPart = quote.includes('.') ? quote.split('.')[1] : '';
-            const lastDigit = decimalPart.length > 0
-                ? Number(decimalPart.slice(-1))
-                : Number(String(Math.round(price)).slice(-1));
-
-            if (!Number.isInteger(lastDigit) || lastDigit < 0 || lastDigit > 9) return;
-
-            setTick(price);
-            setDigits(previous => [...previous.slice(-999), lastDigit]);
-        });
-
+        const retry = window.setInterval(attach, 1000);
+        attach();
         return () => {
             mounted = false;
-            subscription?.unsubscribe?.();
+            window.clearInterval(retry);
+            listener?.unsubscribe?.();
         };
     }, [symbol]);
 
