@@ -1,4 +1,4 @@
-
+ 
 import { lazy, Suspense } from 'react';
 import React from 'react';
 import {
@@ -7,7 +7,11 @@ import {
     Route,
     RouterProvider,
 } from 'react-router';
-import { cleanupUrl, handleOAuthCallback } from '@/external/deriv-core';
+import {
+    cleanupUrl,
+    fetchAccounts,
+    handleOAuthCallback,
+} from '@/external/deriv-core';
 import ChunkLoader from '@/components/loader/chunk-loader';
 import LocalStorageSyncWrapper from '@/components/localStorage-sync-wrapper';
 import RoutePromptDialog from '@/components/route-prompt-dialog';
@@ -92,59 +96,40 @@ function App() {
 
         const handleCallback = async () => {
             try {
+                const clientId = process.env.NEXT_PUBLIC_DERIV_APP_ID || '';
+                if (!clientId) {
+                    throw new Error('Jixirio is missing its Deriv App ID configuration.');
+                }
+
                 const authInfo = await handleOAuthCallback(
                     window.location.href,
                     {
-                        clientId:
-                            process.env.NEXT_PUBLIC_DERIV_APP_ID || '',
+                        clientId,
                         redirectUri: window.location.origin,
                         scopes: 'trade',
                     }
                 );
 
                 if (!authInfo?.access_token) {
-                    throw new Error(
-                        'Deriv did not return an access token.'
-                    );
+                    throw new Error('Deriv did not return an access token.');
                 }
 
+                // Use the shared Deriv OAuth account helper. It stores the
+                // authoritative account_type and active login ID from Deriv's
+                // account response, rather than guessing from account ID prefixes.
+                const accounts = await fetchAccounts(authInfo, clientId);
+
+                if (!accounts.length) {
+                    throw new Error('No Deriv accounts were returned.');
+                }
+
+                // The WebSocket bootstrap reads this sessionStorage copy.
                 const { DerivWSAccountsService } = await import(
                     '@/services/derivws-accounts.service'
                 );
-
-                const accounts =
-                    await DerivWSAccountsService.fetchAccountsList(
-                        authInfo.access_token
-                    );
-
-                if (!accounts || accounts.length === 0) {
-                    throw new Error(
-                        'No Deriv accounts were returned.'
-                    );
-                }
-
                 DerivWSAccountsService.storeAccounts(accounts);
-
-                const firstAccount = accounts[0];
-
-                localStorage.setItem(
-                    'active_loginid',
-                    firstAccount.account_id
-                );
-
-                const isDemo =
-                    firstAccount.account_id.startsWith('VRT') ||
-                    firstAccount.account_id.startsWith('VRTC');
-
-                localStorage.setItem(
-                    'account_type',
-                    isDemo ? 'demo' : 'real'
-                );
             } catch (error) {
-                console.error(
-                    '[Jixirio] OAuth callback failed:',
-                    error
-                );
+                console.error('[Jixirio] OAuth callback failed:', error);
             } finally {
                 cleanupUrl(window.location.origin);
                 setIsOAuthCallbackProcessing(false);
