@@ -69,7 +69,7 @@ const waitForBlocklyWorkspace = async (
 };
 
 const BestBots = () => {
-    const { dashboard, load_modal, blockly_store } = useStore();
+    const { dashboard, app, load_modal, blockly_store } = useStore();
     const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
     const [error, setError] = useState('');
 
@@ -82,6 +82,9 @@ const BestBots = () => {
         try {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
+            // Start and await the same guarded initializer used by the Bot Builder
+            // instead of relying only on a React tab-change effect to win the race.
+            await app.onMount();
             const workspace = await waitForBlocklyWorkspace(blockly_store);
 
             const strategyModule =
