@@ -1,4 +1,3 @@
-
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import { action, makeObservable, reaction } from 'mobx';
 import { api_base, ApiHelpers, DBot, runIrreversibleEvents } from '@/external/bot-skeleton';
@@ -6,7 +5,7 @@ import { setCurrency } from '@/external/bot-skeleton/scratch/utils';
 import { TApiHelpersStore } from '@/types/stores.types';
 import RootStore from './root-store';
 
-const WORKSPACE_INIT_TIMEOUT_MS = 15000;
+const WORKSPACE_STORE_WAIT_MS = 60000;
 
 export default class AppStore {
     root_store: RootStore;
@@ -14,6 +13,7 @@ export default class AppStore {
     dbot_store: RootStore | null;
     api_helpers_store: TApiHelpersStore | null;
     timer: ReturnType<typeof setInterval> | null;
+    workspace_init_promise: Promise<void> | null;
     disposeReloadOnLanguageChangeReaction: unknown;
     disposeCurrencyReaction: unknown;
     disposeSwitchAccountListener: unknown;
@@ -35,85 +35,124 @@ export default class AppStore {
         this.dbot_store = null;
         this.api_helpers_store = null;
         this.timer = null;
+        this.workspace_init_promise = null;
     }
 
     onMount = async () => {
-        const { blockly_store, run_panel } = this.root_store;
-        const { ui } = this.core;
-
-        let timer_counter = 1;
-
-        this.timer = setInterval(() => {
-            if (window.sendRequestsStatistic) {
-                window.sendRequestsStatistic(false);
-                performance.clearMeasures();
-
-                if (timer_counter === 6 || run_panel?.is_running) {
-                    if (this.timer) clearInterval(this.timer);
-                } else {
-                    timer_counter++;
-                }
-            }
-        }, 10000);
-
-        if (!this.dbot_store) {
-            console.error('[Jixirio] Blockly stores are not initialized.');
-            return;
+        if (this.workspace_init_promise) {
+            return this.workspace_init_promise;
         }
 
-        // Keep the builder in its loading state until Blockly has really
-        // finished initializing. Do not abandon initialization after 15s.
-        blockly_store.setLoading(true);
+        this.workspace_init_promise = (async () => {
+            const { blockly_store, run_panel } = this.root_store;
+            const { ui } = this.core;
 
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        let workspaceInitialized = false;
+            let timer_counter = 1;
+
+            if (this.timer) clearInterval(this.timer);
+
+            this.timer = setInterval(() => {
+                if (window.sendRequestsStatistic) {
+                    window.sendRequestsStatistic(false);
+                    performance.clearMeasures();
+
+                    if (timer_counter === 6 || run_panel?.is_running) {
+                        if (this.timer) clearInterval(this.timer);
+                    } else {
+                        timer_counter++;
+                    }
+                }
+            }, 10000);
+
+            const store_wait_started = Date.now();
+
+            while (!this.dbot_store || !this.api_helpers_store) {
+                if (Date.now() - store_wait_started >= WORKSPACE_STORE_WAIT_MS) {
+                    throw new Error(
+                        '[Jixirio] Blockly engine stores failed to initialize. Please reload the platform.'
+                    );
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            blockly_store.setLoading(true);
+
+            try {
+                let workspace = window.Blockly?.derivWorkspace;
+
+                if (
+                    !workspace ||
+                    typeof workspace.getVariableMap !== 'function'
+                ) {
+                    await DBot.initWorkspace(
+                        '/',
+                        this.dbot_store,
+                        this.api_helpers_store,
+                        ui.is_mobile,
+                        false
+                    );
+
+                    workspace = window.Blockly?.derivWorkspace;
+                }
+
+                if (
+                    !workspace ||
+                    typeof workspace.getVariableMap !== 'function' ||
+                    typeof workspace.getAllBlocks !== 'function'
+                ) {
+                    throw new Error(
+                        '[Jixirio] Blockly failed to create its default Bot Builder workspace.'
+                    );
+                }
+
+                const hasTradeDefinition = workspace
+                    .getAllBlocks(false)
+                    .some(block => block.type === 'trade_definition');
+
+                if (!hasTradeDefinition) {
+                    throw new Error(
+                        '[Jixirio] The default bot structure did not load into Blockly.'
+                    );
+                }
+
+                blockly_store.setContainerSize();
+
+                this.registerCurrencyReaction.call(this);
+                this.registerOnAccountSwitch.call(this);
+                this.registerResidenceChangeReaction.call(this);
+
+                window.removeEventListener(
+                    'click',
+                    this.onClickOutsideBlockly
+                );
+                window.addEventListener(
+                    'click',
+                    this.onClickOutsideBlockly
+                );
+
+                blockly_store.getCachedActiveTab();
+
+                requestAnimationFrame(() => {
+                    const activeWorkspace = window.Blockly?.derivWorkspace;
+
+                    if (
+                        activeWorkspace &&
+                        typeof window.Blockly?.svgResize === 'function'
+                    ) {
+                        window.Blockly.svgResize(activeWorkspace);
+                    }
+                });
+            } finally {
+                blockly_store.setLoading(false);
+            }
+        })();
 
         try {
-            timeoutId = setTimeout(() => {
-                console.warn(
-                    `[Jixirio] Blockly is still initializing after ${WORKSPACE_INIT_TIMEOUT_MS / 1000} seconds. Waiting for it to finish.`
-                );
-            }, WORKSPACE_INIT_TIMEOUT_MS);
-
-            await DBot.initWorkspace(
-                '/',
-                this.dbot_store,
-                this.api_helpers_store,
-                ui.is_mobile,
-                false
-            );
-
-            if (!window.Blockly?.derivWorkspace) {
-                throw new Error(
-                    'Blockly initialization finished without creating a workspace.'
-                );
-            }
-
-            workspaceInitialized = true;
-            blockly_store.setContainerSize();
-        } catch (error) {
-            console.error(
-                '[Jixirio] Blockly workspace initialization failed:',
-                error
-            );
+            await this.workspace_init_promise;
         } finally {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-
-            blockly_store.setLoading(false);
+            this.workspace_init_promise = null;
         }
-
-        if (!workspaceInitialized) {
-            return;
-        }
-
-        this.registerCurrencyReaction.call(this);
-        this.registerOnAccountSwitch.call(this);
-        this.registerResidenceChangeReaction.call(this);
-
-        window.addEventListener('click', this.onClickOutsideBlockly);
-        blockly_store.getCachedActiveTab();
     };
 
     onUnmount = () => {
@@ -121,8 +160,11 @@ export default class AppStore {
         DBot.terminateConnection();
 
         if (window.Blockly?.derivWorkspace) {
-            clearInterval(window.Blockly?.derivWorkspace.save_workspace_interval);
-            window.Blockly.derivWorkspace?.dispose();
+            clearInterval(
+                window.Blockly.derivWorkspace.save_workspace_interval
+            );
+            window.Blockly.derivWorkspace.dispose();
+            window.Blockly.derivWorkspace = null;
         }
 
         if (typeof this.disposeReloadOnLanguageChangeReaction === 'function') {
@@ -148,7 +190,11 @@ export default class AppStore {
         ui.setAccountSwitcherDisabledMessage();
         ui.setPromptHandler(false);
 
-        if (this.timer) clearInterval(this.timer);
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+
         performance.clearMeasures();
     };
 
@@ -158,16 +204,17 @@ export default class AppStore {
             () => {
                 if (!window.Blockly?.derivWorkspace) return;
 
-                const trade_options_blocks = window.Blockly?.derivWorkspace
-                    .getAllBlocks()
-                    .filter(
-                        b =>
-                            b.type === 'trade_definition_tradeoptions' ||
-                            b.type === 'trade_definition_multiplier' ||
-                            b.type === 'trade_definition_accumulator' ||
-                            (b.isDescendantOf('trade_definition_multiplier') &&
-                                b.category_ === 'trade_parameters')
-                    );
+                const trade_options_blocks =
+                    window.Blockly.derivWorkspace
+                        .getAllBlocks()
+                        .filter(
+                            b =>
+                                b.type === 'trade_definition_tradeoptions' ||
+                                b.type === 'trade_definition_multiplier' ||
+                                b.type === 'trade_definition_accumulator' ||
+                                (b.isDescendantOf('trade_definition_multiplier') &&
+                                    b.category_ === 'trade_parameters')
+                        );
 
                 trade_options_blocks.forEach(trade_options_block =>
                     setCurrency(trade_options_block)
@@ -289,4 +336,4 @@ export default class AppStore {
             }
         }
     };
-}
+                    }
