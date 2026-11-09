@@ -22,16 +22,12 @@ const AIAnalysis = observer(() => {
                 if (!available.length) available = await api_base.getActiveSymbols();
                 if (!active) return;
                 const derived = available
-                    .filter((item: any) => {
-                        const name = String(item.display_name || item.symbol || '');
-                        return /volatility|jump|crash|boom|step|range break/i.test(name) ||
-                            /^(R_|1HZ|JD|CR|BO|STPR|RDB)/i.test(String(item.symbol || ''));
-                    })
                     .map((item: any) => ({
                         symbol: String(item.symbol || item.underlying_symbol || ''),
                         name: String(item.display_name || item.symbol || ''),
                     }))
-                    .filter((item: any) => item.symbol);
+                    .filter((item: any) => item.symbol)
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
                 setMarkets(derived);
                 if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
                     setSymbol(derived[0].symbol);
@@ -103,7 +99,7 @@ const AIAnalysis = observer(() => {
             <h2 style={{ margin: '4px 0 8px' }}>AI Market Analysis</h2>
             <p style={{ opacity: 0.72, marginTop: 0 }}>Live market conditions from Deriv ticks. This is market research, not an automatic trade signal.</p>
             <div style={{ ...panel, marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, marginBottom: 7 }}>Derived market</label>
+                <label style={{ display: 'block', fontSize: 13, marginBottom: 7 }}>Deriv market</label>
                 <select value={symbol} onChange={event => setSymbol(event.target.value)} style={control}>
                     {markets.map(market => <option key={market.symbol} value={market.symbol}>{market.name}</option>)}
                     {!markets.length && <option value={symbol}>{symbol}</option>}
