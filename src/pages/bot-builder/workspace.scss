@@ -176,22 +176,30 @@
         height: 100% !important;
     }
 
+    /* Keep the Blockly canvas at the full builder width. The flyout is
+       an overlay; it must not consume the canvas width on mobile. */
     #scratch_div .blocklyToolboxDiv {
-        width: min(38vw, 15rem) !important;
-        max-width: 38vw !important;
+        max-width: 30vw !important;
         min-width: 0 !important;
         box-sizing: border-box;
     }
 
     #scratch_div .blocklyFlyout {
-        max-width: 62vw;
+        max-width: min(42vw, 16rem) !important;
+    }
+
+    #scratch_div .blocklyWorkspace {
+        width: 100% !important;
     }
 }
 
 @media screen and (max-width: 420px) {
     #scratch_div .blocklyToolboxDiv {
-        width: min(34vw, 9rem) !important;
-        max-width: 34vw !important;
+        max-width: 28vw !important;
+    }
+
+    #scratch_div .blocklyFlyout {
+        max-width: 40vw !important;
     }
 }
 
