@@ -525,8 +525,27 @@ const AppWrapper = observer(() => {
                     });
                 }, 10);
             }
+
+            // Deriv owns Blockly injection. When its tab becomes active,
+            // notify the existing workspace to recalculate its SVG dimensions.
+            if (tab_index === BOT_BUILDER) {
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
+                        window.dispatchEvent(new Event('resize'));
+
+                        const workspace = window.Blockly?.derivWorkspace;
+                        if (
+                            workspace &&
+                            typeof window.Blockly?.svgResize === 'function'
+                        ) {
+                            window.Blockly.svgResize(workspace);
+                            blockly_store.setContainerSize();
+                        }
+                    });
+                });
+            }
         },
-        [setActiveTab]
+        [setActiveTab, BOT_BUILDER, blockly_store]
     );
 
     const handleLoginGeneration = async () => {
