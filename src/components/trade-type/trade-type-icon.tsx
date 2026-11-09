@@ -5,7 +5,7 @@ const loadTradeTypeIcon = (iconName: string) =>
     lazy(() =>
         Promise.all([
             import('@deriv/quill-icons/TradeTypes'),
-            import('@deriv/quill-icons'),
+            import('@deriv/quill-icons/Illustrative'),
         ]).then(([tradeTypes, illustrative]) => ({
             default:
                 (tradeTypes as Record<string, ComponentType<any>>)[iconName] ??
