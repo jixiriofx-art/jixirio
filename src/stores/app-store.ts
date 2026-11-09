@@ -81,10 +81,42 @@ export default class AppStore {
             try {
                 let workspace = window.Blockly?.derivWorkspace;
 
-                if (
-                    !workspace ||
-                    typeof workspace.getVariableMap !== 'function'
-                ) {
+                // A Blockly object can exist even when its default strategy blocks
+                // failed to load. Treat that as an incomplete workspace and rebuild it.
+                const isWorkspaceReady = candidate => {
+                    if (
+                        !candidate ||
+                        typeof candidate.getVariableMap !== 'function' ||
+                        typeof candidate.getAllBlocks !== 'function'
+                    ) {
+                        return false;
+                    }
+
+                    try {
+                        return candidate
+                            .getAllBlocks(false)
+                            .some(block => block.type === 'trade_definition');
+                    } catch {
+                        return false;
+                    }
+                };
+
+                if (!isWorkspaceReady(workspace)) {
+                    if (workspace && typeof workspace.dispose === 'function') {
+                        try {
+                            workspace.dispose();
+                        } catch (disposeError) {
+                            console.warn(
+                                '[Jixirio] Could not dispose the incomplete Blockly workspace:',
+                                disposeError
+                            );
+                        }
+                    }
+
+                    if (window.Blockly) {
+                        window.Blockly.derivWorkspace = null;
+                    }
+
                     await DBot.initWorkspace(
                         '/',
                         this.dbot_store,
@@ -96,23 +128,9 @@ export default class AppStore {
                     workspace = window.Blockly?.derivWorkspace;
                 }
 
-                if (
-                    !workspace ||
-                    typeof workspace.getVariableMap !== 'function' ||
-                    typeof workspace.getAllBlocks !== 'function'
-                ) {
+                if (!isWorkspaceReady(workspace)) {
                     throw new Error(
-                        '[Jixirio] Blockly failed to create its default Bot Builder workspace.'
-                    );
-                }
-
-                const hasTradeDefinition = workspace
-                    .getAllBlocks(false)
-                    .some(block => block.type === 'trade_definition');
-
-                if (!hasTradeDefinition) {
-                    throw new Error(
-                        '[Jixirio] The default bot structure did not load into Blockly.'
+                        '[Jixirio] Blockly could not create a complete default Bot Builder workspace. Please reopen Bot Builder.'
                     );
                 }
 
