@@ -26,7 +26,7 @@ const BotBuilder = observer(() => {
     const workspace_initialization_started = React.useRef(false);
     const { isDesktop } = useDevice();
     const { onMount, onUnmount } = app;
-    const el_ref = React.useRef<HTMLInputElement | null>(null);
+    const el_ref = React.useRef<HTMLDivElement | null>(null);
 
     let deleted_block_id: null | string = null;
 
