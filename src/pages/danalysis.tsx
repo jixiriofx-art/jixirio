@@ -9,6 +9,40 @@ const Danalysis = observer(() => {
     const [digits, setDigits] = React.useState<number[]>([]);
     const [sampleSize, setSampleSize] = React.useState(30);
     const [status, setStatus] = React.useState('Waiting for market data...');
+    const [markets, setMarkets] = React.useState<Array<{ symbol: string; name: string }>>([]);
+
+    React.useEffect(() => {
+        let active = true;
+        const loadMarkets = async () => {
+            try {
+                let available = api_base.active_symbols || [];
+                if (!available.length && api_base.api) {
+                    available = await api_base.getActiveSymbols();
+                }
+                if (!active) return;
+                const derived = available
+                    .filter((item: any) => {
+                        const name = String(item.display_name || item.symbol || '');
+                        return /volatility|jump|crash|boom|step|range break/i.test(name) ||
+                            /^(R_|1HZ|JD|CR|BO|STPR|RDB)/i.test(String(item.symbol || ''));
+                    })
+                    .map((item: any) => ({
+                        symbol: String(item.symbol || item.underlying_symbol || ''),
+                        name: String(item.display_name || item.symbol || ''),
+                    }))
+                    .filter((item: any) => item.symbol);
+                if (!active) return;
+                setMarkets(derived);
+                if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
+                    setSymbol(derived[0].symbol);
+                }
+            } catch {
+                if (active) setStatus('Unable to load Deriv markets. Check your connection.');
+            }
+        };
+        loadMarkets();
+        return () => { active = false; };
+    }, []);
 
     React.useEffect(() => {
         if (!api_base.api) {
@@ -147,11 +181,12 @@ const Danalysis = observer(() => {
                                 setStatus('Changing market...');
                             }}
                         >
-                            <option value="R_100">Volatility 100</option>
-                            <option value="R_75">Volatility 75</option>
-                            <option value="R_50">Volatility 50</option>
-                            <option value="R_25">Volatility 25</option>
-                            <option value="R_10">Volatility 10</option>
+                            {markets.map(market => (
+                                <option key={market.symbol} value={market.symbol}>
+                                    {market.name}
+                                </option>
+                            ))}
+                            {!markets.length && <option value={symbol}>{symbol}</option>}
                         </select>
                     </label>
 
