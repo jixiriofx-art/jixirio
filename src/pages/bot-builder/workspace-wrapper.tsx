@@ -11,6 +11,28 @@ const WorkspaceWrapper = observer(() => {
     const { blockly_store } = useStore();
     const { onMount, onUnmount, is_loading } = blockly_store;
 
+    // Identify broken default/named imports before React attempts to render them.
+    React.useEffect(() => {
+        const imported_components = {
+            Toolbox,
+            Toolbar,
+            Flyout,
+            StopBotModal,
+        };
+        const undefined_components = Object.entries(imported_components)
+            .filter(([, component]) => component === undefined)
+            .map(([name]) => name);
+
+        if (undefined_components.length > 0) {
+            console.error(
+                '[Jixirio] Undefined Bot Builder child component imports:',
+                undefined_components
+            );
+        } else {
+            console.info('[Jixirio] Bot Builder child component import audit passed.');
+        }
+    }, []);
+
     React.useEffect(() => {
         onMount();
         return () => {
