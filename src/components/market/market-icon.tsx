@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, type ComponentType } from 'react';
 import { IconSize } from '@deriv/quill-icons';
 
@@ -6,7 +5,7 @@ const loadMarketIcon = (iconName: string, illustrativeOnly = false) =>
     lazy(() =>
         Promise.all([
             import('@deriv/quill-icons/Markets'),
-            import('@deriv/quill-icons'),
+            import('@deriv/quill-icons/Illustrative'),
         ]).then(([markets, illustrative]) => ({
             default: illustrativeOnly
                 ? illustrative.IllustrativeMarketsIcon
@@ -35,7 +34,7 @@ const MARKET_ICONS = {
     FRXGBPCHF: loadMarketIcon('MarketForexGbpchfIcon'),
     FRXGBPJPY: loadMarketIcon('MarketForexGbpjpyIcon'),
     FRXGBPNOK: loadMarketIcon('MarketForexGbpnokIcon'),
-    FRXGBPUSD: loadMarketIcon('MarketForexGbpusdIcon'),
+    FRXGBPUSD: loadMarketIcon('MarketForexGbpUsdIcon'),
     FRXGBPNZD: loadMarketIcon('MarketForexGbpnzdIcon'),
     FRXNZDJPY: loadMarketIcon('MarketForexNzdjpnIcon'),
     FRXNZDUSD: loadMarketIcon('MarketForexNzdusdIcon'),
