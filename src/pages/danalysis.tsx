@@ -9,51 +9,95 @@ const Danalysis = observer(() => {
     const [digits, setDigits] = React.useState<number[]>([]);
     const [sampleSize, setSampleSize] = React.useState(30);
     const [status, setStatus] = React.useState('Waiting for market data...');
+    const [markets, setMarkets] = React.useState<Array<{ symbol: string; name: string }>>([]);
 
     React.useEffect(() => {
-        if (!api_base.api) {
-            setStatus('Connect Deriv to start analysis.');
-            return;
-        }
-
-        let mounted = true;
-
-        const subscribe = async () => {
+        let active = true;
+        let loading = false;
+        const loadMarkets = async () => {
+            if (!api_base.api || loading) return;
+            loading = true;
             try {
-                await api_base.api.send({ ticks: symbol, subscribe: 1 });
-                if (mounted) setStatus('Live market data connected.');
+                let available = api_base.active_symbols || [];
+                if (!available.length) available = await api_base.getActiveSymbols();
+                if (!active) return;
+                const derived = available
+                    .map((item: any) => ({
+                        symbol: String(item.symbol || item.underlying_symbol || ''),
+                        name: String(item.display_name || item.symbol || ''),
+                    }))
+                    .filter((item: any) => item.symbol)
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+                if (!active) return;
+                setMarkets(derived);
+                if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
+                    setSymbol(derived[0].symbol);
+                }
+                if (derived.length) window.clearInterval(retry);
             } catch {
-                if (mounted) setStatus('Unable to connect to market data.');
+                if (active) setStatus('Unable to load Deriv markets. Retrying connection...');
+            } finally {
+                loading = false;
             }
         };
+        const retry = window.setInterval(loadMarkets, 1000);
+        loadMarkets();
+        return () => { active = false; window.clearInterval(retry); };
+    }, []);
 
-        subscribe();
-
-        const subscription = api_base.api.onMessage().subscribe((message: any) => {
-            if (!mounted) return;
-
-            const data = message?.data ?? message;
-            if (data?.tick?.symbol !== symbol) return;
-
-            const quote = String(data.tick.quote ?? '');
-            const price = Number(data.tick.quote);
-
-            if (!Number.isFinite(price)) return;
-
-            const decimalPart = quote.includes('.') ? quote.split('.')[1] : '';
-            const lastDigit = decimalPart.length > 0
-                ? Number(decimalPart.slice(-1))
-                : Number(String(Math.round(price)).slice(-1));
-
-            if (!Number.isInteger(lastDigit) || lastDigit < 0 || lastDigit > 9) return;
-
-            setTick(price);
-            setDigits(previous => [...previous.slice(-999), lastDigit]);
-        });
-
+    React.useEffect(() => {
+        let mounted = true;
+        let listener: any = null;
+        let subscriptionId: string | null = null;
+        const attach = () => {
+            const api = api_base.api;
+            if (!api || listener) return;
+            setStatus('Connecting to live tick data...');
+            listener = api.onMessage().subscribe((message: any) => {
+                if (!mounted) return;
+                const data = message?.data ?? message;
+                if (data?.tick?.symbol !== symbol) return;
+                const quote = String(data.tick.quote ?? '');
+                const price = Number(data.tick.quote);
+                if (!Number.isFinite(price)) return;
+                const decimalPart = quote.includes('.') ? quote.split('.')[1] : '';
+                const lastDigit = decimalPart.length > 0
+                    ? Number(decimalPart.slice(-1))
+                    : Number(String(Math.round(price)).slice(-1));
+                if (!Number.isInteger(lastDigit) || lastDigit < 0 || lastDigit > 9) return;
+                setTick(price);
+                setDigits(previous => [...previous.slice(-999), lastDigit]);
+                setStatus('Live market data connected.');
+            });
+            try {
+                Promise.resolve(api.send({ ticks: symbol, subscribe: 1 }))
+                    .then((response: any) => {
+                        subscriptionId = response?.subscription?.id || null;
+                        if (!mounted && subscriptionId) {
+                            return api.forget(subscriptionId);
+                        }
+                        return undefined;
+                    })
+                    .catch(() => {
+                        if (mounted) setStatus('Unable to connect to market data. Retrying...');
+                        listener?.unsubscribe?.();
+                        listener = null;
+                    });
+            } catch {
+                listener?.unsubscribe?.();
+                listener = null;
+                setStatus('Unable to connect to market data. Retrying...');
+            }
+        };
+        const retry = window.setInterval(attach, 1000);
+        attach();
         return () => {
             mounted = false;
-            subscription?.unsubscribe?.();
+            window.clearInterval(retry);
+            listener?.unsubscribe?.();
+            if (subscriptionId) {
+                Promise.resolve(api_base.api?.forget(subscriptionId)).catch(() => undefined);
+            }
         };
     }, [symbol]);
 
@@ -123,9 +167,9 @@ const Danalysis = observer(() => {
             boxSizing: 'border-box',
             overflowWrap: 'anywhere',
         }}>
-            <h2 style={{ marginTop: 0 }}>AI Market Analysis</h2>
+            <h2 style={{ marginTop: 0 }}>Danalysis — Digit Research</h2>
             <p style={{ opacity: 0.7 }}>
-                Live digit statistics for your selected Deriv market.
+                Live last-digit statistics for your selected Deriv market. Use this page to study digit frequency, Over/Under, Even/Odd, and Matches/Differs across a configurable tick sample.
             </p>
 
             <div style={{ ...panel, marginBottom: '14px' }}>
@@ -147,11 +191,12 @@ const Danalysis = observer(() => {
                                 setStatus('Changing market...');
                             }}
                         >
-                            <option value="R_100">Volatility 100</option>
-                            <option value="R_75">Volatility 75</option>
-                            <option value="R_50">Volatility 50</option>
-                            <option value="R_25">Volatility 25</option>
-                            <option value="R_10">Volatility 10</option>
+                            {markets.map(market => (
+                                <option key={market.symbol} value={market.symbol}>
+                                    {market.name}
+                                </option>
+                            ))}
+                            {!markets.length && <option value={symbol}>{symbol}</option>}
                         </select>
                     </label>
 
@@ -309,7 +354,7 @@ const Danalysis = observer(() => {
             </div>
 
             <div style={{ ...panel, marginBottom: '14px' }}>
-                <h3 style={heading}>AI analysis</h3>
+                <h3 style={heading}>Sample observations</h3>
 
                 {total < sampleSize ? (
                     <p>Collecting market data. More ticks are needed for the selected sample.</p>

@@ -16,11 +16,17 @@
 }
 
 .bot-builder--active {
+    display: flex;
+    flex-direction: column;
     position: relative;
     left: 0;
     top: auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
     visibility: visible;
     pointer-events: auto;
+    overflow: hidden;
     background: #ffffff;
 }
 
@@ -30,9 +36,13 @@
 
 #scratch_div {
     position: relative;
+    display: flex;
+    flex: 1 1 auto;
     width: 100%;
-    height: var(--bot-content-height, calc(100vh - 22rem));
+    height: var(--bot-content-height, calc(100dvh - 22rem));
     min-height: 420px;
+    min-width: 0;
+    box-sizing: border-box;
     overflow: hidden;
     background: #ffffff;
 }
@@ -142,3 +152,54 @@
         min-height: 360px;
     }
 }
+
+/* Mobile Blockly viewport: keep the canvas full-width and constrain the
+   toolbox so it cannot consume the workspace area on narrow screens. */
+@media screen and (max-width: 768px) {
+    #scratch_div {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+        overflow: hidden !important;
+    }
+
+    #scratch_div > .injectionDiv,
+    #scratch_div .blocklySvg {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    #scratch_div .blocklySvg {
+        height: 100% !important;
+    }
+
+    /* Keep the Blockly canvas at the full builder width. The flyout is
+       an overlay; it must not consume the canvas width on mobile. */
+    #scratch_div .blocklyToolboxDiv {
+        max-width: 30vw !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+
+    #scratch_div .blocklyFlyout {
+        max-width: min(42vw, 16rem) !important;
+    }
+
+    #scratch_div .blocklyWorkspace {
+        width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    #scratch_div .blocklyToolboxDiv {
+        max-width: 28vw !important;
+    }
+
+    #scratch_div .blocklyFlyout {
+        max-width: 40vw !important;
+    }
+}
+

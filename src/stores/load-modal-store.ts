@@ -280,12 +280,38 @@ export default class LoadModalStore {
         this.is_delete_modal_open = is_delete_modal_open;
     };
 
+    getBuilderWorkspace = () => {
+        const globalWorkspace = window.Blockly?.derivWorkspace;
+        const botWorkspace = this.root_store.dbot?.workspace;
+        const workspace =
+            globalWorkspace && typeof globalWorkspace.getVariableMap === 'function'
+                ? globalWorkspace
+                : botWorkspace && typeof botWorkspace.getVariableMap === 'function'
+                  ? botWorkspace
+                  : null;
+
+        if (workspace && window.Blockly) {
+            window.Blockly.derivWorkspace = workspace;
+        }
+
+        return workspace;
+    };
+
     resetBotBuilderStrategy = () => {
-        const workspace = window.Blockly.derivWorkspace;
-        if (workspace) {
-            window.Blockly.derivWorkspace.asyncClear();
-            window.Blockly.Xml.domToWorkspace(window.Blockly.utils.xml.textToDom(workspace.cached_xml.main), workspace);
-            window.Blockly.derivWorkspace.strategy_to_load = workspace.cached_xml.main;
+        const workspace = this.getBuilderWorkspace();
+        if (
+            workspace &&
+            typeof workspace.asyncClear === 'function' &&
+            workspace.cached_xml?.main &&
+            window.Blockly?.Xml &&
+            window.Blockly?.utils?.xml?.textToDom
+        ) {
+            workspace.asyncClear();
+            window.Blockly.Xml.domToWorkspace(
+                window.Blockly.utils.xml.textToDom(workspace.cached_xml.main),
+                workspace
+            );
+            workspace.strategy_to_load = workspace.cached_xml.main;
         }
     };
 
@@ -294,13 +320,15 @@ export default class LoadModalStore {
             throw new Error('Invalid bot strategy. Missing ID or XML.');
         }
 
-        const workspace = window.Blockly?.derivWorkspace;
+        const workspace = this.getBuilderWorkspace();
 
         if (!workspace || typeof workspace.getVariableMap !== 'function') {
-            throw new Error('Blockly workspace is not ready.');
+            throw new Error(
+                'Blockly workspace is not ready. Open Bot Builder and wait for it to finish loading.'
+            );
         }
 
-        await load({
+        const loadResult = await load({
             block_string: strategy.xml,
             strategy_id: strategy.id,
             file_name: strategy.name,
@@ -310,6 +338,10 @@ export default class LoadModalStore {
             showIncompatibleStrategyDialog: false,
             show_snackbar: is_show_notification,
         });
+
+        if (loadResult?.error) {
+            throw new Error(`Bot strategy could not be loaded: ${loadResult.error}`);
+        }
 
         const loadedCorrectly =
             workspace.current_strategy_id === strategy.id &&

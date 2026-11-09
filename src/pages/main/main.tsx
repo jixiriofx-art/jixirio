@@ -41,7 +41,9 @@ import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
 import Danalysis from '../danalysis';
+import AIAnalysis from '../ai-analysis';
 import Dashboard from '../dashboard';
+import BotBuilder from '../bot-builder/bot-builder';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
 import BestBots from './best-bots';
@@ -523,8 +525,30 @@ const AppWrapper = observer(() => {
                     });
                 }, 10);
             }
+
+            // Deriv owns Blockly injection. When its tab becomes active,
+            // notify the existing workspace to recalculate its SVG dimensions.
+            if (tab_index === BOT_BUILDER) {
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
+                        // Let the mobile tab finish painting before Blockly measures its SVG.
+                        window.setTimeout(() => {
+                            window.dispatchEvent(new Event('resize'));
+
+                            const workspace = window.Blockly?.derivWorkspace;
+                            if (
+                                workspace &&
+                                typeof window.Blockly?.svgResize === 'function'
+                            ) {
+                                window.Blockly.svgResize(workspace);
+                                blockly_store.setContainerSize();
+                            }
+                        }, 100);
+                    });
+                });
+            }
         },
-        [setActiveTab]
+        [setActiveTab, BOT_BUILDER, blockly_store]
     );
 
     const handleLoginGeneration = async () => {
@@ -596,7 +620,9 @@ const AppWrapper = observer(() => {
                                     </>
                                 }
                                 id='id-bot-builder'
-                            />
+                            >
+                                <BotBuilder />
+                            </div>
 
                             {/* BEST BOTS */}
                             <div
@@ -629,7 +655,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-ai-analysis'
                             >
-                                <Danalysis />
+                                <AIAnalysis />
                             </div>
 
                             {/* DANALYSIS */}

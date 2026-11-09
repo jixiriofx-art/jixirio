@@ -28,15 +28,65 @@ const BotBuilder = observer(() => {
 
     let deleted_block_id: null | string = null;
 
-    // Initialize Blockly only after its container becomes visible.
+    // Wait until the active tab has a measurable layout before Blockly injects.
+    // Blockly cannot correctly size its SVG workspace inside a hidden/zero-size tab.
     React.useEffect(() => {
         if (active_tab !== DBOT_TABS.BOT_BUILDER || is_preview_on_popup) {
             return;
         }
 
         let cancelled = false;
+        let frame_id = 0;
+        let attempts = 0;
 
-        onMount().catch(error => {
+        const initializeWhenVisible = async (): Promise<void> => {
+            const container = document.getElementById('scratch_div');
+            const builder = container?.closest('.bot-builder') as HTMLElement | null;
+            const is_visible =
+                !!container &&
+                !!builder &&
+                container.getBoundingClientRect().width > 0 &&
+                container.getBoundingClientRect().height > 0 &&
+                window.getComputedStyle(builder).visibility !== 'hidden' &&
+                window.getComputedStyle(builder).display !== 'none';
+
+            if (!is_visible) {
+                attempts += 1;
+                if (attempts >= 180) {
+                    throw new Error(
+                        '[Jixirio] Bot Builder is still hidden or has no measurable size. Please switch to Bot Builder and try again.'
+                    );
+                }
+                await new Promise<void>(resolve => {
+                    frame_id = window.requestAnimationFrame(() => resolve());
+                });
+                if (!cancelled) await initializeWhenVisible();
+                return;
+            }
+
+            await onMount();
+            if (cancelled) return;
+
+            // Resize after Blockly has injected and the browser has completed layout.
+            await new Promise<void>(resolve => {
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => resolve());
+                });
+            });
+
+            if (cancelled) return;
+
+            const workspace = window.Blockly?.derivWorkspace;
+            if (
+                workspace &&
+                typeof window.Blockly?.svgResize === 'function'
+            ) {
+                window.Blockly.svgResize(workspace);
+                blockly_store.setContainerSize();
+            }
+        };
+
+        initializeWhenVisible().catch(error => {
             console.error('[Jixirio] Bot Builder initialization failed:', error);
 
             if (!cancelled) {
@@ -52,8 +102,9 @@ const BotBuilder = observer(() => {
 
         return () => {
             cancelled = true;
+            if (frame_id) window.cancelAnimationFrame(frame_id);
         };
-    }, [active_tab, is_preview_on_popup, onMount]);
+    }, [active_tab, is_preview_on_popup, onMount, blockly_store]);
 
     // Clean up only when the Bot Builder component unmounts.
     React.useEffect(() => {
