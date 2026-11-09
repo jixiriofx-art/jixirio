@@ -23,23 +23,101 @@ const BotBuilder = observer(() => {
     const blockly_store = useStore().blockly_store;
     const is_blockly_listener_registered = React.useRef(false);
     const is_blockly_delete_listener_registered = React.useRef(false);
+    const workspace_initialization_started = React.useRef(false);
     const { isDesktop } = useDevice();
     const { onMount, onUnmount } = app;
     const el_ref = React.useRef<HTMLInputElement | null>(null);
 
     let deleted_block_id: null | string = null;
 
+    // Blockly measures its host during inject(). Do not initialize it while
+    // the builder is parked off-screen; wait until the tab is active and the
+    // browser has completed layout for the visible container.
     React.useEffect(() => {
-        onMount();
-        return () => onUnmount();
-    }, [onMount, onUnmount]);
+        if (
+            active_tab !== 1 ||
+            is_preview_on_popup ||
+            is_loading ||
+            workspace_initialization_started.current
+        ) {
+            return;
+        }
+
+        let frame = 0;
+        let attempts = 0;
+        let cancelled = false;
+
+        const initializeWhenVisible = () => {
+            if (cancelled) return;
+
+            const container = el_ref.current;
+            const builder = container?.closest('.bot-builder');
+            const rect = container?.getBoundingClientRect();
+            const style = builder ? window.getComputedStyle(builder) : null;
+            const isVisible =
+                !!container &&
+                !!builder &&
+                !!rect &&
+                rect.width > 0 &&
+                rect.height > 0 &&
+                style?.display !== 'none' &&
+                style?.visibility !== 'hidden';
+
+            if (!isVisible) {
+                attempts += 1;
+                if (attempts < 120) {
+                    frame = window.requestAnimationFrame(initializeWhenVisible);
+                } else {
+                    console.error(
+                        '[Jixirio] Blockly initialization paused: Bot Builder did not become visible.'
+                    );
+                }
+                return;
+            }
+
+            // Give the visible tab one complete paint/layout cycle before
+            // Blockly.inject() reads dimensions and creates its SVG workspace.
+            frame = window.requestAnimationFrame(() => {
+                if (cancelled || workspace_initialization_started.current) return;
+
+                workspace_initialization_started.current = true;
+                Promise.resolve(onMount()).then(() => {
+                    const workspace = window.Blockly?.derivWorkspace;
+                    if (workspace && !workspace.isDisposed?.()) {
+                        window.Blockly.svgResize(workspace);
+                        blockly_store.setContainerSize();
+                    }
+                });
+            });
+        };
+
+        frame = window.requestAnimationFrame(() => {
+            frame = window.requestAnimationFrame(initializeWhenVisible);
+        });
+
+        return () => {
+            cancelled = true;
+            if (frame) window.cancelAnimationFrame(frame);
+        };
+    }, [active_tab, is_preview_on_popup, is_loading, onMount, blockly_store]);
+
+    // Keep the workspace alive while switching tabs. Dispose it only when
+    // the BotBuilder component itself is removed from the application.
+    React.useEffect(
+        () => () => {
+            if (workspace_initialization_started.current) {
+                onUnmount();
+            }
+        },
+        [onUnmount]
+    );
 
     React.useEffect(() => {
         if (active_tab !== 1 || is_preview_on_popup || is_loading) return;
 
         const frame = window.requestAnimationFrame(() => {
             const workspace = window.Blockly?.derivWorkspace;
-            if (workspace) {
+            if (workspace && !workspace.isDisposed?.()) {
                 window.Blockly.svgResize(workspace);
                 blockly_store.setContainerSize();
             }
