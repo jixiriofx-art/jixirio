@@ -32,7 +32,7 @@ const AIAnalysis = observer(() => {
                 if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
                     setSymbol(derived[0].symbol);
                 }
-                setStatus(derived.length ? 'Deriv markets loaded. Select a market to begin.' : 'No derived markets are available from this account.');
+                setStatus(derived.length ? 'Deriv markets loaded. Select a market to begin.' : 'No active markets are available from this account.');
                 if (derived.length) window.clearInterval(retry);
             } catch {
                 if (active) setStatus('Could not load Deriv markets. Retrying connection...');
