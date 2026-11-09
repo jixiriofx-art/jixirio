@@ -37,6 +37,26 @@ const bots: Bot[] = [
     },
 ];
 
+const waitForBuilderContainer = async (timeout = 15000) => {
+    const started = Date.now();
+
+    while (Date.now() - started < timeout) {
+        const builder = document.getElementById('scratch_div');
+        const isVisible =
+            !!builder &&
+            builder.getBoundingClientRect().width > 0 &&
+            builder.getBoundingClientRect().height > 0;
+
+        if (isVisible) return builder;
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    throw new Error(
+        'Bot Builder did not become visible. Please open Bot Builder and try again.'
+    );
+};
+
 const waitForBlocklyWorkspace = async (
     blocklyStore: { is_loading: boolean },
     timeout = 30000
@@ -87,15 +107,17 @@ const BestBots = () => {
         try {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
-            // Allow the Bot Builder container to become visible.
-            await new Promise(resolve => setTimeout(resolve, 150));
+            // Wait for React to switch tabs and reveal the Blockly mount point.
+            await waitForBuilderContainer();
 
-            // Retry workspace initialization if the first attempt failed.
+            // The Bot Builder's own effect and this loader share the app-store
+            // initialization promise, preventing duplicate Blockly injection.
             const currentWorkspace = window.Blockly?.derivWorkspace;
 
             if (
                 !currentWorkspace ||
-                typeof currentWorkspace.getVariableMap !== 'function'
+                typeof currentWorkspace.getVariableMap !== 'function' ||
+                typeof currentWorkspace.getTopBlocks !== 'function'
             ) {
                 await app.onMount();
             }
