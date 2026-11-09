@@ -151,22 +151,22 @@ export const load = async ({
     showIncompatibleStrategyDialog,
     show_snackbar = true,
 }) => {
-    if (!DBotStore?.instance || !workspace) return;
+    if (!DBotStore?.instance || !workspace) {
+        return { error: 'The Blockly workspace or bot store is not ready.' };
+    }
     const { setLoading, load_modal } = DBotStore.instance;
     const { setOpenButtonDisabled, setLoadedLocalFile } = load_modal;
 
     setLoading(true);
     // Delay execution to allow fully previewing previous strategy if users quickly switch between strategies.
     await delayExecution(100);
-    const showInvalidStrategyError = () => {
+    const showInvalidStrategyError = (detail = '') => {
         setLoadedLocalFile(null);
         botNotification(notification_message().invalid_xml);
         setLoading(false);
         const error_message = localize('XML file contains unsupported elements. Please check or modify file.');
-        globalObserver.emit('ui.log.error', error_message);
-        return {
-            error: error_message,
-        };
+        globalObserver.emit('ui.log.error', detail ? `${error_message} ${detail}` : error_message);
+        return { error: detail || error_message };
     };
 
     // Check if XML can be parsed correctly.
@@ -242,8 +242,9 @@ export const load = async ({
             globalObserver.emit('ui.log.success', { log_type: LogTypes.LOAD_BLOCK });
         }
     } catch (e) {
-        console.error(e); // eslint-disable-line
-        return showInvalidStrategyError();
+        console.error('[Jixirio] Strategy workspace insertion failed:', e); // eslint-disable-line
+        const detail = e instanceof Error ? e.message : String(e);
+        return showInvalidStrategyError(detail);
     } finally {
         setLoading(false);
         setOpenButtonDisabled(false);
@@ -265,9 +266,22 @@ export const loadBlocks = (xml, drop_event, event_group, workspace) => {
 
 export const loadWorkspace = async (xml, event_group, workspace) => {
     window.Blockly.Events.setGroup(event_group);
+    // Keep the current strategy intact if Blockly rejects the incoming XML midway.
+    const previousXml = window.Blockly.Xml.workspaceToDom(workspace);
     await workspace.asyncClear();
-    window.Blockly.Xml.clearWorkspaceAndLoadFromXml(xml, workspace);
-    workspace.cleanUp();
+    try {
+        window.Blockly.Xml.clearWorkspaceAndLoadFromXml(xml, workspace);
+        workspace.cleanUp();
+    } catch (error) {
+        try {
+            await workspace.asyncClear();
+            window.Blockly.Xml.domToWorkspace(previousXml, workspace);
+            workspace.cleanUp();
+        } catch (restoreError) {
+            console.error('[Jixirio] Could not restore the previous Blockly workspace:', restoreError);
+        }
+        throw error;
+    }
 };
 
 const loadBlocksFromHeader = (xml_string, block) => {
