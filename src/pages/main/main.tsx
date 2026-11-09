@@ -43,6 +43,7 @@ import ChartModal from '../chart/chart-modal';
 import Danalysis from '../danalysis';
 import AIAnalysis from '../ai-analysis';
 import Dashboard from '../dashboard';
+import BotBuilder from '../bot-builder/bot-builder';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
 import BestBots from './best-bots';
@@ -592,7 +593,9 @@ const AppWrapper = observer(() => {
                                             height='24px'
                                             width='24px'
                                             fill='var(--text-general)'
-                                        />
+                                        >
+                                <BotBuilder />
+                            </div>
                                         <Localize i18n_default_text='Bot Builder' />
                                     </>
                                 }
