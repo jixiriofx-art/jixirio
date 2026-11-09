@@ -22,16 +22,12 @@ const Danalysis = observer(() => {
                 if (!available.length) available = await api_base.getActiveSymbols();
                 if (!active) return;
                 const derived = available
-                    .filter((item: any) => {
-                        const name = String(item.display_name || item.symbol || '');
-                        return /volatility|jump|crash|boom|step|range break/i.test(name) ||
-                            /^(R_|1HZ|JD|CR|BO|STPR|RDB)/i.test(String(item.symbol || ''));
-                    })
                     .map((item: any) => ({
                         symbol: String(item.symbol || item.underlying_symbol || ''),
                         name: String(item.display_name || item.symbol || ''),
                     }))
-                    .filter((item: any) => item.symbol);
+                    .filter((item: any) => item.symbol)
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
                 if (!active) return;
                 setMarkets(derived);
                 if (derived.length && !derived.some((item: any) => item.symbol === symbol)) {
