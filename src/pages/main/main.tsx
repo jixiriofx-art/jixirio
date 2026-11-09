@@ -41,6 +41,7 @@ import { useDevice } from '@deriv-com/ui';
 import RunPanel from '../../components/run-panel';
 import ChartModal from '../chart/chart-modal';
 import Danalysis from '../danalysis';
+import AIAnalysis from '../ai-analysis';
 import Dashboard from '../dashboard';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
@@ -629,7 +630,7 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-ai-analysis'
                             >
-                                <Danalysis />
+                                <AIAnalysis />
                             </div>
 
                             {/* DANALYSIS */}
