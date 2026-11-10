@@ -21,21 +21,28 @@ class ErrorBoundary extends React.Component {
         });
     };
 
-    render = () =>
-        this.state.hasError ? (
+    render = () => {
+        if (!this.state.hasError) return this.props.children;
+
+        const importAudit = window.__JIXIRIO_IMPORT_AUDIT__ || [];
+        const diagnosticLines = [
+            this.state.error?.message || 'Unknown application error.',
+            this.state.info?.componentStack
+                ? `Component stack:\n${this.state.info.componentStack}`
+                : 'Component stack unavailable.',
+            importAudit.length
+                ? `Missing component imports:\n${importAudit.join('\n')}`
+                : 'Import audit: no undefined imports detected in audited modules.',
+        ];
+
+        return (
             <ErrorComponent
                 header="Jixirio diagnostic"
-                message={[
-                    this.state.error?.message || 'Unknown application error.',
-                    this.state.info?.componentStack
-                        ? `Component stack:\n${this.state.info.componentStack}`
-                        : 'Component stack unavailable.',
-                ].join('\n\n')}
+                message={diagnosticLines.join('\n\n')}
                 should_show_refresh={true}
             />
-        ) : (
-            this.props.children
         );
+    };
 }
 
 ErrorBoundary.propTypes = {
