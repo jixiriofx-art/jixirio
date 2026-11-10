@@ -35,9 +35,9 @@ const showInitError = (error: unknown) => {
     const box = document.getElementById('scratch_div')?.getBoundingClientRect();
     const workspace = window.Blockly?.derivWorkspace;
     el.textContent =
-        `[Jixirio] Bot Builder diagnostic\\n${error instanceof Error ? error.stack || error.message : String(error)}\\n\\n` +
-        `scratch_div: ${box ? `${Math.round(box.width)}x${Math.round(box.height)}` : 'missing'}\\n` +
-        `Blockly: ${typeof window.Blockly}\\nworkspace: ${Boolean(workspace)}\\n` +
+        `[Jixirio] Bot Builder diagnostic\n${error instanceof Error ? error.stack || error.message : String(error)}\n\n` +
+        `scratch_div: ${box ? `${Math.round(box.width)}x${Math.round(box.height)}` : 'missing'}\n` +
+        `Blockly: ${typeof window.Blockly}\nworkspace: ${Boolean(workspace)}\n` +
         `workspace methods: ${workspace ? typeof workspace.getVariableMap : 'unavailable'}`;
     document.body.appendChild(el);
 };
