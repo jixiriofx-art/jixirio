@@ -453,17 +453,17 @@
 }
 
 
-/* Jixirio mobile execution dock: compact, fixed and theme-aware. */
+/* Jixirio mobile execution dock: compact, fixed and reference-aligned. */
 @include mobile-or-tablet-screen {
     .controls__section {
         box-sizing: border-box;
         display: flex;
         flex-direction: row;
-        align-items: stretch;
-        justify-content: flex-start;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        min-height: 5.6rem;
-        padding: 0 0 env(safe-area-inset-bottom, 0);
+        min-height: 8.2rem;
+        padding: 0.8rem 6.3% calc(0.8rem + env(safe-area-inset-bottom, 0));
         background: var(--general-main-1);
         border-top: 1px solid var(--border-normal);
         box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.16);
@@ -475,35 +475,41 @@
         align-items: stretch;
         width: 100%;
         max-width: none;
-        height: 5.6rem;
-        min-height: 5.6rem;
+        height: 6.4rem;
+        min-height: 6.4rem;
         padding: 0;
         margin: 0;
     }
 
-    .controls__animation {
+    /* TradeAnimation renders the Run/Stop button and status panel as siblings. */
+    .controls__animation.animation__wrapper {
         box-sizing: border-box;
         display: flex;
         align-items: stretch;
         width: 100%;
         min-width: 0;
-        height: 4.8rem;
-        border-radius: 0;
+        height: 100%;
+        gap: 0;
     }
 
     .controls__animation .animation__run-button,
     .controls__animation .animation__stop-button {
-        flex: 0 0 30%;
-        width: 30%;
-        min-width: 7.8rem;
-        border-radius: 0 !important;
+        box-sizing: border-box;
+        flex: 0 0 24%;
+        width: 24%;
+        min-width: 0;
+        height: 100% !important;
+        border-radius: 0.6rem 0 0 0.6rem !important;
     }
 
     .controls__animation .animation__container {
-        flex: 1 1 0;
+        box-sizing: border-box;
+        flex: 1 1 76%;
         min-width: 0;
-        border-radius: 0;
-        border-left: 1px solid var(--border-normal);
+        height: 100%;
+        border-radius: 0 0.6rem 0.6rem 0;
+        border: 1px solid var(--border-normal);
+        border-left: 0;
         background: var(--general-section-1);
     }
 
