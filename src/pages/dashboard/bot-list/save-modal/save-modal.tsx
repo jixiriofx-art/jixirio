@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React, { useEffect } from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import classNames from 'classnames';
 import { Field, Form, Formik } from 'formik';
 import { observer } from 'mobx-react-lite';
@@ -21,6 +22,22 @@ import { localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import IconRadio from './icon-radio';
 import './save-modal.scss';
+
+const SafeField = safeReactComponent('SaveModal.Field', Field);
+const SafeForm = safeReactComponent('SaveModal.Form', Form);
+const SafeFormik = safeReactComponent('SaveModal.Formik', Formik);
+const SafeButton = safeReactComponent('SaveModal.Button', Button);
+const SafeInput = safeReactComponent('SaveModal.Input', Input);
+const SafeMobileFullPageModal = safeReactComponent('SaveModal.MobileFullPageModal', MobileFullPageModal);
+const SafeModal = safeReactComponent('SaveModal.Modal', Modal);
+const SafeRadioGroup = safeReactComponent('SaveModal.RadioGroup', RadioGroup);
+const SafeText = safeReactComponent('SaveModal.Text', Text);
+const SafeThemedScrollbars = safeReactComponent('SaveModal.ThemedScrollbars', ThemedScrollbars);
+const SafeDerivLightGoogleDriveIcon = safeReactComponent('SaveModal.DerivLightGoogleDriveIcon', DerivLightGoogleDriveIcon);
+const SafeDerivLightLocalDeviceIcon = safeReactComponent('SaveModal.DerivLightLocalDeviceIcon', DerivLightLocalDeviceIcon);
+const SafeDerivLightMyComputerIcon = safeReactComponent('SaveModal.DerivLightMyComputerIcon', DerivLightMyComputerIcon);
+const SafeIconRadio = safeReactComponent('SaveModal.IconRadio', IconRadio);
+
 
 type TSaveModalForm = {
     bot_name: string;
@@ -53,7 +70,7 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
     is_onscreen_keyboard_active,
     setCurrentFocus,
 }) => (
-    <Formik
+    <SafeFormik
         initialValues={{
             is_local: true,
             save_as_collection: false,
@@ -65,21 +82,21 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
         {({ values: { is_local }, setFieldValue, touched, errors }) => {
             const content_height = !is_mobile ? '500px' : `calc(100%)`;
             return (
-                <ThemedScrollbars height={content_height} autohide>
-                    <Form className={classNames({ 'form--active-keyboard': is_onscreen_keyboard_active })}>
+                <SafeThemedScrollbars height={content_height} autohide>
+                    <SafeForm className={classNames({ 'form--active-keyboard': is_onscreen_keyboard_active })}>
                         <div className='modal__content'>
-                            <Text size='xs' lineHeight='l'>
+                            <SafeText size='xs' lineHeight='l'>
                                 {is_google_drive_configured
                                     ? localize(
                                           'Enter your bot name, choose to save on your computer or Google Drive, and hit '
                                       )
                                     : localize('Enter your bot name, choose to save on your computer, and hit ')}
                                 <strong>{localize('Save.')}</strong>
-                            </Text>
+                            </SafeText>
                             <div className='modal__content-row'>
-                                <Field name='bot_name'>
+                                <SafeField name='bot_name'>
                                     {({ field }) => (
-                                        <Input
+                                        <SafeInput
                                             className='save-type__input'
                                             type='text'
                                             placeholder={localize('Untitled Strategy')}
@@ -91,10 +108,10 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
                                             max_characters={25}
                                         />
                                     )}
-                                </Field>
+                                </SafeField>
                             </div>
                             <div className='modal__content-row'>
-                                <RadioGroup
+                                <SafeRadioGroup
                                     className='radio-group__save-type'
                                     name='is_local'
                                     selected={() => {
@@ -103,31 +120,31 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
                                     }}
                                     onToggle={() => setFieldValue('is_local', !is_local)}
                                 >
-                                    <RadioGroup.Item
+                                    <SafeRadioGroup.Item
                                         id='local'
                                         label={
-                                            <IconRadio
+                                            <SafeIconRadio
                                                 text={localize('Local')}
                                                 icon={
                                                     is_mobile ? (
-                                                        <DerivLightLocalDeviceIcon height='48px' width='48px' />
+                                                        <SafeDerivLightLocalDeviceIcon height='48px' width='48px' />
                                                     ) : (
-                                                        <DerivLightMyComputerIcon height='48px' width='48px' />
+                                                        <SafeDerivLightMyComputerIcon height='48px' width='48px' />
                                                     )
                                                 }
                                             />
                                         }
                                         value={save_types.LOCAL}
                                     />
-                                    <RadioGroup.Item
+                                    <SafeRadioGroup.Item
                                         id='drive'
                                         // Hide the Google Drive option entirely when the feature
                                         // isn't configured (no GD_* env vars).
                                         hidden={!is_google_drive_configured}
                                         label={
-                                            <IconRadio
+                                            <SafeIconRadio
                                                 text={'Google Drive'}
-                                                icon={<DerivLightGoogleDriveIcon height='48px' width='48px' />}
+                                                icon={<SafeDerivLightGoogleDriveIcon height='48px' width='48px' />}
                                                 google_drive_connected={is_authorised}
                                                 onDriveConnect={onDriveConnect}
                                             />
@@ -138,7 +155,7 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
                                             'dc-radio-group__item-disabled': !is_authorised,
                                         })}
                                     />
-                                </RadioGroup>
+                                </SafeRadioGroup>
                             </div>
                         </div>
                         <div
@@ -146,14 +163,14 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
                                 'modal__footer--active-keyboard': is_onscreen_keyboard_active,
                             })}
                         >
-                            <Button
+                            <SafeButton
                                 type='button'
                                 className='modal__footer--button'
                                 text={localize('Cancel')}
                                 onClick={toggleSaveModal}
                                 secondary
                             />
-                            <Button
+                            <SafeButton
                                 className='modal__footer--button'
                                 type='submit'
                                 is_loading={button_status === 1}
@@ -162,11 +179,11 @@ const SaveModalForm: React.FC<TSaveModalForm> = ({
                                 primary
                             />
                         </div>
-                    </Form>
-                </ThemedScrollbars>
+                    </SafeForm>
+                </SafeThemedScrollbars>
             );
         }}
-    </Formik>
+    </SafeFormik>
 );
 const SaveModal = observer(() => {
     const { save_modal, google_drive, dashboard, load_modal, ui } = useStore();
@@ -192,7 +209,7 @@ const SaveModal = observer(() => {
     }, [active_tab, dashboard_strategies, updateBotName]);
 
     return isMobile ? (
-        <MobileFullPageModal
+        <SafeMobileFullPageModal
             is_modal_open={is_save_modal_open}
             className='save-modal__wrapper'
             header={localize('Save strategy')}
@@ -213,9 +230,9 @@ const SaveModal = observer(() => {
                 is_onscreen_keyboard_active={is_onscreen_keyboard_active}
                 setCurrentFocus={setCurrentFocus}
             />
-        </MobileFullPageModal>
+        </SafeMobileFullPageModal>
     ) : (
-        <Modal
+        <SafeModal
             title={localize('Save strategy')}
             className='modal--save'
             width='32.8rem'
@@ -234,7 +251,7 @@ const SaveModal = observer(() => {
                 toggleSaveModal={toggleSaveModal}
                 setCurrentFocus={setCurrentFocus}
             />
-        </Modal>
+        </SafeModal>
     );
 });
 
