@@ -1,7 +1,15 @@
 import { Field as FormField, FieldProps, Form, Formik } from 'formik';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import Input from '@/components/shared_ui/input';
 import { localize } from '@deriv-com/translations';
 import SearchIcon from './search-icon';
+
+const SafeForm = safeReactComponent('SearchBox.Form', Form);
+const SafeFormik = safeReactComponent('SearchBox.Formik', Formik);
+const SafeFormField = safeReactComponent('SearchBox.FormField', FormField);
+const SafeInput = safeReactComponent('SearchBox.Input', Input);
+const SafeSearchIcon = safeReactComponent('SearchBox.SearchIcon', SearchIcon);
+
 
 type TSearchBox = {
     is_search_loading: boolean;
@@ -15,7 +23,7 @@ type TFormValues = { [key: string]: string };
 
 const SearchBox = ({ is_search_loading, onSearch, onSearchBlur, onSearchClear, onSearchKeyUp }: TSearchBox) => (
     <div className='db-toolbox__search'>
-        <Formik
+        <SafeFormik
             initialValues={{ search: '' }}
             onSubmit={values => {
                 onSearch(values);
@@ -31,10 +39,10 @@ const SearchBox = ({ is_search_loading, onSearch, onSearchBlur, onSearchClear, o
                 };
 
                 return (
-                    <Form>
-                        <FormField name='search'>
+                    <SafeForm>
+                        <SafeFormField name='search'>
                             {({ field }: FieldProps<string, TFormValues>) => (
-                                <Input
+                                <SafeInput
                                     {...field}
                                     className='db-toolbox__search-field'
                                     type='text'
@@ -44,7 +52,7 @@ const SearchBox = ({ is_search_loading, onSearch, onSearchBlur, onSearchClear, o
                                     onFocus={handleFocus}
                                     onBlur={onSearchBlur}
                                     leading_icon={
-                                        <SearchIcon
+                                        <SafeSearchIcon
                                             search={search}
                                             is_search_loading={is_search_loading}
                                             onClick={() => onSearchClear(setFieldValue)}
@@ -52,11 +60,11 @@ const SearchBox = ({ is_search_loading, onSearch, onSearchBlur, onSearchClear, o
                                     }
                                 />
                             )}
-                        </FormField>
-                    </Form>
+                        </SafeFormField>
+                    </SafeForm>
                 );
             }}
-        </Formik>
+        </SafeFormik>
     </div>
 );
 
