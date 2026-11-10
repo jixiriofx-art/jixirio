@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/hooks/useStore';
 import {
@@ -19,6 +20,19 @@ import { useDevice } from '@deriv-com/ui';
 /* [/AI] */
 import ToolbarIcon from './toolbar-icon';
 
+const SafeLabelPairedArrowRotateLeftMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedArrowRotateLeftMdRegularIcon', LabelPairedArrowRotateLeftMdRegularIcon);
+const SafeLabelPairedArrowRotateRightMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedArrowRotateRightMdRegularIcon', LabelPairedArrowRotateRightMdRegularIcon);
+const SafeLabelPairedArrowsRotateMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedArrowsRotateMdRegularIcon', LabelPairedArrowsRotateMdRegularIcon);
+const SafeLabelPairedChartLineMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedChartLineMdRegularIcon', LabelPairedChartLineMdRegularIcon);
+const SafeLabelPairedChartTradingviewMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedChartTradingviewMdRegularIcon', LabelPairedChartTradingviewMdRegularIcon);
+const SafeLabelPairedFloppyDiskMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedFloppyDiskMdRegularIcon', LabelPairedFloppyDiskMdRegularIcon);
+const SafeLabelPairedFolderOpenMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedFolderOpenMdRegularIcon', LabelPairedFolderOpenMdRegularIcon);
+const SafeLabelPairedMagnifyingGlassMinusMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedMagnifyingGlassMinusMdRegularIcon', LabelPairedMagnifyingGlassMinusMdRegularIcon);
+const SafeLabelPairedMagnifyingGlassPlusMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedMagnifyingGlassPlusMdRegularIcon', LabelPairedMagnifyingGlassPlusMdRegularIcon);
+const SafeLabelPairedObjectsAlignLeftMdRegularIcon = safeReactComponent('WorkspaceGroup.LabelPairedObjectsAlignLeftMdRegularIcon', LabelPairedObjectsAlignLeftMdRegularIcon);
+const SafeToolbarIcon = safeReactComponent('WorkspaceGroup.ToolbarIcon', ToolbarIcon);
+
+
 const WorkspaceGroup = observer(() => {
     const { dashboard, toolbar, load_modal, save_modal } = useStore();
     const { setPreviewOnPopup, setChartModalVisibility, setTradingViewModalVisibility } = dashboard;
@@ -30,7 +44,7 @@ const WorkspaceGroup = observer(() => {
     return (
         <div className='toolbar__wrapper'>
             <div className='toolbar__group toolbar__group-btn' data-testid='dt_toolbar_group_btn'>
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Reset')}
                     icon={
                         <span
@@ -39,11 +53,11 @@ const WorkspaceGroup = observer(() => {
                             onClick={onResetClick}
                             data-testid='dt_toolbar_reset_button'
                         >
-                            <LabelPairedArrowsRotateMdRegularIcon />
+                            <SafeLabelPairedArrowsRotateMdRegularIcon />
                         </span>
                     }
                 />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Import')}
                     icon={
                         <span
@@ -57,11 +71,11 @@ const WorkspaceGroup = observer(() => {
                                 /* [/AI] */
                             }}
                         >
-                            <LabelPairedFolderOpenMdRegularIcon />
+                            <SafeLabelPairedFolderOpenMdRegularIcon />
                         </span>
                     }
                 />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Save')}
                     icon={
                         <span
@@ -70,11 +84,11 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_save_button'
                             onClick={toggleSaveModal}
                         >
-                            <LabelPairedFloppyDiskMdRegularIcon />
+                            <SafeLabelPairedFloppyDiskMdRegularIcon />
                         </span>
                     }
                 />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Sort blocks')}
                     icon={
                         <span
@@ -83,14 +97,14 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_sort_button'
                             onClick={onSortClick}
                         >
-                            <LabelPairedObjectsAlignLeftMdRegularIcon />
+                            <SafeLabelPairedObjectsAlignLeftMdRegularIcon />
                         </span>
                     }
                 />
                 {isDesktop && (
                     <>
                         <div className='vertical-divider' />
-                        <ToolbarIcon
+                        <SafeToolbarIcon
                             popover_message={localize('Charts')}
                             icon={
                                 <span
@@ -98,11 +112,11 @@ const WorkspaceGroup = observer(() => {
                                     id='db-toolbar__charts-button'
                                     onClick={() => setChartModalVisibility()}
                                 >
-                                    <LabelPairedChartLineMdRegularIcon />
+                                    <SafeLabelPairedChartLineMdRegularIcon />
                                 </span>
                             }
                         />
-                        <ToolbarIcon
+                        <SafeToolbarIcon
                             popover_message={localize('TradingView Chart')}
                             icon={
                                 <span
@@ -110,14 +124,14 @@ const WorkspaceGroup = observer(() => {
                                     id='db-toolbar__tradingview-button'
                                     onClick={() => setTradingViewModalVisibility()}
                                 >
-                                    <LabelPairedChartTradingviewMdRegularIcon />
+                                    <SafeLabelPairedChartTradingviewMdRegularIcon />
                                 </span>
                             }
                         />
                     </>
                 )}
                 <div className='vertical-divider' />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Undo')}
                     icon={
                         <span
@@ -128,11 +142,11 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_undo_button'
                             onClick={() => onUndoClick(/* redo */ false)}
                         >
-                            <LabelPairedArrowRotateLeftMdRegularIcon />
+                            <SafeLabelPairedArrowRotateLeftMdRegularIcon />
                         </span>
                     }
                 />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Redo')}
                     icon={
                         <span
@@ -143,12 +157,12 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_redo_button'
                             onClick={() => onUndoClick(/* redo */ true)}
                         >
-                            <LabelPairedArrowRotateRightMdRegularIcon />
+                            <SafeLabelPairedArrowRotateRightMdRegularIcon />
                         </span>
                     }
                 />
                 <div className='vertical-divider' />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Zoom in')}
                     icon={
                         <span
@@ -157,11 +171,11 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_zoom_in_button'
                             onClick={() => onZoomInOutClick(/* in */ true)}
                         >
-                            <LabelPairedMagnifyingGlassPlusMdRegularIcon />
+                            <SafeLabelPairedMagnifyingGlassPlusMdRegularIcon />
                         </span>
                     }
                 />
-                <ToolbarIcon
+                <SafeToolbarIcon
                     popover_message={localize('Zoom out')}
                     icon={
                         <span
@@ -170,7 +184,7 @@ const WorkspaceGroup = observer(() => {
                             data-testid='dt_toolbar_zoom_out_button'
                             onClick={() => onZoomInOutClick(/* in */ false)}
                         >
-                            <LabelPairedMagnifyingGlassMinusMdRegularIcon />
+                            <SafeLabelPairedMagnifyingGlassMinusMdRegularIcon />
                         </span>
                     }
                 />
