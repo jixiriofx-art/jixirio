@@ -150,10 +150,35 @@ class DBot {
                     return;
                 }
 
+                const scratch_rect = el_scratch_div.getBoundingClientRect();
+                const theme = window.Blockly?.Themes?.zelos_renderer;
+                const renderer_registered = Boolean(window.Blockly?.registry?.hasItem?.(
+                    window.Blockly.registry.Type.RENDERER,
+                    'zelos'
+                ));
+                const scale_is_valid = Number.isFinite(workspaceScale) && workspaceScale > 0;
+                const dimensions_are_valid = scratch_rect.width > 0 && scratch_rect.height > 0;
                 setBotWorkspaceStage(
-                    'Injecting Blockly into #scratch_div (' +
-                    el_scratch_div.offsetWidth + 'x' + el_scratch_div.offsetHeight + ')'
+                    'Pre-injection checks\\n' +
+                    'scratch_div: ' + Math.round(scratch_rect.width) + 'x' + Math.round(scratch_rect.height) + '\\n' +
+                    'client: ' + el_scratch_div.clientWidth + 'x' + el_scratch_div.clientHeight + '\\n' +
+                    'workspaceScale: ' + workspaceScale + ' (valid: ' + scale_is_valid + ')\\n' +
+                    'theme zelos_renderer: ' + Boolean(theme) + '\\n' +
+                    'zelos renderer registered: ' + renderer_registered + '\\n' +
+                    'Blockly.inject: ' + typeof window.Blockly?.inject
                 );
+                if (!dimensions_are_valid) {
+                    throw new Error(
+                        '[Jixirio] Blockly container has invalid dimensions: ' +
+                        Math.round(scratch_rect.width) + 'x' + Math.round(scratch_rect.height)
+                    );
+                }
+                if (!scale_is_valid) {
+                    throw new Error('[Jixirio] Invalid Blockly workspace scale: ' + workspaceScale);
+                }
+                if (!theme) {
+                    throw new Error('[Jixirio] Blockly zelos_renderer theme is missing.');
+                }
                 this.workspace = window.Blockly.inject(el_scratch_div, {
                     media: `${window.__webpack_public_path__}assets/media/`,
                     renderer: 'zelos',
