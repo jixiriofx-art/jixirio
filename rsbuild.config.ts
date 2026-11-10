@@ -65,6 +65,12 @@ export default defineConfig({
     },
   },
   output: {
+    // Emit full JavaScript source maps only for the isolated static diagnostic preview.
+    // Normal production builds keep maps disabled to avoid exposing source code.
+    sourceMap: {
+      js: isStaticBuild ? 'source-map' : false,
+      css: false,
+    },
     assetPrefix: isStaticBuild ? '/bot/preview/' : '/',
     distPath: {
       root: isStaticBuild ? 'out/preview' : 'dist',
