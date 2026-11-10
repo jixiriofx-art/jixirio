@@ -1,6 +1,10 @@
 import { observer } from 'mobx-react-lite';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { useStore } from '@/hooks/useStore';
 import StopBotModalContent from './stop-bot-modal-content';
+
+const SafeStopBotModalContent = safeReactComponent('StopBotModal.StopBotModalContent', StopBotModalContent);
+
 
 const StopBotModal = observer(() => {
     const { run_panel, quick_strategy, summary_card } = useStore();
@@ -10,7 +14,7 @@ const StopBotModal = observer(() => {
     const { is_multiplier } = summary_card;
 
     return (
-        <StopBotModalContent
+        <SafeStopBotModalContent
             is_running={is_running}
             onOkButtonClick={stopMyBot}
             is_contract_dialog_open={is_contract_dialog_open}
