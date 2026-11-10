@@ -108,6 +108,7 @@ const BotBuilder = observer(() => {
                             'Main background: ' + rect(mainBackground),
                             'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
                             'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
+                            'Import audit: ' + ((window.__JIXIRIO_IMPORT_AUDIT__ || []).join(' | ') || 'no undefined imports recorded'),
                         ];
 
                         let panel = document.getElementById('jixirio-blockly-load-stage');
@@ -120,7 +121,7 @@ const BotBuilder = observer(() => {
                                 'font:12px/1.5 monospace;white-space:pre-wrap;overflow-wrap:anywhere;';
                             document.body.appendChild(panel);
                         }
-                        panel.textContent = details.join('\\n');
+                        panel.textContent = details.join('\n');
                     });
                 });
             })
