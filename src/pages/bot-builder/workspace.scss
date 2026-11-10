@@ -190,3 +190,47 @@
         min-height: 360px;
     }
 }
+
+
+/* Match the reference's white and near-black workspace themes. */
+#scratch_div,
+.bot-builder,
+.bot-builder--active {
+    background: var(--general-main-1);
+}
+
+.blocklyMainBackground {
+    fill: var(--general-main-1) !important;
+}
+
+.blocklyFlyoutBackground,
+.blocklyToolboxDiv {
+    background: var(--general-section-1) !important;
+    fill: var(--general-section-1) !important;
+}
+
+@include mobile-or-tablet-screen {
+    #scratch_div {
+        padding-bottom: 5.8rem;
+        box-sizing: border-box;
+    }
+
+    #scratch_div .toolbar__wrapper {
+        background: var(--general-section-1);
+        border-right: 1px solid var(--border-normal);
+        box-shadow: none;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon,
+    #scratch_div .toolbar__group-btn .toolbar__icon svg,
+    #scratch_div .toolbar__group-btn .toolbar__icon svg * {
+        color: var(--text-general) !important;
+        fill: currentColor;
+        stroke: currentColor;
+    }
+
+    #scratch_div::before {
+        background: var(--border-normal);
+        box-shadow: none;
+    }
+}
