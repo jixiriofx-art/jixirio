@@ -69,20 +69,75 @@ const BotBuilder = observer(() => {
             }
         }, 10000);
 
-        onMount().catch(error => {
-            console.error('[Jixirio] Bot Builder initialization failed:', error);
+        onMount()
+            .then(() => {
+                if (cancelled) return;
 
-            if (!cancelled) {
-                showInitError(error);
-                botNotification(
-                    error instanceof Error
-                        ? error.message
-                        : 'Bot Builder initialization failed. Please reload and try again.',
-                    undefined,
-                    { type: 'error' }
-                );
-            }
-        });
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
+                        if (cancelled) return;
+
+                        const workspace = window.Blockly?.derivWorkspace;
+                        const scratch = document.getElementById('scratch_div');
+                        const injection = scratch?.querySelector('.injectionDiv');
+                        const svg = injection?.querySelector('svg');
+                        const mainBackground = svg?.querySelector('.blocklyMainBackground');
+                        const rect = element => {
+                            if (!element) return 'missing';
+                            const box = element.getBoundingClientRect();
+                            return Math.round(box.width) + 'x' + Math.round(box.height);
+                        };
+                        const style = element => {
+                            if (!element) return 'missing';
+                            const css = window.getComputedStyle(element);
+                            return 'display=' + css.display + ', visibility=' + css.visibility +
+                                ', opacity=' + css.opacity;
+                        };
+                        const blocks = workspace?.getAllBlocks(false) || [];
+                        const topBlocks = workspace?.getTopBlocks(false) || [];
+                        const details = [
+                            '[Jixirio Blockly visual diagnostic]',
+                            'Initialization: completed',
+                            'Workspace: ' + Boolean(workspace),
+                            'All blocks: ' + blocks.length,
+                            'Top blocks: ' + topBlocks.length +
+                                (topBlocks.length ? ' (' + topBlocks.map(block => block.type).join(', ') + ')' : ''),
+                            '#scratch_div: ' + rect(scratch) + ' | ' + style(scratch),
+                            '.injectionDiv: ' + rect(injection) + ' | ' + style(injection),
+                            'Blockly SVG: ' + rect(svg) + ' | ' + style(svg),
+                            'Main background: ' + rect(mainBackground),
+                            'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
+                            'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
+                        ];
+
+                        let panel = document.getElementById('jixirio-blockly-load-stage');
+                        if (!panel) {
+                            panel = document.createElement('pre');
+                            panel.id = 'jixirio-blockly-load-stage';
+                            panel.style.cssText =
+                                'position:fixed;top:100px;left:8px;right:8px;z-index:1000000;margin:0;padding:12px;' +
+                                'border:1px solid #20c9c3;border-radius:8px;background:#071b20;color:#d9fffd;' +
+                                'font:12px/1.5 monospace;white-space:pre-wrap;overflow-wrap:anywhere;';
+                            document.body.appendChild(panel);
+                        }
+                        panel.textContent = details.join('\\n');
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('[Jixirio] Bot Builder initialization failed:', error);
+
+                if (!cancelled) {
+                    showInitError(error);
+                    botNotification(
+                        error instanceof Error
+                            ? error.message
+                            : 'Bot Builder initialization failed. Please reload and try again.',
+                        undefined,
+                        { type: 'error' }
+                    );
+                }
+            });
 
         return () => {
             cancelled = true;
