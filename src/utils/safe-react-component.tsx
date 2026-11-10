@@ -1,7 +1,17 @@
 import React from 'react';
 
 const reported = new Set<string>();
-const MissingComponent: React.FC = () => null;
+
+// Compound UI components (Modal.Body, Modal.Footer, RadioGroup.Item) also
+// receive harmless fallbacks if their parent import is missing.
+const MissingComponent = (() => null) as React.FC & {
+    Body: React.FC;
+    Footer: React.FC;
+    Item: React.FC;
+};
+MissingComponent.Body = MissingComponent;
+MissingComponent.Footer = MissingComponent;
+MissingComponent.Item = MissingComponent;
 
 /**
  * Keeps one undefined nested import from crashing the complete Bot Builder tree.
