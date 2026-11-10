@@ -84,6 +84,8 @@ const BotBuilder = observer(() => {
                         const mainBackground = svg?.querySelector('.blocklyMainBackground');
                         const blockCanvas = svg?.querySelector('.blocklyBlockCanvas');
                         const bubbleCanvas = svg?.querySelector('.blocklyBubbleCanvas');
+                        const blocks = workspace?.getAllBlocks(false) || [];
+                        const topBlocks = workspace?.getTopBlocks(false) || [];
                         const firstTopBlock = topBlocks[0];
                         const firstBlockSvg = firstTopBlock?.getSvgRoot?.();
                         const rect = element => {
@@ -111,8 +113,6 @@ const BotBuilder = observer(() => {
                             return 'display=' + css.display + ', visibility=' + css.visibility +
                                 ', opacity=' + css.opacity;
                         };
-                        const blocks = workspace?.getAllBlocks(false) || [];
-                        const topBlocks = workspace?.getTopBlocks(false) || [];
                         const details = [
                             '[Jixirio Blockly visual diagnostic]',
                             'Initialization: completed',
