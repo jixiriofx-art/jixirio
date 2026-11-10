@@ -182,8 +182,10 @@ const BotBuilder = observer(() => {
                 </div>
             </div>
 
-            {active_tab === DBOT_TABS.BOT_BUILDER && (
-                <SafeBotBuilderTourHandler is_mobile={!isDesktop} />
+            {/* Keep the automatic onboarding dialog off mobile until its dialog tree is verified.
+                It was opening immediately on Bot Builder entry and triggering React error #130. */}
+            {active_tab === DBOT_TABS.BOT_BUILDER && isDesktop && (
+                <SafeBotBuilderTourHandler is_mobile={false} />
             )}
 
             <SafeLoadModal />
