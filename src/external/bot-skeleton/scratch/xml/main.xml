@@ -1,5 +1,10 @@
 ﻿<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
-  <variables></variables>
+  <variables>
+    <variable type="" id="jixirio_stake">Stake</variable>
+    <variable type="" id="jixirio_martingale">Martingale</variable>
+    <variable type="" id="jixirio_take_profit">Take Profit</variable>
+    <variable type="" id="jixirio_consecutive_losses">Consecutive Losses</variable>
+  </variables>
   <block type="trade_definition" x="0" y="0">
     <statement name="TRADE_OPTIONS">
       <block type="trade_definition_market" deletable="false" movable="false">
@@ -26,6 +31,46 @@
                         </next>
                       </block>
                     </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="jixirio_set_stake">
+        <field name="VAR" id="jixirio_stake" variabletype="">Stake</field>
+        <value name="VALUE">
+          <shadow type="math_number_positive">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+        <next>
+          <block type="variables_set" id="jixirio_set_martingale">
+            <field name="VAR" id="jixirio_martingale" variabletype="">Martingale</field>
+            <value name="VALUE">
+              <shadow type="math_number_positive">
+                <field name="NUM">2</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="jixirio_set_take_profit">
+                <field name="VAR" id="jixirio_take_profit" variabletype="">Take Profit</field>
+                <value name="VALUE">
+                  <shadow type="math_number_positive">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="variables_set" id="jixirio_set_consecutive_losses">
+                    <field name="VAR" id="jixirio_consecutive_losses" variabletype="">Consecutive Losses</field>
+                    <value name="VALUE">
+                      <shadow type="math_number_positive">
+                        <field name="NUM">5</field>
+                      </shadow>
+                    </value>
                   </block>
                 </next>
               </block>
