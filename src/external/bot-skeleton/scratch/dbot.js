@@ -256,10 +256,10 @@ class DBot {
                 // bring the loaded blocks into the viewport. This is deliberately
                 // done after XML import/cleanup, not before the workspace has content.
                 try {
+                    // Keep the freshly cleaned-up strategy anchored at the workspace origin.
+                    // scrollCenter() centers the entire content width; on a narrow mobile
+                    // viewport this can move the first/top-level blocks completely off-screen.
                     window.Blockly.svgResize(this.workspace);
-                    if (typeof this.workspace.scrollCenter === 'function') {
-                        this.workspace.scrollCenter();
-                    }
                     window.Blockly.svgResize(this.workspace);
                 } catch (layoutError) {
                     console.error('[Jixirio] Initial Blockly layout adjustment failed:', layoutError);
