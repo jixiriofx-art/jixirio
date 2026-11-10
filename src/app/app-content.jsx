@@ -1,7 +1,7 @@
 
 import React, { lazy, Suspense, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ToastContainer } from 'react-toastify';
+import { Bounce, ToastContainer } from 'react-toastify';
 import AuthLoadingWrapper from '@/components/auth-loading-wrapper';
 import { botNotification } from '@/components/bot-notification/bot-notification';
 import useLiveChat from '@/components/chat/useLiveChat';
@@ -315,6 +315,7 @@ const AppContent = observer(() => {
                             <ToastContainer
                                 limit={3}
                                 draggable={false}
+                                transition={Bounce}
                             />
                         </div>
                     </ThemeProvider>
