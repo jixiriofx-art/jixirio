@@ -45,6 +45,7 @@ import Dashboard from '../dashboard';
 import ManualTrading from '../manual-trading';
 import RunStrategy from '../dashboard/run-strategy';
 import BestBots from './best-bots';
+import BotBuilder from '../bot-builder';
 import './main.scss';
 
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
@@ -596,7 +597,9 @@ const AppWrapper = observer(() => {
                                     </>
                                 }
                                 id='id-bot-builder'
-                            />
+                            >
+                                <BotBuilder />
+                            </div>
 
                             {/* BEST BOTS */}
                             <div
