@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { botNotification } from '@/components/bot-notification/bot-notification';
@@ -14,6 +15,13 @@ import SaveModal from '../dashboard/bot-list/save-modal';
 import BotBuilderTourHandler from '../tutorials/dbot-tours/bot-builder-tour';
 import QuickStrategy1 from './quick-strategy';
 import WorkspaceWrapper from './workspace-wrapper';
+
+const SafeLoadModal = safeReactComponent('BotBuilder.LoadModal', LoadModal);
+const SafeSaveModal = safeReactComponent('BotBuilder.SaveModal', SaveModal);
+const SafeBotBuilderTourHandler = safeReactComponent('BotBuilder.BotBuilderTourHandler', BotBuilderTourHandler);
+const SafeQuickStrategy = safeReactComponent('BotBuilder.QuickStrategy', QuickStrategy1);
+const SafeWorkspaceWrapper = safeReactComponent('BotBuilder.WorkspaceWrapper', WorkspaceWrapper);
+
 
 const BotBuilder = observer(() => {
     const { dashboard, app, run_panel, toolbar, quick_strategy } = useStore();
@@ -170,17 +178,17 @@ const BotBuilder = observer(() => {
                 })}
             >
                 <div id='scratch_div'>
-                    <WorkspaceWrapper />
+                    <SafeWorkspaceWrapper />
                 </div>
             </div>
 
             {active_tab === DBOT_TABS.BOT_BUILDER && (
-                <BotBuilderTourHandler is_mobile={!isDesktop} />
+                <SafeBotBuilderTourHandler is_mobile={!isDesktop} />
             )}
 
-            <LoadModal />
-            <SaveModal />
-            {is_open && <QuickStrategy1 />}
+            <SafeLoadModal />
+            <SafeSaveModal />
+            {is_open && <SafeQuickStrategy />}
         </>
     );
 });
