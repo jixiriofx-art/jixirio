@@ -4,8 +4,8 @@ import { localize } from '@deriv-com/translations';
 
 const getToastPosition = () => {
     const is_RTL = isDbotRTL();
-    if (is_RTL) return toast.POSITION.BOTTOM_RIGHT;
-    return toast.POSITION.BOTTOM_LEFT;
+    if (is_RTL) return 'bottom-right';
+    return 'bottom-left';
 };
 
 export type TNotificationContent = {
@@ -49,7 +49,7 @@ export const notification_message = () => ({
 });
 
 export const notification_style = {
-    type: toast.TYPE.DEFAULT,
+    type: 'default',
     position: getToastPosition(),
     autoClose: 6000,
     hideProgressBar: true,
