@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { observer } from 'mobx-react-lite';
 import Dialog from '@/components/shared_ui/dialog';
 import { useStore } from '@/hooks/useStore';
@@ -9,6 +10,12 @@ import { useDevice } from '@deriv-com/ui';
 /* [/AI] */
 import ToolbarButton from './toolbar-button';
 import WorkspaceGroup from './workspace-group';
+
+const SafeDialog = safeReactComponent('Toolbar.Dialog', Dialog);
+const SafeLocalize = safeReactComponent('Toolbar.Localize', Localize);
+const SafeToolbarButton = safeReactComponent('Toolbar.ToolbarButton', ToolbarButton);
+const SafeWorkspaceGroup = safeReactComponent('Toolbar.WorkspaceGroup', WorkspaceGroup);
+
 
 const Toolbar = observer(() => {
     const { run_panel, toolbar, quick_strategy } = useStore();
@@ -28,7 +35,7 @@ const Toolbar = observer(() => {
             <div className='toolbar dashboard__toolbar' data-testid='dt_dashboard_toolbar'>
                 <div className='toolbar__section'>
                     {!isDesktop && (
-                        <ToolbarButton
+                        <SafeToolbarButton
                             popover_message={localize('Click here to start building your Deriv Bot.')}
                             button_id='db-toolbar__get-started-button'
                             button_classname='toolbar__btn toolbar__btn--icon toolbar__btn--start'
@@ -37,11 +44,11 @@ const Toolbar = observer(() => {
                             is_bot_running={is_running}
                         />
                     )}
-                    {isDesktop && <WorkspaceGroup />}
+                    {isDesktop && <SafeWorkspaceGroup />}
                 </div>
             </div>
-            {!isDesktop && <WorkspaceGroup />}
-            <Dialog
+            {!isDesktop && <SafeWorkspaceGroup />}
+            <SafeDialog
                 portal_element_id='modal_root'
                 title={localize('Are you sure?')}
                 is_visible={is_dialog_open}
@@ -54,7 +61,7 @@ const Toolbar = observer(() => {
                 has_close_icon
             >
                 {is_running ? (
-                    <Localize
+                    <SafeLocalize
                         i18n_default_text='The workspace will be reset to the default strategy and any unsaved changes will be lost. <0>Note: This will not affect your running bot.</0>'
                         components={[
                             <div
@@ -65,9 +72,9 @@ const Toolbar = observer(() => {
                         ]}
                     />
                 ) : (
-                    <Localize i18n_default_text='Any unsaved changes will be lost.' />
+                    <SafeLocalize i18n_default_text='Any unsaved changes will be lost.' />
                 )}
-            </Dialog>
+            </SafeDialog>
         </React.Fragment>
     );
 });
