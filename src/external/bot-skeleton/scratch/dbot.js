@@ -12,6 +12,21 @@ import { loadBlockly } from './blockly';
 import DBotStore from './dbot-store';
 import { isAllRequiredBlocksEnabled, updateDisabledBlocks, validateErrorOnBlockDelete } from './utils';
 
+const setBotWorkspaceStage = stage => {
+    window.__JIXIRIO_BLOCKLY_STAGE__ = stage;
+    let panel = document.getElementById('jixirio-blockly-load-stage');
+    if (!panel) {
+        panel = document.createElement('pre');
+        panel.id = 'jixirio-blockly-load-stage';
+        panel.style.cssText =
+            'position:fixed;top:100px;left:8px;right:8px;z-index:1000000;margin:0;padding:12px;' +
+            'border:1px solid #20c9c3;border-radius:8px;background:#071b20;color:#d9fffd;' +
+            'font:12px/1.5 monospace;white-space:pre-wrap;overflow-wrap:anywhere;';
+        document.body.appendChild(panel);
+    }
+    panel.textContent = '[Jixirio Blockly loader]\\nStage: ' + stage;
+};
+
 class DBot {
     constructor() {
         this.interpreter = null;
@@ -22,9 +37,13 @@ class DBot {
     }
 
     async initWorkspace(public_path, store, api_helpers_store, is_mobile, is_dark_mode) {
+        setBotWorkspaceStage('Starting DBot.initWorkspace');
         await loadBlockly(is_dark_mode);
+        setBotWorkspaceStage('Blockly modules ready; loading saved workspaces');
         const recent_files = await getSavedWorkspaces();
+        setBotWorkspaceStage('Saved workspaces loaded; creating interpreter');
         this.interpreter = Interpreter();
+        setBotWorkspaceStage('Interpreter created; preparing Blockly injection');
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         var that = this;
@@ -123,6 +142,7 @@ class DBot {
                     }
                 }
 
+                setBotWorkspaceStage('Locating #scratch_div container');
                 const el_scratch_div = document.getElementById('scratch_div');
 
                 if (!el_scratch_div) {
@@ -130,6 +150,10 @@ class DBot {
                     return;
                 }
 
+                setBotWorkspaceStage(
+                    'Injecting Blockly into #scratch_div (' +
+                    el_scratch_div.offsetWidth + 'x' + el_scratch_div.offsetHeight + ')'
+                );
                 this.workspace = window.Blockly.inject(el_scratch_div, {
                     media: `${window.__webpack_public_path__}assets/media/`,
                     renderer: 'zelos',
@@ -139,6 +163,7 @@ class DBot {
                     theme: window.Blockly.Themes.zelos_renderer,
                 });
 
+                setBotWorkspaceStage('Blockly.inject returned; validating workspace');
                 if (!this.workspace || typeof this.workspace.getVariableMap !== 'function') {
                     throw new Error('[Jixirio] Blockly failed to create a valid workspace.');
                 }
@@ -159,6 +184,7 @@ class DBot {
                     }
                 });
 
+                setBotWorkspaceStage('Workspace created; registering listeners and defaults');
                 window.Blockly.derivWorkspace = this.workspace;
 
                 const varDB = new window.Blockly.Names('window');
@@ -187,6 +213,7 @@ class DBot {
                     window.Blockly.getMainWorkspace().current_strategy_id = latest_file.id;
                 }
 
+                setBotWorkspaceStage('Workspace ready; parsing and loading strategy XML');
                 const event_group = `dbot-load${Date.now()}`;
                 window.Blockly.Events.setGroup(event_group);
                 window.Blockly.Xml.domToWorkspace(
@@ -195,6 +222,7 @@ class DBot {
                 );
                 const { save_modal } = DBotStore.instance;
 
+                setBotWorkspaceStage('Strategy XML loaded; finalizing workspace layout');
                 save_modal.updateBotName(file_name);
                 this.workspace.cleanUp(0, is_mobile ? 60 : 56);
                 this.workspace.clearUndo();
@@ -203,8 +231,13 @@ class DBot {
                 window.addEventListener('dragover', DBot.handleDragOver);
                 window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
                 el_scratch_div.parentNode.style.overflow = 'hidden';
+                setBotWorkspaceStage('Workspace initialization completed successfully');
                 resolve();
             } catch (error) {
+                setBotWorkspaceStage(
+                    'FAILED during workspace initialization\\n' +
+                    (error instanceof Error ? error.stack || error.message : String(error))
+                );
                 reject(error);
             }
         });
