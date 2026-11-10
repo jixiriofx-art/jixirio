@@ -1,5 +1,10 @@
 import Button from '@/components/shared_ui/button';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import Popover from '@/components/shared_ui/popover';
+
+const SafeButton = safeReactComponent('ToolbarButton.Button', Button);
+const SafePopover = safeReactComponent('ToolbarButton.Popover', Popover);
+
 
 type TToolbarButton = {
     popover_message?: string;
@@ -21,9 +26,9 @@ const ToolbarButton = ({
     is_bot_running,
 }: TToolbarButton) => {
     const button = (
-        <Button id={button_id} className={button_classname} has_effect onClick={buttonOnClick} icon={icon} green>
+        <SafeButton id={button_id} className={button_classname} has_effect onClick={buttonOnClick} icon={icon} green>
             {button_text}
-        </Button>
+        </SafeButton>
     );
 
     if (is_bot_running) {
@@ -31,9 +36,9 @@ const ToolbarButton = ({
     }
 
     return (
-        <Popover alignment='bottom' message={popover_message} should_disable_pointer_events>
+        <SafePopover alignment='bottom' message={popover_message} should_disable_pointer_events>
             {button}
-        </Popover>
+        </SafePopover>
     );
 };
 
