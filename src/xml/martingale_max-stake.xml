@@ -18,6 +18,8 @@
     <variable type="" id="3^~61:59m?#VJ(:SG^^[" islocal="false" iscloud="false">setMaxStake?</variable>
     <variable type="" id="]6T=O624:eVRioXro1kh" islocal="false" iscloud="false">Notification:currentStake</variable>
     <variable type="" id="lES4b_A$jwUMq,9_z2,I" islocal="false" iscloud="false">Notification:maxStakeExceeds</variable>
+    <variable type="" id="JXconsecLossCount01" islocal="false" iscloud="false">martingale:consecutiveLossCount</variable>
+    <variable type="" id="JXconsecLossLimit01" islocal="false" iscloud="false">martingale:consecutiveLossLimit</variable>
   </variables>
   <block type="trade_definition" id="i]`fLRZ]?mshi{9kS+fg" deletable="false" x="0" y="0">
     <statement name="TRADE_OPTIONS">
@@ -64,11 +66,19 @@
         <next>
           <block type="variables_set" id="-jDR^266z(Nid-G$WXhp">
             <field name="VAR" id="4vh+dtelQS#?}@cNPcN!" variabletype="">maxStake</field>
-            <value name="VALUE" strategy_value="max_stake">
-              <shadow type="math_number" id="FF1sPs*ENIx4n#SmKe|9">
-                <field name="NUM">1000</field>
-              </shadow>
-            </value>
+            <value name="VALUE" strategy_value="max_stake"><shadow type="math_number" id="FF1sPs*ENIx4n#SmKe|9"><field name="NUM">1000</field></shadow></value>
+            <next>
+              <block type="variables_set" id="JXinitConsecLossCount">
+                <field name="VAR" id="JXconsecLossCount01" variabletype="">martingale:consecutiveLossCount</field>
+                <value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                <next>
+                  <block type="variables_set" id="JXinitConsecLossLimit">
+                    <field name="VAR" id="JXconsecLossLimit01" variabletype="">martingale:consecutiveLossLimit</field>
+                    <value name="VALUE" strategy_value="consecutive_losses"><shadow type="math_number"><field name="NUM">5</field></shadow></value>
+                  </block>
+                </next>
+              </block>
+            </next>
           </block>
         </next>
       </block>
@@ -530,7 +540,13 @@
                   </block>
                 </value>
                 <next>
-                  <block type="text_join" id="jW!]JTxnzDnsTxu^+gT!">
+                  <block type="controls_if" id="JXupdateConsecLosses">
+                    <mutation else="1"></mutation>
+                    <value name="IF0"><block type="variables_get" id="JXreadResultIsWin"><field name="VAR" id="x]b3MHpbtR?cJQDP@,eG" variabletype="">martingale:resultIsWin</field></block></value>
+                    <statement name="DO0"><block type="variables_set" id="JXresetConsecLossCount"><field name="VAR" id="JXconsecLossCount01" variabletype="">martingale:consecutiveLossCount</field><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block></statement>
+                    <statement name="ELSE"><block type="math_change" id="JXincreaseConsecLossCount"><field name="VAR" id="JXconsecLossCount01" variabletype="">martingale:consecutiveLossCount</field><value name="DELTA"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block></statement>
+                    <next>
+                      <block type="text_join" id="jW!]JTxnzDnsTxu^+gT!">
                     <field name="VARIABLE" id="p#@Pr/Y.sKueWX#oRSPl" variabletype="">Notification:totalProfit</field>
                     <statement name="STACK">
                       <block type="text_statement" id="Y3$$Wh@Fr:}*_(hMrtvA">
@@ -595,7 +611,7 @@
                                   <block type="controls_if" id=".O}[W@YXqN#zGd%ewXJ*">
                                     <mutation else="1"></mutation>
                                     <value name="IF0">
-                                      <block type="logic_compare" id="%XaSru*P96b@:s~*f6/b">
+                                      <block type="logic_operation" id="JXconsecAndMoneyLoss"><field name="OP">AND</field><value name="A"><block type="logic_compare" id="%XaSru*P96b@:s~*f6/b">
                                         <field name="OP">GT</field>
                                         <value name="A">
                                           <block type="variables_get" id=".j^jS`B22${#0xP~J7;S">
@@ -615,7 +631,7 @@
                                             </value>
                                           </block>
                                         </value>
-                                      </block>
+                                      </block></value><value name="B"><block type="logic_compare" id="JXconsecLossBelowLimit"><field name="OP">LT</field><value name="A"><block type="variables_get" id="JXgetConsecLossCount"><field name="VAR" id="JXconsecLossCount01" variabletype="">martingale:consecutiveLossCount</field></block></value><value name="B"><block type="variables_get" id="JXgetConsecLossLimit"><field name="VAR" id="JXconsecLossLimit01" variabletype="">martingale:consecutiveLossLimit</field></block></value></block></value></block>
                                     </value>
                                     <statement name="DO0">
                                       <block type="variables_set" id="b_=Q.Dj-VBXKcWz33ioo">
@@ -746,6 +762,8 @@
                           </block>
                         </next>
                       </block>
+                    </next>
+                  </block>
                     </next>
                   </block>
                 </next>
