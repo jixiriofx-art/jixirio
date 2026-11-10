@@ -37,6 +37,28 @@ const bots: Bot[] = [
     },
 ];
 
+const waitForVisibleBuilder = async (timeout = 15000) => {
+    const started = Date.now();
+
+    while (Date.now() - started < timeout) {
+        const builder = document.getElementById('scratch_div');
+        const bounds = builder?.getBoundingClientRect();
+
+        // Blockly calculates its initial zoom from the container width.
+        // Never initialize it while the Bot Builder tab is still hidden.
+        if (bounds && bounds.width > 0 && bounds.height > 0) {
+            await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    throw new Error(
+        'The Bot Builder tab did not become visible. Please reopen it and try again.'
+    );
+};
+
 const waitForBlocklyWorkspace = async (
     blocklyStore: { is_loading: boolean },
     timeout = 30000
@@ -87,8 +109,12 @@ const BestBots = () => {
         try {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
-            // Start and await the same guarded initializer used by the Bot Builder
-            // instead of relying only on a React tab-change effect to win the race.
+            // React must commit the tab change before Blockly injects its SVG.
+            // DBot.initWorkspace calculates its initial zoom from #scratch_div width;
+            // initializing while the tab is hidden produces a zero-width workspace.
+            await waitForVisibleBuilder();
+
+            // Reuse the Bot Builder's guarded initializer and wait for its workspace.
             await app.onMount();
             const workspace = await waitForBlocklyWorkspace(blockly_store);
 
