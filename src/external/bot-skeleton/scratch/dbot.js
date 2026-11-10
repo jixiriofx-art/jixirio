@@ -252,6 +252,13 @@ class DBot {
                 this.workspace.cleanUp(0, is_mobile ? 60 : 56);
                 this.workspace.clearUndo();
 
+                // The trade-definition root block uses a dark blue fill. Mark only
+                // that block so its labels can use a contrasting light text colour.
+                const tradeDefinitionBlock = this.workspace
+                    .getTopBlocks(false)
+                    .find(block => block.type === 'trade_definition');
+                tradeDefinitionBlock?.getSvgRoot?.()?.classList.add('jixirio-root-block');
+
                 // Force Blockly to measure the now-populated, visible container and
                 // bring the loaded blocks into the viewport. This is deliberately
                 // done after XML import/cleanup, not before the workspace has content.
