@@ -252,6 +252,19 @@ class DBot {
                 this.workspace.cleanUp(0, is_mobile ? 60 : 56);
                 this.workspace.clearUndo();
 
+                // Force Blockly to measure the now-populated, visible container and
+                // bring the loaded blocks into the viewport. This is deliberately
+                // done after XML import/cleanup, not before the workspace has content.
+                try {
+                    window.Blockly.svgResize(this.workspace);
+                    if (typeof this.workspace.scrollCenter === 'function') {
+                        this.workspace.scrollCenter();
+                    }
+                    window.Blockly.svgResize(this.workspace);
+                } catch (layoutError) {
+                    console.error('[Jixirio] Initial Blockly layout adjustment failed:', layoutError);
+                }
+
                 window.dispatchEvent(new Event('resize'));
                 window.addEventListener('dragover', DBot.handleDragOver);
                 window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
