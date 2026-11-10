@@ -57,6 +57,12 @@
     background: transparent;
 }
 
+/* The dark-blue trade-definition root block needs light, readable labels. */
+.jixirio-root-block .blocklyText,
+.jixirio-root-block .blocklyEditableText {
+    fill: #ffffff !important;
+}
+
 .blocklyMainBackground {
     fill: #080d1a !important;
 }
