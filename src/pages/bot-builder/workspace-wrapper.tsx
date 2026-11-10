@@ -5,11 +5,18 @@ import { useStore } from '@/hooks/useStore';
 import StopBotModal from '../dashboard/stop-bot-modal';
 import Toolbar from './toolbar';
 import Toolbox from './toolbox';
+import { auditComponents } from '@/utils/audit-components';
 import './workspace.scss';
 
+auditComponents('workspace-wrapper', {
+    Flyout,
+    StopBotModal,
+    Toolbar,
+    Toolbox,
+});
+
 // React error #130 means a JSX tag resolved to undefined. This guard names the
-// offender in the console and skips only that piece, so the rest of the Bot Builder
-// keeps working instead of the whole tree crashing.
+// offender in the on-screen diagnostic and skips only that piece.
 const reported = new Set<string>();
 
 const safe = (name: string, Component: unknown): React.ComponentType | null => {
