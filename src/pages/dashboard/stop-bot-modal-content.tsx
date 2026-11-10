@@ -1,11 +1,18 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { standalone_routes } from '@/components/shared';
 import Dialog from '@/components/shared_ui/dialog';
 import StaticUrl from '@/components/shared_ui/static-url';
 import Text from '@/components/shared_ui/text';
 import { generateUrlWithRedirect } from '@/utils/url-redirect-utils';
 import { Localize, localize } from '@deriv-com/translations';
+
+const SafeDialog = safeReactComponent('StopBotModalContent.Dialog', Dialog);
+const SafeStaticUrl = safeReactComponent('StopBotModalContent.StaticUrl', StaticUrl);
+const SafeText = safeReactComponent('StopBotModalContent.Text', Text);
+const SafeLocalize = safeReactComponent('StopBotModalContent.Localize', Localize);
+
 
 export type TStopBotModalContent = {
     is_running: boolean;
@@ -35,7 +42,7 @@ const StopBotModalContent = ({
 
     return (
         <React.Fragment>
-            <Dialog
+            <SafeDialog
                 portal_element_id='modal_root'
                 title={title_text}
                 is_visible={is_running ? is_stop_bot_dialog_open : is_contract_dialog_open}
@@ -49,50 +56,50 @@ const StopBotModalContent = ({
             >
                 {is_running && is_multiplier ? (
                     <>
-                        <Text as='p' lineHeight='s' size='xs' styles={{ paddingBottom: '2rem', paddingTop: '1rem' }}>
-                            <Localize i18n_default_text='Close your contract now or keep it running. If you decide to keep it running, you can check and close it later on the ' />
-                            <Text weight='bold' as='span' lineHeight='s' size='xs'>
-                                <StaticUrl
+                        <SafeText as='p' lineHeight='s' size='xs' styles={{ paddingBottom: '2rem', paddingTop: '1rem' }}>
+                            <SafeLocalize i18n_default_text='Close your contract now or keep it running. If you decide to keep it running, you can check and close it later on the ' />
+                            <SafeText weight='bold' as='span' lineHeight='s' size='xs'>
+                                <SafeStaticUrl
                                     key={0}
                                     className='link'
                                     onClick={() =>
                                         window.location.assign(generateUrlWithRedirect(standalone_routes.reports))
                                     }
                                 >
-                                    <Localize i18n_default_text='Reports' />
-                                </StaticUrl>
-                            </Text>
-                            <Localize i18n_default_text=' page.' />
-                        </Text>
-                        <Text as='p' lineHeight='s' size='xs'>
-                            <Localize i18n_default_text='The Quick Strategy you just created will be loaded to the workspace.' />
-                        </Text>
+                                    <SafeLocalize i18n_default_text='Reports' />
+                                </SafeStaticUrl>
+                            </SafeText>
+                            <SafeLocalize i18n_default_text=' page.' />
+                        </SafeText>
+                        <SafeText as='p' lineHeight='s' size='xs'>
+                            <SafeLocalize i18n_default_text='The Quick Strategy you just created will be loaded to the workspace.' />
+                        </SafeText>
                     </>
                 ) : (
                     <>
-                        <Text as='p' lineHeight='s' size='xs' styles={{ paddingBottom: '2rem', paddingTop: '1rem' }}>
-                            <Localize i18n_default_text='Stopping the current bot will load the Quick Strategy you just created to the workspace.' />
-                        </Text>
-                        <Text as='p' lineHeight='s' size='xs'>
-                            <Localize i18n_default_text='Any open contracts can be viewed on the ' />
-                            <Text weight='bold' as='span' lineHeight='s' size='xs'>
-                                <StaticUrl
+                        <SafeText as='p' lineHeight='s' size='xs' styles={{ paddingBottom: '2rem', paddingTop: '1rem' }}>
+                            <SafeLocalize i18n_default_text='Stopping the current bot will load the Quick Strategy you just created to the workspace.' />
+                        </SafeText>
+                        <SafeText as='p' lineHeight='s' size='xs'>
+                            <SafeLocalize i18n_default_text='Any open contracts can be viewed on the ' />
+                            <SafeText weight='bold' as='span' lineHeight='s' size='xs'>
+                                <SafeStaticUrl
                                     key={0}
                                     className='link'
                                     onClick={() =>
                                         window.location.assign(generateUrlWithRedirect(standalone_routes.reports))
                                     }
                                 >
-                                    <Localize i18n_default_text='Reports' />
-                                </StaticUrl>
-                            </Text>
-                            <Text as='span' lineHeight='s' size='xs' styles={{ paddingInlineStart: '0.4rem' }}>
-                                <Localize i18n_default_text=' page.' />
-                            </Text>
-                        </Text>
+                                    <SafeLocalize i18n_default_text='Reports' />
+                                </SafeStaticUrl>
+                            </SafeText>
+                            <SafeText as='span' lineHeight='s' size='xs' styles={{ paddingInlineStart: '0.4rem' }}>
+                                <SafeLocalize i18n_default_text=' page.' />
+                            </SafeText>
+                        </SafeText>
                     </>
                 )}
-            </Dialog>
+            </SafeDialog>
         </React.Fragment>
     );
 };
