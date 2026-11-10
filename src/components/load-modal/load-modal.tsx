@@ -109,16 +109,16 @@ const LoadModal: React.FC = observer(() => {
                         </div>
                     )}
                 </SafeTabs>
-            </Modal.Body>
+            </SafeModal.Body>
             {has_recent_strategies && (
                 <SafeModal.Footer has_separator>
                     <SafeRecentFooter />
-                </Modal.Footer>
+                </SafeModal.Footer>
             )}
             {is_file_loaded && (
                 <SafeModal.Footer has_separator>
                     <SafeLocalFooter />
-                </Modal.Footer>
+                </SafeModal.Footer>
             )}
         </SafeModal>
     );
