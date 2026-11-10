@@ -129,6 +129,44 @@ const BotBuilder = observer(() => {
                             return 'display=' + css.display + ', visibility=' + css.visibility +
                                 ', opacity=' + css.opacity;
                         };
+                        const ancestorAudit = (() => {
+                            const lines = [
+                                'Viewport: ' + window.innerWidth + 'x' + window.innerHeight +
+                                    ' | pageScroll=' + window.scrollX + ',' + window.scrollY +
+                                    ' | documentScroll=' + document.documentElement.scrollTop,
+                            ];
+                            let node = scratch;
+                            let depth = 0;
+                            while (node && depth < 12) {
+                                const css = window.getComputedStyle(node);
+                                const r = node.getBoundingClientRect();
+                                const clipsX = /(hidden|clip|auto|scroll)/.test(css.overflowX);
+                                const clipsY = /(hidden|clip|auto|scroll)/.test(css.overflowY);
+                                const clips = [];
+                                if (clipsX) clips.push('x');
+                                if (clipsY) clips.push('y');
+                                lines.push(
+                                    'Ancestor ' + depth + ': ' + node.tagName.toLowerCase() +
+                                    (node.id ? '#' + node.id : '') +
+                                    (typeof node.className === 'string' && node.className.trim()
+                                        ? '.' + node.className.trim().replace(/\\s+/g, '.') : '') +
+                                    ' | rect=' + Math.round(r.left) + ',' + Math.round(r.top) + ',' +
+                                    Math.round(r.width) + 'x' + Math.round(r.height) +
+                                    ' | overflow=' + css.overflow + ' (' + css.overflowX + '/' + css.overflowY + ')' +
+                                    ' | client=' + node.clientWidth + 'x' + node.clientHeight +
+                                    ' | scroll=' + node.scrollLeft + ',' + node.scrollTop +
+                                    ' | clips=' + (clips.join('') || 'no')
+                                );
+                                node = node.parentElement;
+                                depth++;
+                            }
+                            const vr = svg?.getBoundingClientRect?.();
+                            lines.push('Blockly SVG viewport intersection: ' + (vr
+                                ? Math.round(Math.max(0, Math.min(vr.right, window.innerWidth) - Math.max(vr.left, 0))) +
+                                    'x' + Math.round(Math.max(0, Math.min(vr.bottom, window.innerHeight) - Math.max(vr.top, 0)))
+                                : 'unavailable'));
+                            return lines;
+                        })();
                         const details = [
                             '[Jixirio Blockly visual diagnostic]',
                             'Initialization: completed',
@@ -162,6 +200,7 @@ const BotBuilder = observer(() => {
                                 ' height=' + (svg?.getAttribute('height') || 'missing') +
                                 ' preserveAspectRatio=' + (svg?.getAttribute('preserveAspectRatio') || 'missing'),
                             'Workspace metrics: ' + workspaceMetrics,
+                            ...ancestorAudit,
                             'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
                             'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
                             'Import audit: ' + ((window.__JIXIRIO_IMPORT_AUDIT__ || []).join(' | ') || 'no undefined imports recorded'),
