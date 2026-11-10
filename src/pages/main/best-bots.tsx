@@ -42,11 +42,15 @@ const waitForVisibleBuilder = async (timeout = 15000) => {
 
     while (Date.now() - started < timeout) {
         const builder = document.getElementById('scratch_div');
+        const builderPanel = builder?.closest('.bot-builder');
         const bounds = builder?.getBoundingClientRect();
+        const isActivePanel =
+            builderPanel?.classList.contains('bot-builder--active') &&
+            !builderPanel.classList.contains('bot-builder--inactive');
 
-        // Blockly calculates its initial zoom from the container width.
-        // Never initialize it while the Bot Builder tab is still hidden.
-        if (bounds && bounds.width > 0 && bounds.height > 0) {
+        // The inactive panel is positioned off-screen but still has dimensions.
+        // Require its active class as well as measurable bounds before Blockly injects.
+        if (isActivePanel && bounds && bounds.width > 0 && bounds.height > 0) {
             await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
             return;
         }
