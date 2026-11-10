@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { browserOptimizer } from '@/utils/browser-performance-optimizer';
 import { clickRateLimiter } from '@/utils/click-rate-limiter';
 import { LabelPairedPlusLgFillIcon } from '@deriv/quill-icons/LabelPaired';
@@ -6,6 +7,13 @@ import { Localize } from '@deriv-com/translations';
 import Button from '../shared_ui/button';
 import Text from '../shared_ui/text';
 import FlyoutBlock from './flyout-block';
+
+const SafeLabelPairedPlusLgFillIcon = safeReactComponent('FlyoutBlockGroup.LabelPairedPlusLgFillIcon', LabelPairedPlusLgFillIcon);
+const SafeLocalize = safeReactComponent('FlyoutBlockGroup.Localize', Localize);
+const SafeButton = safeReactComponent('FlyoutBlockGroup.Button', Button);
+const SafeText = safeReactComponent('FlyoutBlockGroup.Text', Text);
+const SafeFlyoutBlock = safeReactComponent('FlyoutBlockGroup.FlyoutBlock', FlyoutBlock);
+
 
 type TFlyoutBlockGroup = {
     onInfoClick: () => void;
@@ -23,7 +31,7 @@ const FlyoutBlockGroup = ({ onInfoClick, block_node, is_active, should_hide_disp
 
     const AddButton = () => (
         <div className='flyout__item-buttons'>
-            <Button
+            <SafeButton
                 id={`db-flyout__add--${block_type}`}
                 data-testid={`dt_flyout__add_${block_type}`}
                 className='flyout__button-add flyout__button-add--hide'
@@ -60,8 +68,8 @@ const FlyoutBlockGroup = ({ onInfoClick, block_node, is_active, should_hide_disp
                 }}
                 type='button'
             >
-                <LabelPairedPlusLgFillIcon height='24px' width='24px' fill='var(--text-general)' />
-            </Button>
+                <SafeLabelPairedPlusLgFillIcon height='24px' width='24px' fill='var(--text-general)' />
+            </SafeButton>
         </div>
     );
 
@@ -72,13 +80,13 @@ const FlyoutBlockGroup = ({ onInfoClick, block_node, is_active, should_hide_disp
                 {!should_hide_display_name && (
                     <>
                         <div className='flyout__item-header'>
-                            <Text
+                            <SafeText
                                 size={is_variables_get ? 'xs' : 'xsm'}
                                 lineHeight={is_variables_get ? undefined : 'xl'}
                                 weight={is_variables_get ? undefined : 'bold'}
                             >
                                 {display_name}
-                            </Text>
+                            </SafeText>
                             {!is_variables_get && <AddButton />}
                         </div>
                         <div className='flyout__item-description'>
@@ -105,14 +113,14 @@ const FlyoutBlockGroup = ({ onInfoClick, block_node, is_active, should_hide_disp
                                         }
                                     }}
                                 >
-                                    <Localize i18n_default_text='Learn more' />
+                                    <SafeLocalize i18n_default_text='Learn more' />
                                 </a>
                             )}
                         </div>
                     </>
                 )}
                 <div className='flyout__block-workspace__header'>
-                    <FlyoutBlock block_node={block_node} should_hide_display_name />
+                    <SafeFlyoutBlock block_node={block_node} should_hide_display_name />
                     {is_variables_get && <AddButton />}
                 </div>
             </div>
