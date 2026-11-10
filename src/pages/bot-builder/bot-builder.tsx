@@ -23,6 +23,25 @@ const SafeQuickStrategy = safeReactComponent('BotBuilder.QuickStrategy', QuickSt
 const SafeWorkspaceWrapper = safeReactComponent('BotBuilder.WorkspaceWrapper', WorkspaceWrapper);
 
 
+const showInitError = (error: unknown) => {
+    const id = 'jixirio-bot-builder-diagnostic';
+    document.getElementById(id)?.remove();
+
+    const el = document.createElement('pre');
+    el.id = id;
+    el.style.cssText =
+        'position:fixed;left:0;right:0;bottom:0;max-height:50vh;overflow:auto;z-index:999999;margin:0;' +
+        'padding:12px;background:#160000;color:#ff7777;font:11px/1.4 monospace;white-space:pre-wrap;';
+    const box = document.getElementById('scratch_div')?.getBoundingClientRect();
+    const workspace = window.Blockly?.derivWorkspace;
+    el.textContent =
+        `[Jixirio] Bot Builder diagnostic\\n${error instanceof Error ? error.stack || error.message : String(error)}\\n\\n` +
+        `scratch_div: ${box ? `${Math.round(box.width)}x${Math.round(box.height)}` : 'missing'}\\n` +
+        `Blockly: ${typeof window.Blockly}\\nworkspace: ${Boolean(workspace)}\\n` +
+        `workspace methods: ${workspace ? typeof workspace.getVariableMap : 'unavailable'}`;
+    document.body.appendChild(el);
+};
+
 const BotBuilder = observer(() => {
     const { dashboard, app, run_panel, toolbar, quick_strategy } = useStore();
     const { active_tab, active_tour, is_preview_on_popup } = dashboard;
@@ -44,10 +63,17 @@ const BotBuilder = observer(() => {
 
         let cancelled = false;
 
+        const watchdog = window.setTimeout(() => {
+            if (!cancelled && !window.Blockly?.derivWorkspace) {
+                showInitError(new Error('No Blockly workspace was created within 10 seconds.'));
+            }
+        }, 10000);
+
         onMount().catch(error => {
             console.error('[Jixirio] Bot Builder initialization failed:', error);
 
             if (!cancelled) {
+                showInitError(error);
                 botNotification(
                     error instanceof Error
                         ? error.message
@@ -60,6 +86,8 @@ const BotBuilder = observer(() => {
 
         return () => {
             cancelled = true;
+            window.clearTimeout(watchdog);
+            document.getElementById('jixirio-bot-builder-diagnostic')?.remove();
         };
     }, [active_tab, is_preview_on_popup, onMount]);
 
