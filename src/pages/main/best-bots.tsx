@@ -138,27 +138,7 @@ const BestBots = () => {
                 );
             }
 
-            // Correct the stale D’Alembert variable ID before loading.
-            if (bot.strategy === 'D_ALEMBERT') {
-                const staleVariableId = 'o((rBg*rL/qm;RU%PM7_';
-                const correctVariableId = 'Xv=?/_{i5i7(YfFJqUM2';
-
-                if (!strategyXml.includes(staleVariableId)) {
-                    throw new Error(
-                        'The D’Alembert strategy template has changed. Loading was stopped to prevent an invalid bot.'
-                    );
-                }
-
-                strategyXml = strategyXml
-                    .split(staleVariableId)
-                    .join(correctVariableId);
-
-                if (strategyXml.includes(staleVariableId)) {
-                    throw new Error(
-                        'The D’Alembert variable correction failed.'
-                    );
-                }
-            }
+            // Both bundled XML templates already contain their matching variable IDs.
 
             const strategyId =
                 `jixirio-${bot.strategy.toLowerCase()}-${Date.now()}`;
