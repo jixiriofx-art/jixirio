@@ -8,6 +8,8 @@ import { pluginSass } from '@rsbuild/plugin-sass';
 loadEnv({ mode: 'production' });
 
 const isStaticBuild = process.env.NEXT_PUBLIC_APP_BUILD === 'true';
+// Keep the Bot Builder diagnostic branch readable without changing production.
+const isDiagnosticBuild = process.env.CF_PAGES_BRANCH === 'fix/blockly-workspace-lifecycle';
 
 // Resolve smartcharts from wherever the package actually lives so the asset
 // copy works both standalone and inside the monorepo (npm workspaces hoist the
@@ -18,6 +20,7 @@ const smartchartsDist = path.join(
 );
 
 export default defineConfig({
+  mode: isDiagnosticBuild ? 'development' : 'production',
   plugins: [
     pluginSass({
       sassLoaderOptions: { sourceMap: true },
@@ -68,7 +71,7 @@ export default defineConfig({
     // Emit full JavaScript source maps only for the isolated static diagnostic preview.
     // Normal production builds keep maps disabled to avoid exposing source code.
     sourceMap: {
-      js: isStaticBuild ? 'source-map' : false,
+      js: isStaticBuild || isDiagnosticBuild ? 'source-map' : false,
       css: false,
     },
     assetPrefix: isStaticBuild ? '/bot/preview/' : '/',
