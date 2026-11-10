@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { observer } from 'mobx-react-lite';
 import ProgressBarTracker from '@/components/shared_ui/progress-bar-tracker';
 import Text from '@/components/shared_ui/text';
@@ -10,6 +11,12 @@ import TourButton from '../common/tour-button';
 import TourStartDialog from '../common/tour-start-dialog';
 import { BOT_BUILDER_MOBILE } from '../tour-content';
 import { highlightLoadModalButton } from '../utils';
+
+const SafeProgressBarTracker = safeReactComponent('BotBuilderTourMobile.ProgressBarTracker', ProgressBarTracker);
+const SafeText = safeReactComponent('BotBuilderTourMobile.Text', Text);
+const SafeTourButton = safeReactComponent('BotBuilderTourMobile.TourButton', TourButton);
+const SafeTourStartDialog = safeReactComponent('BotBuilderTourMobile.TourStartDialog', TourStartDialog);
+
 
 const BotBuilderTourMobile = observer(() => {
     const { dashboard, load_modal, quick_strategy } = useStore();
@@ -54,23 +61,23 @@ const BotBuilderTourMobile = observer(() => {
     const is_tour_active = active_tour === 'onboarding';
     return (
         <>
-            {show_mobile_tour_dialog && <TourStartDialog />}
+            {show_mobile_tour_dialog && <SafeTourStartDialog />}
             {active_tour && !show_mobile_tour_dialog && (
                 <div data-testid='botbuilder-tour-mobile' className='dbot-slider dbot-slider__bot-builder-tour'>
                     <div className='dbot-slider__label'>
-                        <Text as='span' size='xs' weight='bold'>
+                        <SafeText as='span' size='xs' weight='bold'>
                             {content_data?.header}
-                        </Text>
+                        </SafeText>
                     </div>
                     <div className='dbot-slider__content'>
-                        <Text as='span' lineHeight='s' size='xs'>
+                        <SafeText as='span' lineHeight='s' size='xs'>
                             {content_data?.content}
-                        </Text>
+                        </SafeText>
                     </div>
                     <div className='dbot-slider__status'>
                         <div className='dbot-slider__progress-bar'>
                             {
-                                <ProgressBarTracker
+                                <SafeProgressBarTracker
                                     step={tour_step}
                                     steps_list={BOT_BUILDER_MOBILE.map(v => v.tour_step_key.toString())}
                                     onStepChange={setTourStep}
@@ -79,7 +86,7 @@ const BotBuilderTourMobile = observer(() => {
                         </div>
                         <div className='dbot-slider__button-group'>
                             {tour_step !== 1 && (
-                                <TourButton
+                                <SafeTourButton
                                     onClick={() => {
                                         setTourStep(tour_step - 1);
                                     }}
@@ -87,7 +94,7 @@ const BotBuilderTourMobile = observer(() => {
                                     data-testid='prev-bot-builder-tour'
                                 />
                             )}
-                            <TourButton
+                            <SafeTourButton
                                 type='danger'
                                 onClick={() => {
                                     setTourStep(tour_step + 1);
