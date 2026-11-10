@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/hooks/useStore';
@@ -16,6 +17,14 @@ import ThemedScrollbars from '../shared_ui/themed-scrollbars';
 import FlyoutBlockGroup from './flyout-block-group';
 import HelpBase from './help-contents';
 
+const SafeLabelPairedCircleExclamationCaptionFillIcon = safeReactComponent('Flyout.LabelPairedCircleExclamationCaptionFillIcon', LabelPairedCircleExclamationCaptionFillIcon);
+const SafeInput = safeReactComponent('Flyout.Input', Input);
+const SafeText = safeReactComponent('Flyout.Text', Text);
+const SafeThemedScrollbars = safeReactComponent('Flyout.ThemedScrollbars', ThemedScrollbars);
+const SafeFlyoutBlockGroup = safeReactComponent('Flyout.FlyoutBlockGroup', FlyoutBlockGroup);
+const SafeHelpBase = safeReactComponent('Flyout.HelpBase', HelpBase);
+
+
 type TSearchResult = {
     search_term: string;
     total_result: number;
@@ -23,15 +32,15 @@ type TSearchResult = {
 
 const SearchResult = ({ search_term, total_result }: TSearchResult) => (
     <div className='flyout__search-header'>
-        <Text weight='bold' className='flyout__search-header-text'>
+        <SafeText weight='bold' className='flyout__search-header-text'>
             {localize('Results for "{{ search_term }}"', {
                 search_term,
                 interpolation: { escapeValue: false },
             })}
-        </Text>
-        <Text weight='bold' color='profit-success' className='flyout__search-header-text'>
+        </SafeText>
+        <SafeText weight='bold' color='profit-success' className='flyout__search-header-text'>
             {`${total_result} ${total_result > 1 ? localize('results') : localize('result')}`}
-        </Text>
+        </SafeText>
     </div>
 );
 
@@ -64,11 +73,11 @@ const FlyoutContent = (props: TFlyoutContent) => {
             ref={flyout_ref}
             className={classNames('flyout__content', { 'flyout__normal-content': !is_search_flyout })}
         >
-            <ThemedScrollbars className='flyout__content-scrollbar'>
+            <SafeThemedScrollbars className='flyout__content-scrollbar'>
                 {selected_category?.getAttribute('id') === 'indicators' && (
                     <div className='flyout__content-disclaimer'>
                         <span className='flyout__content-disclaimer-icon'>
-                            <LabelPairedCircleExclamationCaptionFillIcon
+                            <SafeLabelPairedCircleExclamationCaptionFillIcon
                                 className='flyout__content-disclaimer__warning-icon'
                                 height='24px'
                                 width='24px'
@@ -85,9 +94,9 @@ const FlyoutContent = (props: TFlyoutContent) => {
                 )}
                 {is_empty ? (
                     <div className='flyout__search-empty'>
-                        <Text as='h2' weight='bold' lineHeight='xs'>
+                        <SafeText as='h2' weight='bold' lineHeight='xs'>
                             {localize('No results found')}
-                        </Text>
+                        </SafeText>
                     </div>
                 ) : (
                     flyout_content.map((node, index) => {
@@ -97,7 +106,7 @@ const FlyoutContent = (props: TFlyoutContent) => {
                                 const block_type = (node.getAttribute('type') || '') as string;
 
                                 return (
-                                    <FlyoutBlockGroup
+                                    <SafeFlyoutBlockGroup
                                         key={`${node.getAttribute(
                                             'type'
                                         )}${window?.Blockly?.utils?.idGenerator?.genUid()}`}
@@ -130,7 +139,7 @@ const FlyoutContent = (props: TFlyoutContent) => {
                             }
                             case window.Blockly.Xml.NODE_INPUT: {
                                 return (
-                                    <Input
+                                    <SafeInput
                                         key={`${node.getAttribute('name')}${index}`}
                                         className={`${node.getAttribute('className')}`}
                                         type={`${node.getAttribute('type')}`}
@@ -195,7 +204,7 @@ const FlyoutContent = (props: TFlyoutContent) => {
                         }
                     })
                 )}
-            </ThemedScrollbars>
+            </SafeThemedScrollbars>
         </div>
     );
 };
@@ -244,12 +253,12 @@ const Flyout = observer(() => {
                     <SearchResult search_term={search_term} total_result={total_result} />
                 )}
                 {is_help_content ? (
-                    <HelpBase />
+                    <SafeHelpBase />
                 ) : is_loading ? (
                     <div className='flyout__loading'>
-                        <Text as='h2' weight='bold' lineHeight='xs'>
+                        <SafeText as='h2' weight='bold' lineHeight='xs'>
                             {localize('Loading...')}
-                        </Text>
+                        </SafeText>
                     </div>
                 ) : (
                     <FlyoutContent
