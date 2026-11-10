@@ -7,52 +7,48 @@ import Toolbar from './toolbar';
 import Toolbox from './toolbox';
 import './workspace.scss';
 
+// React error #130 means a JSX tag resolved to undefined. This guard names the
+// offender in the console and skips only that piece, so the rest of the Bot Builder
+// keeps working instead of the whole tree crashing.
+const reported = new Set<string>();
+
+const safe = (name: string, Component: unknown): React.ComponentType | null => {
+    if (Component) return Component as React.ComponentType;
+    if (!reported.has(name)) {
+        reported.add(name);
+        // eslint-disable-next-line no-console
+        console.error(`[Jixirio] WorkspaceWrapper: "${name}" imported as undefined (bad import/export).`);
+    }
+    return null;
+};
+
 const WorkspaceWrapper = observer(() => {
     const { blockly_store } = useStore();
     const { onMount, onUnmount, is_loading } = blockly_store;
-
-    // Identify broken default/named imports before React attempts to render them.
-    React.useEffect(() => {
-        const imported_components = {
-            Toolbox,
-            Toolbar,
-            Flyout,
-            StopBotModal,
-        };
-        const undefined_components = Object.entries(imported_components)
-            .filter(([, component]) => component === undefined)
-            .map(([name]) => name);
-
-        if (undefined_components.length > 0) {
-            console.error(
-                '[Jixirio] Undefined Bot Builder child component imports:',
-                undefined_components
-            );
-        } else {
-            console.info('[Jixirio] Bot Builder child component import audit passed.');
-        }
-    }, []);
 
     React.useEffect(() => {
         onMount();
         return () => {
             onUnmount();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (is_loading) return null;
+    if (!window.Blockly?.derivWorkspace) return null;
 
-    if (window.Blockly?.derivWorkspace)
-        return (
-            <React.Fragment>
-                <Toolbox />
-                <Toolbar />
-                <Flyout />
-                <StopBotModal />
-            </React.Fragment>
-        );
+    const parts: Array<[string, React.ComponentType | null]> = [
+        ['Toolbox', safe('Toolbox', Toolbox)],
+        ['Toolbar', safe('Toolbar', Toolbar)],
+        ['Flyout', safe('Flyout', Flyout)],
+        ['StopBotModal', safe('StopBotModal', StopBotModal)],
+    ];
 
-    return null;
+    return (
+        <React.Fragment>
+            {parts.map(([name, Part]) => (Part ? <Part key={name} /> : null))}
+        </React.Fragment>
+    );
 });
 
 export default WorkspaceWrapper;
