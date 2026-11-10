@@ -28,6 +28,13 @@ import './app.scss';
 import 'react-toastify/dist/ReactToastify.css';
 import '../components/bot-notification/bot-notification.scss';
 
+import { auditComponents } from '@/utils/audit-components';
+
+auditComponents('app-content', {
+    AuthLoadingWrapper, ChunkLoader, TransactionDetailsModal, ThemeProvider,
+    ToastContainer, Audio, JixirioLanding, BlocklyLoading, BotStopped, BotBuilder, Main,
+});
+
 const PreviewBranding =
     process.env.NEXT_PUBLIC_APP_BUILD === 'true'
         ? lazy(() => import('../preview/preview-branding'))
