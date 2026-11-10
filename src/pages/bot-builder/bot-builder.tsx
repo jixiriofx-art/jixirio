@@ -95,6 +95,18 @@ const BotBuilder = observer(() => {
                                 ' @ ' + Math.round(box.left) + ',' + Math.round(box.top);
                         };
                         const transform = element => element?.getAttribute?.('transform') || 'none';
+                        const childCount = element => element?.children?.length ?? 'missing';
+                        const svgBox = element => {
+                            try {
+                                const box = element?.getBBox?.();
+                                return box
+                                    ? [box.x, box.y, box.width, box.height].map(value => Math.round(value)).join(',')
+                                    : 'unavailable';
+                            } catch (error) {
+                                return 'error: ' + String(error);
+                            }
+                        };
+                        const firstBlockStyle = firstBlockSvg ? window.getComputedStyle(firstBlockSvg) : null;
                         const workspaceMetrics = (() => {
                             try {
                                 const metrics = workspace?.getMetrics?.();
@@ -124,10 +136,16 @@ const BotBuilder = observer(() => {
                             '.injectionDiv: ' + rect(injection) + ' | ' + style(injection),
                             'Blockly SVG: ' + rect(svg) + ' | ' + style(svg),
                             'Main background: ' + rect(mainBackground),
-                            'Block canvas: ' + rect(blockCanvas) + ' | transform=' + transform(blockCanvas),
-                            'Bubble canvas: ' + rect(bubbleCanvas) + ' | transform=' + transform(bubbleCanvas),
+                            'Block canvas: ' + rect(blockCanvas) + ' | children=' + childCount(blockCanvas) +
+                                ' | transform=' + transform(blockCanvas),
+                            'Bubble canvas: ' + rect(bubbleCanvas) + ' | children=' + childCount(bubbleCanvas) +
+                                ' | transform=' + transform(bubbleCanvas),
                             'First top block: ' + (firstTopBlock?.type || 'missing') +
-                                ' | svg=' + rect(firstBlockSvg) + ' | transform=' + transform(firstBlockSvg),
+                                ' | svg=' + rect(firstBlockSvg) + ' | bbox=' + svgBox(firstBlockSvg) +
+                                ' | transform=' + transform(firstBlockSvg) +
+                                ' | display=' + (firstBlockStyle?.display || 'missing') +
+                                ' | visibility=' + (firstBlockStyle?.visibility || 'missing') +
+                                ' | opacity=' + (firstBlockStyle?.opacity || 'missing'),
                             'Workspace metrics: ' + workspaceMetrics,
                             'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
                             'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
