@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { observer } from 'mobx-react-lite';
 import { tabs_title } from '@/constants/load-modal';
 import { useStore } from '@/hooks/useStore';
@@ -15,6 +16,16 @@ import Local from './local';
 import LocalFooter from './local-footer';
 import Recent from './recent';
 import RecentFooter from './recent-footer';
+
+const SafeMobileFullPageModal = safeReactComponent('LoadModal.MobileFullPageModal', MobileFullPageModal);
+const SafeModal = safeReactComponent('LoadModal.Modal', Modal);
+const SafeTabs = safeReactComponent('LoadModal.Tabs', Tabs);
+const SafeGoogleDrive = safeReactComponent('LoadModal.GoogleDrive', GoogleDrive);
+const SafeLocal = safeReactComponent('LoadModal.Local', Local);
+const SafeLocalFooter = safeReactComponent('LoadModal.LocalFooter', LocalFooter);
+const SafeRecent = safeReactComponent('LoadModal.Recent', Recent);
+const SafeRecentFooter = safeReactComponent('LoadModal.RecentFooter', RecentFooter);
+
 
 const LoadModal: React.FC = observer(() => {
     const { load_modal, dashboard, google_drive } = useStore();
@@ -41,7 +52,7 @@ const LoadModal: React.FC = observer(() => {
 
     if (!isDesktop) {
         return (
-            <MobileFullPageModal
+            <SafeMobileFullPageModal
                 is_modal_open={is_load_modal_open}
                 className='load-strategy__wrapper'
                 header={header_text}
@@ -53,17 +64,17 @@ const LoadModal: React.FC = observer(() => {
                 height_offset='80px'
                 page_overlay
             >
-                <Tabs active_index={active_index} onTabItemClick={handleTabItemClick} top>
+                <SafeTabs active_index={active_index} onTabItemClick={handleTabItemClick} top>
                     <div label={localize('Local')}>
-                        <Local />
+                        <SafeLocal />
                     </div>
                     {is_google_drive_configured && (
                         <div label='Google Drive'>
-                            <GoogleDrive />
+                            <SafeGoogleDrive />
                         </div>
                     )}
-                </Tabs>
-            </MobileFullPageModal>
+                </SafeTabs>
+            </SafeMobileFullPageModal>
         );
     }
 
@@ -71,7 +82,7 @@ const LoadModal: React.FC = observer(() => {
     const has_recent_strategies = recent_strategies.length > 0 && tab_name === tabs_title.TAB_RECENT;
 
     return (
-        <Modal
+        <SafeModal
             title={header_text}
             className='load-strategy'
             width='1000px'
@@ -84,32 +95,32 @@ const LoadModal: React.FC = observer(() => {
             onEntered={onEntered}
             elements_to_ignore={[document.querySelector('.injectionDiv')]}
         >
-            <Modal.Body>
-                <Tabs active_index={active_index} onTabItemClick={handleTabItemClick} top header_fit_content>
+            <SafeModal.Body>
+                <SafeTabs active_index={active_index} onTabItemClick={handleTabItemClick} top header_fit_content>
                     <div label={localize('Recent')}>
-                        <Recent />
+                        <SafeRecent />
                     </div>
                     <div label={localize('Local')}>
-                        <Local />
+                        <SafeLocal />
                     </div>
                     {is_google_drive_configured && (
                         <div label='Google Drive'>
-                            <GoogleDrive />
+                            <SafeGoogleDrive />
                         </div>
                     )}
-                </Tabs>
+                </SafeTabs>
             </Modal.Body>
             {has_recent_strategies && (
-                <Modal.Footer has_separator>
-                    <RecentFooter />
+                <SafeModal.Footer has_separator>
+                    <SafeRecentFooter />
                 </Modal.Footer>
             )}
             {is_file_loaded && (
-                <Modal.Footer has_separator>
-                    <LocalFooter />
+                <SafeModal.Footer has_separator>
+                    <SafeLocalFooter />
                 </Modal.Footer>
             )}
-        </Modal>
+        </SafeModal>
     );
 });
 
