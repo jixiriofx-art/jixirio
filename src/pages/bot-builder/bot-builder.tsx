@@ -163,6 +163,25 @@ const BotBuilder = observer(() => {
                             document.body.appendChild(panel);
                         }
                         panel.textContent = details.join('\n');
+                        panel.style.paddingTop = '44px';
+
+                        // Add a separate close control so the diagnostic can be dismissed
+                        // without changing or destroying the Blockly workspace.
+                        document.getElementById('jixirio-blockly-diagnostic-close')?.remove();
+                        const closeButton = document.createElement('button');
+                        closeButton.id = 'jixirio-blockly-diagnostic-close';
+                        closeButton.type = 'button';
+                        closeButton.textContent = 'Close diagnostics ✕';
+                        closeButton.setAttribute('aria-label', 'Close Blockly diagnostics');
+                        closeButton.style.cssText =
+                            'position:fixed;top:108px;right:18px;z-index:1000001;padding:8px 12px;' +
+                            'border:1px solid #20c9c3;border-radius:7px;background:#12343a;color:#d9fffd;' +
+                            'font:600 12px/1.2 sans-serif;cursor:pointer;';
+                        closeButton.addEventListener('click', () => {
+                            panel.style.display = 'none';
+                            closeButton.remove();
+                        });
+                        document.body.appendChild(closeButton);
                     });
                 });
             })
