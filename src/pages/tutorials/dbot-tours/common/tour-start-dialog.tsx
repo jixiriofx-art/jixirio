@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import { observer } from 'mobx-react-lite';
 import Dialog from '@/components/shared_ui/dialog';
 import Text from '@/components/shared_ui/text';
@@ -15,6 +16,11 @@ import {
 } from '../tour-content';
 import { setTourSettings, tour_list } from '../utils';
 import './tour-start-dialog.scss';
+
+const SafeDialog = safeReactComponent('TourStartDialog.Dialog', Dialog);
+const SafeText = safeReactComponent('TourStartDialog.Text', Text);
+const SafeLocalize = safeReactComponent('TourStartDialog.Localize', Localize);
+
 
 const TourStartDialog = observer(() => {
     const { dashboard } = useStore();
@@ -47,7 +53,7 @@ const TourStartDialog = observer(() => {
             <>
                 {onboard_tour ? (
                     <div>
-                        <Localize
+                        <SafeLocalize
                             key={0}
                             i18n_default_text={`Let’s take a quick tour to discover how Deriv Bot works. Press <0>Start</0> to begin.`}
                             components={[<strong key={0} />]}
@@ -60,7 +66,7 @@ const TourStartDialog = observer(() => {
                             <div className='dc-dialog__content__description__text'>{tour_dialog_action}</div>
                         )}
                         <div className='dc-dialog__content__description__text'>
-                            <Localize
+                            <SafeLocalize
                                 key={0}
                                 i18n_default_text={'Note: You can find this tutorial in the <0>Tutorials</0> tab.'}
                                 components={[<strong key={0} />]}
@@ -84,7 +90,7 @@ const TourStartDialog = observer(() => {
     const tour_headers = active_tab === 0 ? onboarding_tour_header : getBotBuilderTourHeader(!isDesktop);
     return (
         <div>
-            <Dialog
+            <SafeDialog
                 is_visible={is_tour_open}
                 cancel_button_text={localize('Skip')}
                 onCancel={() => toggleTour()}
@@ -96,16 +102,16 @@ const TourStartDialog = observer(() => {
                 portal_element_id='modal_root'
             >
                 <div className='dc-dialog__content__header'>
-                    <Text weight='bold' color='prominent' size={header_text_size}>
+                    <SafeText weight='bold' color='prominent' size={header_text_size}>
                         {tour_headers}
-                    </Text>
+                    </SafeText>
                 </div>
                 <div className='dc-dialog__content__description'>
-                    <Text size={content_text_size} color='prominent'>
+                    <SafeText size={content_text_size} color='prominent'>
                         {getTourContent()}
-                    </Text>
+                    </SafeText>
                 </div>
-            </Dialog>
+            </SafeDialog>
         </div>
     );
 });
