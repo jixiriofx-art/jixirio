@@ -39,7 +39,7 @@ const bots: Bot[] = [
 
 const waitForBlocklyWorkspace = async (
     blocklyStore: { is_loading: boolean },
-    timeout = 20000
+    timeout = 30000
 ) => {
     const started = Date.now();
 
@@ -51,12 +51,17 @@ const waitForBlocklyWorkspace = async (
 
         if (
             workspace &&
+            typeof workspace.getVariableMap === 'function' &&
             typeof workspace.getTopBlocks === 'function' &&
             builderIsVisible &&
             !blocklyStore.is_loading
         ) {
-            await new Promise(resolve => setTimeout(resolve, 150));
-            window.Blockly.svgResize(workspace);
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            if (typeof window.Blockly?.svgResize === 'function') {
+                window.Blockly.svgResize(workspace);
+            }
+
             return workspace;
         }
 
