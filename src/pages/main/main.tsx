@@ -47,6 +47,16 @@ import RunStrategy from '../dashboard/run-strategy';
 import BestBots from './best-bots';
 import './main.scss';
 
+import { auditComponents } from '@/utils/audit-components';
+
+auditComponents('main', {
+    Tabs, Dialog, DesktopWrapper, MobileWrapper, TradeTypeConfirmationModal,
+    TradingViewModal, RunPanel, ChartModal, Danalysis, Dashboard, ManualTrading,
+    RunStrategy, BestBots, Localize, ChunkLoader,
+    LabelPairedChartLineCaptionRegularIcon, LabelPairedObjectsColumnCaptionRegularIcon,
+    LabelPairedPuzzlePieceTwoCaptionBoldIcon, LegacyGuide1pxIcon,
+});
+
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
 
