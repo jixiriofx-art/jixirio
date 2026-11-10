@@ -20,7 +20,8 @@ const smartchartsDist = path.join(
 );
 
 export default defineConfig({
-  mode: isDiagnosticBuild ? 'development' : 'production',
+  // Keep the app runtime in production mode; only disable minification for diagnostics.
+  mode: 'production',
   plugins: [
     pluginSass({
       sassLoaderOptions: { sourceMap: true },
@@ -107,6 +108,10 @@ export default defineConfig({
   dev: { hmr: true },
   tools: {
     rspack(config, { appendPlugins, appendRules }) {
+      if (isDiagnosticBuild) {
+        config.optimization = config.optimization || {};
+        config.optimization.minimize = false;
+      }
       // @deriv-com/quill-ui@1.x vendors a React 18 jsx-runtime that reads
       // React.__SECRET_INTERNALS_…ReactCurrentOwner (removed in React 19). Remap
       // it to React's own jsx-runtime so ThemeProvider / Chip / Link etc. work.
