@@ -1,5 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import React from 'react';
+import { safeReactComponent } from '@/utils/safe-react-component';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import Text from '@/components/shared_ui/text';
@@ -12,6 +13,12 @@ import { useDevice } from '@deriv-com/ui';
 import ToolbarButton from '../toolbar/toolbar-button';
 import SearchBox from './search-box';
 import { ToolboxItems } from './toolbox-items';
+
+const SafeText = safeReactComponent('Toolbox.Text', Text);
+const SafeLabelPairedChevronDownMdFillIcon = safeReactComponent('Toolbox.LabelPairedChevronDownMdFillIcon', LabelPairedChevronDownMdFillIcon);
+const SafeToolbarButton = safeReactComponent('Toolbox.ToolbarButton', ToolbarButton);
+const SafeSearchBox = safeReactComponent('Toolbox.SearchBox', SearchBox);
+
 
 const Toolbox = observer(() => {
     const { isDesktop } = useDevice();
@@ -52,7 +59,7 @@ const Toolbox = observer(() => {
     if (isDesktop) {
         return (
             <div className='db-toolbox' data-testid='dashboard__toolbox'>
-                <ToolbarButton
+                <SafeToolbarButton
                     popover_message={localize('Click here to start building your Deriv Bot.')}
                     button_id='db-toolbar__get-started-button'
                     button_classname='toolbar__btn toolbar__btn--icon toolbar__btn--start'
@@ -75,7 +82,7 @@ const Toolbox = observer(() => {
                                     'db-toolbox__title__chevron--active': is_open,
                                 })}
                             >
-                                <LabelPairedChevronDownMdFillIcon fill='var(--text-general)' />
+                                <SafeLabelPairedChevronDownMdFillIcon fill='var(--text-general)' />
                             </span>
                         </div>
                     </div>
@@ -83,7 +90,7 @@ const Toolbox = observer(() => {
                         className={classNames('db-toolbox__content-wrapper', { active: is_open })}
                         data-testid='db-toolbox__content-wrapper'
                     >
-                        <SearchBox
+                        <SafeSearchBox
                             is_search_loading={is_search_loading}
                             onSearch={toolbox.onSearch}
                             onSearchBlur={onSearchBlur}
@@ -126,7 +133,7 @@ const Toolbox = observer(() => {
                                                                         is_sub_category_open,
                                                                 })}
                                                             >
-                                                                <LabelPairedChevronDownMdFillIcon fill='var(--text-general)' />
+                                                                <SafeLabelPairedChevronDownMdFillIcon fill='var(--text-general)' />
                                                             </div>
                                                         )}
                                                     </div>
@@ -156,9 +163,9 @@ const Toolbox = observer(() => {
                                                                         onToolboxItemClick(subCategory);
                                                                     }}
                                                                 >
-                                                                    <Text size='xxs'>
+                                                                    <SafeText size='xxs'>
                                                                         {subCategory.getAttribute('name') as string}
-                                                                    </Text>
+                                                                    </SafeText>
                                                                 </div>
                                                             );
                                                         }
