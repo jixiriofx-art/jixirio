@@ -200,6 +200,12 @@ class DBot {
                 this.workspace.cleanUp(0, is_mobile ? 60 : 56);
                 this.workspace.clearUndo();
 
+                // Keep the dark-blue trade-definition root block readable on the dark workspace.
+                const tradeDefinitionBlock = this.workspace
+                    .getTopBlocks(false)
+                    .find(block => block.type === 'trade_definition');
+                tradeDefinitionBlock?.getSvgRoot?.()?.classList.add('jixirio-root-block');
+
                 window.dispatchEvent(new Event('resize'));
                 window.addEventListener('dragover', DBot.handleDragOver);
                 window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
