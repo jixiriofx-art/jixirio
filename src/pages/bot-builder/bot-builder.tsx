@@ -107,6 +107,10 @@ const BotBuilder = observer(() => {
                             }
                         };
                         const firstBlockStyle = firstBlockSvg ? window.getComputedStyle(firstBlockSvg) : null;
+                        const firstBlockPath = firstBlockSvg?.querySelector?.('.blocklyPath');
+                        const firstBlockText = firstBlockSvg?.querySelector?.('.blocklyText');
+                        const pathStyle = firstBlockPath ? window.getComputedStyle(firstBlockPath) : null;
+                        const textStyle = firstBlockText ? window.getComputedStyle(firstBlockText) : null;
                         const workspaceMetrics = (() => {
                             try {
                                 const metrics = workspace?.getMetrics?.();
@@ -146,6 +150,17 @@ const BotBuilder = observer(() => {
                                 ' | display=' + (firstBlockStyle?.display || 'missing') +
                                 ' | visibility=' + (firstBlockStyle?.visibility || 'missing') +
                                 ' | opacity=' + (firstBlockStyle?.opacity || 'missing'),
+                            'Block SVG children: ' + childCount(firstBlockSvg) +
+                                ' | path=' + Boolean(firstBlockPath) +
+                                ' | path fill=' + (pathStyle?.fill || 'missing') +
+                                ' | path opacity=' + (pathStyle?.opacity || 'missing') +
+                                ' | path display=' + (pathStyle?.display || 'missing'),
+                            'Block text: ' + (firstBlockText?.textContent?.trim?.().slice(0, 60) || 'missing') +
+                                ' | fill=' + (textStyle?.fill || 'missing') +
+                                ' | opacity=' + (textStyle?.opacity || 'missing'),
+                            'SVG attributes: width=' + (svg?.getAttribute('width') || 'missing') +
+                                ' height=' + (svg?.getAttribute('height') || 'missing') +
+                                ' preserveAspectRatio=' + (svg?.getAttribute('preserveAspectRatio') || 'missing'),
                             'Workspace metrics: ' + workspaceMetrics,
                             'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
                             'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
