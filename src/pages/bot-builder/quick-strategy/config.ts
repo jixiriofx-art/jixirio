@@ -276,6 +276,22 @@ const UNIT = (): TConfigItem => ({
     validation: ['number', 'required', 'ceil', NUMBER_DEFAULT_VALIDATION()],
 });
 
+const LABEL_CONSECUTIVE_LOSSES = (): TConfigItem => ({
+    type: 'label',
+    label: localize('Consecutive loss limit'),
+    description: localize('Stop the bot before the next trade after this many losses in a row. A win resets the count.'),
+});
+
+const CONSECUTIVE_LOSSES = (): TConfigItem => ({
+    type: 'number',
+    name: 'consecutive_losses',
+    validation: ['number', 'required', 'ceil', {
+        type: 'min',
+        value: 1,
+        getMessage: (min: string | number) => localize('Must be at least {{ min }}', { min }),
+    }],
+});
+
 const CHECKBOX_MAX_STAKE = (): TConfigItem => ({
     type: 'checkbox',
     name: 'boolean_max_stake',
@@ -342,6 +358,8 @@ export const STRATEGIES = (): TStrategies => ({
                 SIZE(),
                 CHECKBOX_MAX_STAKE(),
                 MAX_STAKE(),
+                LABEL_CONSECUTIVE_LOSSES(),
+                CONSECUTIVE_LOSSES(),
             ],
         ],
     },
