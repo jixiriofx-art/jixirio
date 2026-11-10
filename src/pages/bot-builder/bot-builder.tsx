@@ -82,11 +82,29 @@ const BotBuilder = observer(() => {
                         const injection = scratch?.querySelector('.injectionDiv');
                         const svg = injection?.querySelector('svg');
                         const mainBackground = svg?.querySelector('.blocklyMainBackground');
+                        const blockCanvas = svg?.querySelector('.blocklyBlockCanvas');
+                        const bubbleCanvas = svg?.querySelector('.blocklyBubbleCanvas');
+                        const firstTopBlock = topBlocks[0];
+                        const firstBlockSvg = firstTopBlock?.getSvgRoot?.();
                         const rect = element => {
                             if (!element) return 'missing';
                             const box = element.getBoundingClientRect();
-                            return Math.round(box.width) + 'x' + Math.round(box.height);
+                            return Math.round(box.width) + 'x' + Math.round(box.height) +
+                                ' @ ' + Math.round(box.left) + ',' + Math.round(box.top);
                         };
+                        const transform = element => element?.getAttribute?.('transform') || 'none';
+                        const workspaceMetrics = (() => {
+                            try {
+                                const metrics = workspace?.getMetrics?.();
+                                return metrics
+                                    ? 'view=' + metrics.viewWidth + 'x' + metrics.viewHeight +
+                                        ' content=' + metrics.contentWidth + 'x' + metrics.contentHeight +
+                                        ' origin=' + metrics.contentLeft + ',' + metrics.contentTop
+                                    : 'unavailable';
+                            } catch (error) {
+                                return 'error: ' + String(error);
+                            }
+                        })();
                         const style = element => {
                             if (!element) return 'missing';
                             const css = window.getComputedStyle(element);
@@ -106,6 +124,11 @@ const BotBuilder = observer(() => {
                             '.injectionDiv: ' + rect(injection) + ' | ' + style(injection),
                             'Blockly SVG: ' + rect(svg) + ' | ' + style(svg),
                             'Main background: ' + rect(mainBackground),
+                            'Block canvas: ' + rect(blockCanvas) + ' | transform=' + transform(blockCanvas),
+                            'Bubble canvas: ' + rect(bubbleCanvas) + ' | transform=' + transform(bubbleCanvas),
+                            'First top block: ' + (firstTopBlock?.type || 'missing') +
+                                ' | svg=' + rect(firstBlockSvg) + ' | transform=' + transform(firstBlockSvg),
+                            'Workspace metrics: ' + workspaceMetrics,
                             'Blockly scale: ' + (workspace?.scale ?? 'unavailable'),
                             'SVG viewBox: ' + (svg?.getAttribute('viewBox') || 'missing'),
                             'Import audit: ' + ((window.__JIXIRIO_IMPORT_AUDIT__ || []).join(' | ') || 'no undefined imports recorded'),
