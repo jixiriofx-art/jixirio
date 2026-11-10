@@ -22,7 +22,6 @@ import Audio from '../components/audio';
 import JixirioLanding from '../components/jixirio-landing/jixirio-landing';
 import BlocklyLoading from '../components/blockly-loading';
 import BotStopped from '../components/bot-stopped';
-import BotBuilder from '../pages/bot-builder';
 import Main from '../pages/main';
 import './app.scss';
 import 'react-toastify/dist/ReactToastify.css';
@@ -301,7 +300,6 @@ const AppContent = observer(() => {
                         >
                             <Audio />
                             <Main />
-                            <BotBuilder />
                             <BotStopped />
                             <TransactionDetailsModal />
 
