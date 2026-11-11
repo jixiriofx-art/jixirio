@@ -767,3 +767,21 @@
         margin-bottom: 0.8rem;
     }
 }
+
+
+
+/* Deep-purple quick strategy controls */
+.qs__head, .qs__head__title { background: #18121f !important; }
+.qs__body__content__head__tabs { background: #1e1728 !important; }
+.qs__body__content__head__tabs__tab.active { background: #5c2bb8 !important; color: #fff !important; }
+.qs__body__content__head__tabs__tab.active * { color: #fff !important; }
+.qs__body__content__form__group { background: #181818 !important; }
+.qs__body__content__footer button:last-child,
+.qs__body__content__footer button[type='submit'] {
+    background: #5c2bb8 !important; color: #fff !important; border-color: #5c2bb8 !important;
+    border-radius: .8rem !important; font-weight: 700 !important;
+}
+.qs .dc-input__container, .qs .dc-input__field, .qs .dc-input__field input {
+    background: #1e293b !important; color: #fff !important;
+}
+
