@@ -2,7 +2,7 @@ import { toast, ToastPosition, TypeOptions } from 'react-toastify';
 import { isDbotRTL } from '@/external/bot-skeleton/utils/workspace';
 import { localize } from '@deriv-com/translations';
 
-const getToastPosition = () => {
+const getToastPosition = (): ToastPosition => {
     const is_RTL = isDbotRTL();
     if (is_RTL) return 'bottom-right';
     return 'bottom-left';
@@ -48,8 +48,8 @@ export const notification_message = () => ({
     xml_import_error: localize('Unsupported file format. Please import a valid XML file.'),
 });
 
-export const notification_style = {
-    type: 'default',
+export const notification_style: TNotificationStyle = {
+    type: 'default' as TypeOptions,
     position: getToastPosition(),
     autoClose: 6000,
     hideProgressBar: true,
