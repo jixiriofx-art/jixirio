@@ -85,7 +85,12 @@ const waitForBlocklyWorkspace = async (
             await new Promise(resolve => setTimeout(resolve, 200));
 
             if (typeof window.Blockly?.svgResize === 'function') {
-                window.Blockly.svgResize(workspace);
+                // Match Exwager's compact mobile block scale while preserving the
+            // actual Blockly workspace and all connected strategy logic.
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                workspace.setScale(0.78);
+            }
+            window.Blockly.svgResize(workspace);
             }
 
             return workspace;
