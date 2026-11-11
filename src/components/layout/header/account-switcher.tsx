@@ -216,7 +216,7 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                             </Text>
                             <Text size='xs' weight='bold' className='acc-dropdown__balance'>
                                 {account.currency ? (
-                                    `${account.balance} ${getCurrencyDisplayCode(account.currency)}`
+                                    account.balance
                                 ) : (
                                     <Localize i18n_default_text='No currency assigned' />
                                 )}
