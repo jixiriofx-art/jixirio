@@ -19,13 +19,15 @@ const ManualTrading = observer(() => {
     const [result, setResult] = React.useState('');
     const [is_trading, setIsTrading] = React.useState(false);
 
+    const accountInfo = api_base.account_info as { balance?: string | number; currency?: string };
+
     const is_connected = !!api_base.api && api_base.is_authorized;
 
     const balance =
-        client?.balance ?? api_base.account_info?.balance ?? 0;
+        client?.balance ?? accountInfo.balance ?? 0;
 
     const currency =
-        client?.currency ?? api_base.account_info?.currency ?? 'USD';
+        client?.currency ?? accountInfo.currency ?? 'USD';
 
     const is_digit_contract =
         contract_type === CONTRACT_TYPES.MATCH_DIFF.MATCH ||
