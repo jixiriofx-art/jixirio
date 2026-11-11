@@ -519,3 +519,22 @@
         white-space: nowrap;
     }
 }
+
+
+/* Compact mobile execution dock, matching the reference's short bottom bar. */
+@include mobile-or-tablet-screen {
+    .controls__section {
+        min-height: 6.4rem;
+        padding: 0.5rem 6.3% calc(0.5rem + env(safe-area-inset-bottom, 0));
+        border-top-width: 1px;
+    }
+
+    .controls__buttons {
+        height: 5.2rem;
+        min-height: 5.2rem;
+    }
+
+    .controls__animation.animation__wrapper {
+        height: 5.2rem;
+    }
+}
