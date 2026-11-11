@@ -29,7 +29,7 @@ MissingComponent.Item = MissingComponent;
  */
 export const safeReactComponent = (name: string, Component: unknown): React.ElementType => {
     if (Component !== undefined && Component !== null) {
-        return Component as React.ElementType;
+        return Component as unknown as React.ElementType;
     }
 
     recordMissingComponent(name);
