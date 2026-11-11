@@ -15,7 +15,9 @@ export interface BlocklyBlock {
 }
 
 export interface BlocklyWorkspace {
-    getAllBlocks: () => BlocklyBlock[];
+    getAllBlocks: (ordered?: boolean) => BlocklyBlock[];
+    getTopBlocks: (ordered?: boolean) => BlocklyBlock[];
+    getVariableMap: () => unknown;
     addChangeListener: (listener: (event: BlocklyEvent) => void) => void;
     removeChangeListener: (listener: (event: BlocklyEvent) => void) => void;
     render: () => void;
@@ -97,6 +99,7 @@ declare global {
                 LIMIT: number;
             };
             WorkspaceSvg?: any;
+            svgResize: (workspace: ExtendedBlocklyWorkspace) => void;
         };
     }
 }
