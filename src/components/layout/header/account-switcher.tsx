@@ -156,6 +156,7 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                         </div>
                         <button
                             type='button'
+                            disabled={!usdKesRate || !['USD', 'KES'].includes(currency || '')}
                             className='acc-info__display-currency'
                             onClick={event => { event.stopPropagation(); toggleDisplayCurrency(); }}
                             aria-label='Toggle display currency'
