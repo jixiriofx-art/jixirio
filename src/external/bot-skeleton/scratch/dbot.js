@@ -1,3 +1,4 @@
+
 import { save_types } from '../constants';
 import { config } from '../constants/config';
 import { api_base } from '../services/api/api-base';
@@ -12,21 +13,6 @@ import { loadBlockly } from './blockly';
 import DBotStore from './dbot-store';
 import { isAllRequiredBlocksEnabled, updateDisabledBlocks, validateErrorOnBlockDelete } from './utils';
 
-const setBotWorkspaceStage = stage => {
-    window.__JIXIRIO_BLOCKLY_STAGE__ = stage;
-    let panel = document.getElementById('jixirio-blockly-load-stage');
-    if (!panel) {
-        panel = document.createElement('pre');
-        panel.id = 'jixirio-blockly-load-stage';
-        panel.style.cssText =
-            'position:fixed;top:100px;left:8px;right:8px;z-index:1000000;margin:0;padding:12px;' +
-            'border:1px solid #20c9c3;border-radius:8px;background:#071b20;color:#d9fffd;' +
-            'font:12px/1.5 monospace;white-space:pre-wrap;overflow-wrap:anywhere;';
-        document.body.appendChild(panel);
-    }
-    panel.textContent = '[Jixirio Blockly loader]\\nStage: ' + stage;
-};
-
 class DBot {
     constructor() {
         this.interpreter = null;
@@ -37,13 +23,9 @@ class DBot {
     }
 
     async initWorkspace(public_path, store, api_helpers_store, is_mobile, is_dark_mode) {
-        setBotWorkspaceStage('Starting DBot.initWorkspace');
         await loadBlockly(is_dark_mode);
-        setBotWorkspaceStage('Blockly modules ready; loading saved workspaces');
         const recent_files = await getSavedWorkspaces();
-        setBotWorkspaceStage('Saved workspaces loaded; creating interpreter');
         this.interpreter = Interpreter();
-        setBotWorkspaceStage('Interpreter created; preparing Blockly injection');
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         var that = this;
@@ -142,7 +124,6 @@ class DBot {
                     }
                 }
 
-                setBotWorkspaceStage('Locating #scratch_div container');
                 const el_scratch_div = document.getElementById('scratch_div');
 
                 if (!el_scratch_div) {
@@ -150,35 +131,6 @@ class DBot {
                     return;
                 }
 
-                const scratch_rect = el_scratch_div.getBoundingClientRect();
-                const theme = window.Blockly?.Themes?.zelos_renderer;
-                const renderer_registered = Boolean(window.Blockly?.registry?.hasItem?.(
-                    window.Blockly.registry.Type.RENDERER,
-                    'zelos'
-                ));
-                const scale_is_valid = Number.isFinite(workspaceScale) && workspaceScale > 0;
-                const dimensions_are_valid = scratch_rect.width > 0 && scratch_rect.height > 0;
-                setBotWorkspaceStage(
-                    'Pre-injection checks\\n' +
-                    'scratch_div: ' + Math.round(scratch_rect.width) + 'x' + Math.round(scratch_rect.height) + '\\n' +
-                    'client: ' + el_scratch_div.clientWidth + 'x' + el_scratch_div.clientHeight + '\\n' +
-                    'workspaceScale: ' + workspaceScale + ' (valid: ' + scale_is_valid + ')\\n' +
-                    'theme zelos_renderer: ' + Boolean(theme) + '\\n' +
-                    'zelos renderer registered: ' + renderer_registered + '\\n' +
-                    'Blockly.inject: ' + typeof window.Blockly?.inject
-                );
-                if (!dimensions_are_valid) {
-                    throw new Error(
-                        '[Jixirio] Blockly container has invalid dimensions: ' +
-                        Math.round(scratch_rect.width) + 'x' + Math.round(scratch_rect.height)
-                    );
-                }
-                if (!scale_is_valid) {
-                    throw new Error('[Jixirio] Invalid Blockly workspace scale: ' + workspaceScale);
-                }
-                if (!theme) {
-                    throw new Error('[Jixirio] Blockly zelos_renderer theme is missing.');
-                }
                 this.workspace = window.Blockly.inject(el_scratch_div, {
                     media: `${window.__webpack_public_path__}assets/media/`,
                     renderer: 'zelos',
@@ -188,7 +140,6 @@ class DBot {
                     theme: window.Blockly.Themes.zelos_renderer,
                 });
 
-                setBotWorkspaceStage('Blockly.inject returned; validating workspace');
                 if (!this.workspace || typeof this.workspace.getVariableMap !== 'function') {
                     throw new Error('[Jixirio] Blockly failed to create a valid workspace.');
                 }
@@ -209,7 +160,6 @@ class DBot {
                     }
                 });
 
-                setBotWorkspaceStage('Workspace created; registering listeners and defaults');
                 window.Blockly.derivWorkspace = this.workspace;
 
                 const varDB = new window.Blockly.Names('window');
@@ -238,7 +188,6 @@ class DBot {
                     window.Blockly.getMainWorkspace().current_strategy_id = latest_file.id;
                 }
 
-                setBotWorkspaceStage('Workspace ready; parsing and loading strategy XML');
                 const event_group = `dbot-load${Date.now()}`;
                 window.Blockly.Events.setGroup(event_group);
                 window.Blockly.Xml.domToWorkspace(
@@ -247,42 +196,22 @@ class DBot {
                 );
                 const { save_modal } = DBotStore.instance;
 
-                setBotWorkspaceStage('Strategy XML loaded; finalizing workspace layout');
                 save_modal.updateBotName(file_name);
                 this.workspace.cleanUp(0, is_mobile ? 60 : 56);
                 this.workspace.clearUndo();
 
-                // The trade-definition root block uses a dark blue fill. Mark only
-                // that block so its labels can use a contrasting light text colour.
+                // Keep the dark-blue trade-definition root block readable on the dark workspace.
                 const tradeDefinitionBlock = this.workspace
                     .getTopBlocks(false)
                     .find(block => block.type === 'trade_definition');
                 tradeDefinitionBlock?.getSvgRoot?.()?.classList.add('jixirio-root-block');
 
-                // Force Blockly to measure the now-populated, visible container and
-                // bring the loaded blocks into the viewport. This is deliberately
-                // done after XML import/cleanup, not before the workspace has content.
-                try {
-                    // Keep the freshly cleaned-up strategy anchored at the workspace origin.
-                    // scrollCenter() centers the entire content width; on a narrow mobile
-                    // viewport this can move the first/top-level blocks completely off-screen.
-                    window.Blockly.svgResize(this.workspace);
-                    window.Blockly.svgResize(this.workspace);
-                } catch (layoutError) {
-                    console.error('[Jixirio] Initial Blockly layout adjustment failed:', layoutError);
-                }
-
                 window.dispatchEvent(new Event('resize'));
                 window.addEventListener('dragover', DBot.handleDragOver);
                 window.addEventListener('drop', e => DBot.handleDropOver(e, handleFileChange));
                 el_scratch_div.parentNode.style.overflow = 'hidden';
-                setBotWorkspaceStage('Workspace initialization completed successfully');
                 resolve();
             } catch (error) {
-                setBotWorkspaceStage(
-                    'FAILED during workspace initialization\\n' +
-                    (error instanceof Error ? error.stack || error.message : String(error))
-                );
                 reject(error);
             }
         });
@@ -323,7 +252,30 @@ class DBot {
     }
 
     shouldRunBot() {
-        return this.before_run_funcs.every(func => !!func());
+        const activeWorkspace = window.Blockly?.derivWorkspace;
+
+        if (!activeWorkspace || typeof activeWorkspace.getVariableMap !== 'function') {
+            globalObserver.emit(
+                'ui.log.error',
+                '[Jixirio] Bot Builder workspace is not ready. Load a bot first.'
+            );
+            return false;
+        }
+
+        this.workspace = activeWorkspace;
+
+        if (!this.before_run_funcs.length) {
+            return false;
+        }
+
+        return this.before_run_funcs.every(func => {
+            try {
+                return !!func();
+            } catch (error) {
+                globalObserver.emit('Error', error);
+                return false;
+            }
+        });
     }
 
     async initializeInterpreter() {
@@ -358,7 +310,12 @@ class DBot {
     }
 
     generateCode(limitations = {}) {
-        const workspace = this.workspace;
+        const activeWorkspace = window.Blockly?.derivWorkspace;
+        const workspace =
+            activeWorkspace && typeof activeWorkspace.getVariableMap === 'function'
+                ? activeWorkspace
+                : this.workspace;
+
         const generator = window.Blockly?.JavaScript?.javascriptGenerator;
 
         if (
@@ -367,8 +324,12 @@ class DBot {
             !generator ||
             typeof generator.workspaceToCode !== 'function'
         ) {
-            throw new Error('[Jixirio] Bot Builder workspace is not ready. Please load a bot before running.');
+            throw new Error(
+                '[Jixirio] Bot Builder workspace is not ready. Please load a bot before running.'
+            );
         }
+
+        this.workspace = workspace;
 
         return `
             var BinaryBotPrivateInit;
