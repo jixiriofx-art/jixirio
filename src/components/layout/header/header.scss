@@ -293,3 +293,15 @@
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
 }
+
+
+
+/* Purple header accents and solid account action buttons */
+.app-header { background: #18121f !important; border-bottom: 1px solid #4a148c !important; }
+.app-header .auth-actions > button,
+.app-header .auth-actions .dc-btn--primary,
+.app-header .auth-actions button[variant='primary'] {
+    background: #5c2bb8 !important; color: #fff !important; border-color: #5c2bb8 !important;
+}
+.app-header .auth-actions > button:hover { background: #4a148c !important; }
+
