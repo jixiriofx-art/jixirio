@@ -56,4 +56,5 @@ export const notification_style: TNotificationStyle = {
     closeOnClick: false,
     pauseOnHover: true,
     pauseOnFocusLoss: false,
+    closeButton: false,
 };
