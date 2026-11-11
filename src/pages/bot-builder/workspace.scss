@@ -286,3 +286,63 @@
 .blocklyWidgetDiv input, .blocklyWidgetDiv textarea { background: #1e293b !important; color: #fff !important; }
 .blocklyText, .blocklyEditableText text, .blocklyNonEditableText text { fill: #fff !important; }
 
+
+
+/* Clone the slim white vertical Blockly toolbar shown in the mobile reference. */
+@include mobile-or-tablet-screen {
+    #scratch_div .toolbar__wrapper {
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 4.4rem !important;
+        padding: 0.55rem 0 0.8rem !important;
+        box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #ffffff !important;
+        border-right: 1px solid #e2e5e9 !important;
+        box-shadow: none !important;
+    }
+
+    #scratch_div .toolbar__group-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        width: 100%;
+        padding: 0;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 4.1rem !important;
+        height: 4.15rem !important;
+        margin: 0 !important;
+        color: #42474d !important;
+        fill: #42474d !important;
+        opacity: 1 !important;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon svg,
+    #scratch_div .toolbar__group-btn .toolbar__icon svg * {
+        color: #42474d !important;
+        fill: currentColor !important;
+        stroke: currentColor !important;
+        opacity: 1 !important;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon--disabled {
+        opacity: 0.45 !important;
+    }
+
+    #scratch_div .toolbar__group-btn .vertical-divider {
+        display: block;
+        width: 2.4rem;
+        height: 1px;
+        min-height: 1px;
+        margin: 0.5rem 0;
+        background: #d9dde2;
+    }
+}
