@@ -180,7 +180,7 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
     </div>
 );
 
-const MobileDrawerFooter = () => {
+const MobileDrawerFooter = ({ onOpenTransactions }: { onOpenTransactions: () => void }) => {
     const [executionSpeed, setExecutionSpeed] = React.useState<'FAST' | 'SLOW'>(() => {
         try {
             return window.localStorage.getItem('jixirio_execution_speed') === 'SLOW' ? 'SLOW' : 'FAST';
@@ -210,8 +210,12 @@ const MobileDrawerFooter = () => {
                     aria-label={`Execution speed: ${executionSpeed}. Switch to ${executionSpeed === 'FAST' ? 'SLOW' : 'FAST'}`}
                     aria-pressed={executionSpeed === 'SLOW'}
                 >
-                    <span>EXECUTION</span>
-                    <strong>{executionSpeed}</strong>
+                    <span>NORMAL SPEED</span>
+                    <i className={classNames('jixirio-speed-switch', { 'jixirio-speed-switch--slow': executionSpeed === 'SLOW' })} aria-hidden='true' />
+                </button>
+                <button type='button' className='jixirio-transactions-toggle' onClick={onOpenTransactions} aria-label='Open transactions'>
+                    <span className='jixirio-transactions-chevron' aria-hidden='true'>⌃</span>
+                    <strong>Open transaction</strong>
                 </button>
             </div>
         </div>
@@ -361,7 +365,7 @@ const RunPanel = observer(() => {
                 >
                     {content}
                 </Drawer>
-                {!isDesktop && <MobileDrawerFooter />}
+                {!isDesktop && <MobileDrawerFooter onOpenTransactions={() => toggleDrawer(true)} />}
             </div>
 
             <StatisticsInfoModal
