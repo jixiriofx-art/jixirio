@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
-import { addComma, getCurrencyDisplayCode, getDecimalPlaces } from '@/components/shared';
+import { getCurrencyDisplayCode } from '@/components/shared';
 import Text from '@/components/shared_ui/text';
 import { api_base } from '@/external/bot-skeleton/services/api/api-base';
 import { useApiBase } from '@/hooks/useApiBase';
@@ -40,8 +40,14 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     const formatDisplayBalance = useCallback((amount: number | string, accountCurrency?: string) => {
         const numericAmount = Number(amount);
         if (!Number.isFinite(numericAmount)) return String(amount);
-        if (accountCurrency === 'USD' && displayCurrency === 'KES' && usdKesRate) return (numericAmount * usdKesRate).toLocaleString('en-KE', { maximumFractionDigits: 2 }) + ' KSh';
-        if (accountCurrency === 'KES' && displayCurrency === 'USD' && usdKesRate) return '
+        if (accountCurrency === 'USD' && displayCurrency === 'KES' && usdKesRate) {
+            return (numericAmount * usdKesRate).toLocaleString('en-KE', { maximumFractionDigits: 2 }) + ' KSh';
+        }
+        if (accountCurrency === 'KES' && displayCurrency === 'USD' && usdKesRate) {
+            return '$' + (numericAmount / usdKesRate).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        return numericAmount.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' ' + getCurrencyDisplayCode(accountCurrency || '');
+    }, [displayCurrency, usdKesRate]);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const { accountList, activeLoginid } = useApiBase();
     const { client, run_panel } = useStore() ?? {};
