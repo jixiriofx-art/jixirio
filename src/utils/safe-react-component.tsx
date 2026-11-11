@@ -14,7 +14,7 @@ const recordMissingComponent = (name: string) => {
 
 // Compound UI components (Modal.Body, Modal.Footer, RadioGroup.Item) also
 // receive harmless fallbacks if their parent import is missing.
-const MissingComponent = (() => null) as React.FC & {
+const MissingComponent = (() => null) as unknown as React.FC & {
     Body: React.FC;
     Footer: React.FC;
     Item: React.FC;
