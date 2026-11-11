@@ -181,10 +181,38 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
 );
 
 const MobileDrawerFooter = () => {
+    const [executionSpeed, setExecutionSpeed] = React.useState<'FAST' | 'SLOW'>(() => {
+        try {
+            return window.localStorage.getItem('jixirio_execution_speed') === 'SLOW' ? 'SLOW' : 'FAST';
+        } catch {
+            return 'FAST';
+        }
+    });
+
+    const toggleExecutionSpeed = () => {
+        const nextSpeed = executionSpeed === 'FAST' ? 'SLOW' : 'FAST';
+        setExecutionSpeed(nextSpeed);
+        try {
+            window.localStorage.setItem('jixirio_execution_speed', nextSpeed);
+        } catch (error) {
+            console.warn('[Jixirio] Could not save execution speed preference:', error);
+        }
+    };
+
     return (
         <div className='controls__section'>
             <div className='controls__buttons'>
                 <TradeAnimation className='controls__animation' should_show_overlay />
+                <button
+                    type='button'
+                    className='jixirio-speed-toggle'
+                    onClick={toggleExecutionSpeed}
+                    aria-label={`Execution speed: ${executionSpeed}. Switch to ${executionSpeed === 'FAST' ? 'SLOW' : 'FAST'}`}
+                    aria-pressed={executionSpeed === 'SLOW'}
+                >
+                    <span>EXECUTION</span>
+                    <strong>{executionSpeed}</strong>
+                </button>
             </div>
         </div>
     );
