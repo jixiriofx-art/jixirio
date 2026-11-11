@@ -234,3 +234,35 @@
         box-shadow: none;
     }
 }
+
+
+/* Exwager-aligned mobile workspace geometry: toolbar begins beside the
+   strategy workspace instead of seven rem below it. */
+@include mobile-or-tablet-screen {
+    #scratch_div {
+        height: calc(100dvh - 15rem) !important;
+        min-height: 300px;
+        padding-bottom: 0;
+    }
+
+    .injectionDiv {
+        min-height: 300px;
+    }
+
+    #scratch_div .toolbar__wrapper {
+        top: 0;
+        bottom: 0;
+        width: 4.1rem;
+        padding: 0.35rem 0 0.6rem;
+    }
+
+    #scratch_div .toolbar__group-btn {
+        gap: 0.15rem;
+        padding: 0.1rem 0;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon {
+        width: 3.2rem;
+        height: 3.2rem;
+    }
+}
