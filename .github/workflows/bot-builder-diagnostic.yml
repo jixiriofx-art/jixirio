@@ -3,7 +3,7 @@ name: Bot Builder diagnostic build
 on:
   push:
     branches:
-      - fix/blockly-workspace-lifecycle
+      - fix/bot-builder-clean-main
   workflow_dispatch:
 
 permissions:
