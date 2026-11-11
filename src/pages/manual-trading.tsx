@@ -5,10 +5,11 @@ import { api_base } from '@/external/bot-skeleton/services/api/api-base';
 import { CONTRACT_TYPES } from '@/components/shared';
 
 const ManualTrading = observer(() => {
-    const { client } = useStore();
+    const { client: rawClient } = useStore();
+    const client = rawClient as { balance?: string | number; currency?: string } | undefined;
 
     const [symbol, setSymbol] = React.useState('R_100');
-    const [contract_type, setContractType] = React.useState(
+    const [contract_type, setContractType] = React.useState<string>(
         CONTRACT_TYPES.CALL
     );
     const [barrier, setBarrier] = React.useState('5');
