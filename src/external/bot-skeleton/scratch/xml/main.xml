@@ -1,31 +1,32 @@
-﻿<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
   <variables>
     <variable type="" id="jixirio_stake">Stake</variable>
-    <variable type="" id="jixirio_martingale">Martingale</variable>
+    <variable type="" id="jixirio_martangle">Martangle</variable>
     <variable type="" id="jixirio_take_profit">Take Profit</variable>
     <variable type="" id="jixirio_consecutive_losses">Consecutive Losses</variable>
   </variables>
-  <block type="trade_definition" x="0" y="0">
+
+  <block type="trade_definition" id="jixirio_trade_definition" x="0" y="0">
     <statement name="TRADE_OPTIONS">
-      <block type="trade_definition_market" deletable="false" movable="false">
-        <field name="MARKET_LIST"></field>
-        <field name="SUBMARKET_LIST"></field>
-        <field name="SYMBOL_LIST"></field>
+      <block type="trade_definition_market" id="jixirio_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">volidx</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ25V</field>
         <next>
-          <block type="trade_definition_tradetype" deletable="false" movable="false">
-            <field name="TRADETYPECAT_LIST"></field>
-            <field name="TRADETYPE_LIST"></field>
+          <block type="trade_definition_tradetype" id="jixirio_trade_type" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">evenodd</field>
             <next>
-              <block type="trade_definition_contracttype" deletable="false" movable="false">
-                <field name="TYPE_LIST"></field>
+              <block type="trade_definition_contracttype" id="jixirio_contract_type" deletable="false" movable="false">
+                <field name="TYPE_LIST">DIGITEVEN</field>
                 <next>
-                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                  <block type="trade_definition_candleinterval" id="jixirio_candle_interval" deletable="false" movable="false">
                     <field name="CANDLEINTERVAL_LIST">60</field>
                     <next>
-                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                      <block type="trade_definition_restartbuysell" id="jixirio_restart_buy_sell" deletable="false" movable="false">
                         <field name="TIME_MACHINE_ENABLED">FALSE</field>
                         <next>
-                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                          <block type="trade_definition_restartonerror" id="jixirio_restart_error" deletable="false" movable="false">
                             <field name="RESTARTONERROR">TRUE</field>
                           </block>
                         </next>
@@ -39,38 +40,28 @@
         </next>
       </block>
     </statement>
+
     <statement name="INITIALIZATION">
       <block type="variables_set" id="jixirio_set_stake">
         <field name="VAR" id="jixirio_stake" variabletype="">Stake</field>
-        <value name="VALUE">
-          <shadow type="math_number_positive">
-            <field name="NUM">10</field>
-          </shadow>
-        </value>
+        <value name="VALUE"><shadow type="math_number_positive"><field name="NUM">10</field></shadow></value>
         <next>
-          <block type="variables_set" id="jixirio_set_martingale">
-            <field name="VAR" id="jixirio_martingale" variabletype="">Martingale</field>
-            <value name="VALUE">
-              <shadow type="math_number_positive">
-                <field name="NUM">2</field>
-              </shadow>
-            </value>
+          <block type="variables_set" id="jixirio_set_martangle">
+            <field name="VAR" id="jixirio_martangle" variabletype="">Martangle</field>
+            <value name="VALUE"><shadow type="math_number_positive"><field name="NUM">2</field></shadow></value>
             <next>
               <block type="variables_set" id="jixirio_set_take_profit">
                 <field name="VAR" id="jixirio_take_profit" variabletype="">Take Profit</field>
-                <value name="VALUE">
-                  <shadow type="math_number_positive">
-                    <field name="NUM">100</field>
-                  </shadow>
-                </value>
+                <value name="VALUE"><shadow type="math_number_positive"><field name="NUM">100</field></shadow></value>
                 <next>
                   <block type="variables_set" id="jixirio_set_consecutive_losses">
                     <field name="VAR" id="jixirio_consecutive_losses" variabletype="">Consecutive Losses</field>
-                    <value name="VALUE">
-                      <shadow type="math_number_positive">
-                        <field name="NUM">5</field>
-                      </shadow>
-                    </value>
+                    <value name="VALUE"><shadow type="math_number_positive"><field name="NUM">5</field></shadow></value>
+                    <next>
+                      <block type="procedures_callnoreturn" id="jixirio_start_info_call">
+                        <mutation name="Start Info"></mutation>
+                      </block>
+                    </next>
                   </block>
                 </next>
               </block>
@@ -79,44 +70,41 @@
         </next>
       </block>
     </statement>
+
     <statement name="SUBMARKET">
-      <block type="trade_definition_tradeoptions">
+      <block type="trade_definition_tradeoptions" id="jixirio_trade_options">
         <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
-        <field name="DURATIONTYPE_LIST"></field>
+        <field name="DURATIONTYPE_LIST">t</field>
         <field name="CURRENCY_LIST">USD</field>
-        <value name="DURATION">
-          <shadow type="math_number_positive">
-            <field name="NUM">5</field>
-          </shadow>
-        </value>
+        <value name="DURATION"><shadow type="math_number_positive"><field name="NUM">1</field></shadow></value>
         <value name="AMOUNT">
-          <shadow type="math_number_positive">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-        <field name="AMOUNT_LIMITS"></field>
-      </block>
-    </statement>
-  </block>
-  <block type="during_purchase" x="720" y="0">
-    <statement name="DURING_PURCHASE_STACK">
-      <block type="controls_if">
-        <value name="IF0">
-          <block type="check_sell"></block>
+          <block type="variables_get" id="jixirio_stake_amount">
+            <field name="VAR" id="jixirio_stake" variabletype="">Stake</field>
+          </block>
         </value>
       </block>
     </statement>
   </block>
-  <block type="after_purchase" x="720" y="248">
+
+  <block type="after_purchase" id="jixirio_restart_conditions" x="1050" y="0" collapsed="true">
     <statement name="AFTERPURCHASE_STACK">
-      <block type="trade_again"></block>
+      <block type="trade_again" id="jixirio_trade_again"></block>
     </statement>
   </block>
-  <block type="before_purchase" x="0" y="576">
+
+  <block type="before_purchase" id="jixirio_purchase_conditions" x="0" y="980">
     <statement name="BEFOREPURCHASE_STACK">
-      <block type="purchase">
-        <field name="PURCHASE_LIST"></field>
+      <block type="purchase" id="jixirio_purchase_even">
+        <field name="PURCHASE_LIST">DIGITEVEN</field>
       </block>
     </statement>
+  </block>
+
+  <block type="math_number_positive" id="jixirio_standalone_one" x="0" y="1210">
+    <field name="NUM">1</field>
+  </block>
+
+  <block type="procedures_defnoreturn" id="jixirio_start_info_definition" x="0" y="1350" collapsed="true">
+    <field name="NAME">Start Info</field>
   </block>
 </xml>
