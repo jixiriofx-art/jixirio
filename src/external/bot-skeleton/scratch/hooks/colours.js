@@ -3,7 +3,7 @@ const lightMode = () => {
     workspace.Colours.RootBlock = {
         colour: '#164e63',
         colourSecondary: '#164e63',
-        colourTertiary: '#6d7278',
+        colourTertiary: '#ffffff',
     };
 
     workspace.Colours.Base = {
