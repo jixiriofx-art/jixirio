@@ -180,12 +180,45 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
     </div>
 );
 
-const MobileDrawerFooter = () => {
+const MobileDrawerFooter = ({ toggleDrawer }: { toggleDrawer: (is_open: boolean) => void }) => {
+    const [is_fast_speed, setIsFastSpeed] = React.useState(false);
+
+    const toggleSpeed = () => {
+        const next_speed = !is_fast_speed;
+        setIsFastSpeed(next_speed);
+        // The trade-engine sleep interface reads this flag for artificial waits only.
+        window.JixirioTurboSpeed = next_speed;
+    };
+
     return (
-        <div className='controls__section'>
-            <div className='controls__buttons'>
-                <TradeAnimation className='controls__animation' should_show_overlay />
+        <div className='controls__section controls__section--dbot'>
+            <div className='dbot-controls'>
+                <div className='dbot-controls__run'>
+                    <TradeAnimation className='controls__animation' should_show_overlay />
+                </div>
+                <button
+                    type='button'
+                    className={`dbot-controls__speed ${is_fast_speed ? 'dbot-controls__speed--fast' : ''}`}
+                    onClick={toggleSpeed}
+                    aria-pressed={is_fast_speed}
+                    aria-label='Toggle execution speed'
+                >
+                    <span>{is_fast_speed ? 'TURBO / FAST SPEED' : 'NORMAL SPEED'}</span>
+                    <span className='dbot-controls__switch' aria-hidden='true'>
+                        <span />
+                    </span>
+                </button>
+                <button
+                    type='button'
+                    className='dbot-controls__transactions'
+                    onClick={() => toggleDrawer(true)}
+                    aria-label='Open transactions'
+                >
+                    <span className='dbot-controls__chevron' aria-hidden='true'>⌃</span>
+                    <strong>Open transaction</strong>
+                </button>
             </div>
+            <div className='dbot-controls__bottom-accent' />
         </div>
     );
 };
@@ -333,7 +366,7 @@ const RunPanel = observer(() => {
                 >
                     {content}
                 </Drawer>
-                {!isDesktop && <MobileDrawerFooter />}
+                {!isDesktop && <MobileDrawerFooter toggleDrawer={toggleDrawer} />}
             </div>
 
             <StatisticsInfoModal
