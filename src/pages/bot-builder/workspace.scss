@@ -136,6 +136,13 @@
         background: transparent !important;
     }
 
+    #scratch_div .toolbar__group-btn > * {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
     #scratch_div .toolbar__group-btn .toolbar__icon {
         display: flex !important;
         align-items: center !important;
@@ -166,6 +173,16 @@
         min-height: 1px !important;
         margin: 0.5rem 0 !important;
         background: #d9dde2 !important;
+    }
+
+    #scratch_div > .blocklySvg,
+    #scratch_div .injectionDiv > .blocklySvg {
+        left: 4.4rem !important;
+        width: calc(100% - 4.4rem) !important;
+    }
+
+    #scratch_div .blocklyToolboxDiv {
+        left: 4.4rem !important;
     }
 
     .blocklyFlyout { max-width: 85vw; }
