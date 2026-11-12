@@ -451,3 +451,85 @@
         }
     }
 }
+
+
+/* Compact reference-style fixed mobile execution dock. Keep the existing Deriv
+   TradeAnimation button and contract status wired to their original store actions. */
+@media (max-width: 767px) {
+    .controls__section {
+        box-sizing: border-box;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        min-height: 6.4rem;
+        padding: 0;
+        background: #f7f7f7;
+        border-top: 1px solid #d7d7d7;
+        z-index: 80;
+    }
+
+    .controls__buttons {
+        box-sizing: border-box;
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 6.4rem;
+        min-height: 6.4rem;
+        max-width: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .controls__animation {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 6.4rem;
+        min-width: 0;
+        border-radius: 0;
+    }
+
+    .controls__animation .animation__wrapper {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 6.4rem;
+        min-width: 0;
+    }
+
+    .controls__animation .animation__run-button,
+    .controls__animation .animation__stop-button {
+        flex: 0 0 25%;
+        width: 25%;
+        min-width: 0;
+        height: 6.4rem !important;
+        border-radius: 0 !important;
+        background: #35aaa4 !important;
+        color: #fff !important;
+        font-size: 1.7rem;
+        font-weight: 700;
+    }
+
+    .controls__animation .animation__container {
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 6.4rem;
+        padding: 0.5rem 0.8rem;
+        justify-content: center;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+    }
+
+    .controls__animation .animation__text {
+        color: #252525;
+        font-size: 1.2rem;
+        margin: 0 0 0.5rem;
+    }
+
+    .controls__animation .animation__progress {
+        height: 0.5rem;
+    }
+}
