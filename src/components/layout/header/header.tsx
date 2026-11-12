@@ -121,6 +121,10 @@ const AppHeader = observer(() => {
         }
     }, [setIsAuthorizing]);
 
+    const handleCashier = useCallback(() => {
+        window.open('https://app.deriv.com/cashier/deposit', '_blank');
+    }, []);
+
     const handleTransfer = useCallback(() => {
         const transferCurrency = authData?.currency;
         if (!transferCurrency) {
@@ -152,6 +156,13 @@ const AppHeader = observer(() => {
                                     <AccountSwitcher activeAccount={activeAccount} />
                                 </div>
                             )}
+                            <Button
+                                primary
+                                onClick={handleCashier}
+                                disabled={client?.is_logging_out}
+                            >
+                                <Localize i18n_default_text='Cashier' />
+                            </Button>
                             <Button
                                 primary
                                 disabled={client?.is_logging_out || !authData?.currency}
@@ -224,6 +235,7 @@ const AppHeader = observer(() => {
             handleLogin,
             handleSignup,
             handleTransfer,
+            handleCashier,
         ]
     );
 

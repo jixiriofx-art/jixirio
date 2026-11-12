@@ -180,11 +180,43 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
     </div>
 );
 
-const MobileDrawerFooter = () => {
+const MobileDrawerFooter = ({ onOpenTransactions }: { onOpenTransactions: () => void }) => {
+    const [executionSpeed, setExecutionSpeed] = React.useState<'FAST' | 'SLOW'>(() => {
+        try {
+            return window.localStorage.getItem('jixirio_execution_speed') === 'SLOW' ? 'SLOW' : 'FAST';
+        } catch {
+            return 'FAST';
+        }
+    });
+
+    const toggleExecutionSpeed = () => {
+        const nextSpeed = executionSpeed === 'FAST' ? 'SLOW' : 'FAST';
+        setExecutionSpeed(nextSpeed);
+        try {
+            window.localStorage.setItem('jixirio_execution_speed', nextSpeed);
+        } catch (error) {
+            console.warn('[Jixirio] Could not save execution speed preference:', error);
+        }
+    };
+
     return (
         <div className='controls__section'>
             <div className='controls__buttons'>
                 <TradeAnimation className='controls__animation' should_show_overlay />
+                <button
+                    type='button'
+                    className='jixirio-speed-toggle'
+                    onClick={toggleExecutionSpeed}
+                    aria-label={`Execution speed: ${executionSpeed}. Switch to ${executionSpeed === 'FAST' ? 'SLOW' : 'FAST'}`}
+                    aria-pressed={executionSpeed === 'SLOW'}
+                >
+                    <span>NORMAL SPEED</span>
+                    <i className={classNames('jixirio-speed-switch', { 'jixirio-speed-switch--slow': executionSpeed === 'SLOW' })} aria-hidden='true' />
+                </button>
+                <button type='button' className='jixirio-transactions-toggle' onClick={onOpenTransactions} aria-label='Open transactions'>
+                    <span className='jixirio-transactions-chevron' aria-hidden='true'>⌃</span>
+                    <strong>Open transaction</strong>
+                </button>
             </div>
         </div>
     );
@@ -333,7 +365,7 @@ const RunPanel = observer(() => {
                 >
                     {content}
                 </Drawer>
-                {!isDesktop && <MobileDrawerFooter />}
+                {!isDesktop && <MobileDrawerFooter onOpenTransactions={() => toggleDrawer(true)} />}
             </div>
 
             <StatisticsInfoModal

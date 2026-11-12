@@ -10,7 +10,7 @@
     visibility: hidden;
     pointer-events: none;
     overflow: hidden;
-    background: #080d1a;
+    background: #ffffff;
 }
 
 .bot-builder--active {
@@ -19,12 +19,10 @@
     top: auto;
     visibility: visible;
     pointer-events: auto;
-    background: #080d1a;
+    background: #ffffff;
 }
 
-.bot-builder--inactive {
-    display: none;
-}
+.bot-builder--inactive { display: none; }
 
 #scratch_div {
     position: relative;
@@ -32,10 +30,7 @@
     height: var(--bot-content-height, calc(100vh - 22rem));
     min-height: 420px;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 75% 20%, rgba(0, 230, 118, 0.045), transparent 30%),
-        radial-gradient(circle at 15% 80%, rgba(56, 189, 248, 0.04), transparent 28%),
-        linear-gradient(145deg, #080d1a, #04060d);
+    background: #ffffff;
 }
 
 .injectionDiv {
@@ -45,192 +40,158 @@
     min-height: 420px;
     touch-action: pan-x pan-y;
     overflow: hidden;
-    background: transparent;
+    background: #ffffff;
 }
 
-.blocklySvg {
-    background: transparent !important;
-}
+.blocklySvg,
+.blocklyWorkspace { background: #ffffff !important; }
 
-.blocklyWorkspace {
-    background: transparent;
-}
+.blocklyMainBackground { fill: #ffffff !important; }
 
-.blocklyMainBackground {
-    fill: #080d1a !important;
-}
-
-/* Preserve Blockly's native colours; only the dark root block needs light labels. */
 .jixirio-root-block .blocklyText,
-.jixirio-root-block .blocklyEditableText {
-    fill: #ffffff !important;
-}
-
-.blocklyFlyoutBackground {
-    fill: #0b1120 !important;
-    fill-opacity: 0.98;
-}
-
-.blocklyToolboxDiv {
-    background: #0a0f1d !important;
-}
-
-.blocklyScrollbarHandle {
-    fill: rgba(148, 163, 184, 0.42) !important;
-}
-
-.blocklyScrollbarBackground {
-    fill: rgba(15, 23, 42, 0.45) !important;
-}
-
-.blocklyMainWorkspaceScrollbar {
-    display: none;
-}
-
-@include mobile-or-tablet-screen {
-    #scratch_div {
-        width: 100%;
-        height: var(--bot-content-height, calc(100dvh - 22rem));
-        min-height: 380px;
-    }
-
-    .injectionDiv {
-        width: 100%;
-        height: 100% !important;
-        min-height: 380px;
-    }
-
-    .blocklyFlyout {
-        max-width: 85vw;
-    }
-
-    /* Integrated left workspace rail, aligned to the DBTraders reference. */
-    #scratch_div::before {
-        content: '';
-        position: absolute;
-        top: 7rem;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        height: 1px;
-        background: #24466f;
-        box-shadow: 0 1px 0 rgba(91, 157, 230, 0.12);
-        pointer-events: none;
-    }
-
-    #scratch_div .toolbar__wrapper {
-        position: absolute;
-        top: 7rem;
-        bottom: 0;
-        left: 0;
-        z-index: 30;
-        width: 4.1rem;
-        max-height: none;
-        overflow-x: hidden;
-        overflow-y: auto;
-        box-sizing: border-box;
-        background: #07162b;
-        border: 0;
-        border-right: 1px solid #18375b;
-        border-radius: 0;
-        padding: 0.75rem 0 1rem;
-        box-shadow: 3px 0 14px rgba(0, 0, 0, 0.22);
-        backdrop-filter: none;
-    }
-
-    #scratch_div .toolbar__group-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.25rem;
-        width: 100%;
-        height: auto;
-        padding: 0.2rem 0;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-    }
-
-    #scratch_div .toolbar__group-btn .toolbar__icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 3.2rem;
-        height: 3.2rem;
-        margin: 0;
-        color: #f4f8ff !important;
-        fill: #f4f8ff !important;
-        opacity: 1 !important;
-    }
-
-    #scratch_div .toolbar__group-btn .toolbar__icon svg,
-    #scratch_div .toolbar__group-btn .toolbar__icon svg * {
-        color: #f4f8ff !important;
-        fill: currentColor;
-        stroke: currentColor;
-        opacity: 1 !important;
-    }
-
-    #scratch_div .toolbar__group-btn .vertical-divider {
-        width: 2rem;
-        height: 1px;
-        margin: 0.45rem 0;
-        background: #294b72;
-        opacity: 1;
-    }
-}
-
-@media screen and (max-width: 420px) {
-    #scratch_div {
-        min-height: 360px;
-    }
-
-    .injectionDiv {
-        min-height: 360px;
-    }
-}
-
-
-/* Match the reference's white and near-black workspace themes. */
-#scratch_div,
-.bot-builder,
-.bot-builder--active {
-    background: var(--general-main-1);
-}
-
-.blocklyMainBackground {
-    fill: var(--general-main-1) !important;
-}
+.jixirio-root-block .blocklyEditableText { fill: #ffffff !important; }
 
 .blocklyFlyoutBackground,
 .blocklyToolboxDiv {
-    background: var(--general-section-1) !important;
-    fill: var(--general-section-1) !important;
+    background: #181818 !important;
+    fill: #181818 !important;
 }
 
+.blocklyScrollbarHandle { fill: rgba(148, 163, 184, 0.42) !important; }
+.blocklyScrollbarBackground { fill: rgba(15, 23, 42, 0.45) !important; }
+.blocklyMainWorkspaceScrollbar { display: none; }
+
+.blocklyDropDownDiv,
+.blocklyWidgetDiv.fieldTextInput {
+    background: #1e293b !important;
+    color: #fff !important;
+    border-color: #5c2bb8 !important;
+}
+
+.blocklyDropDownDiv .goog-menu,
+.blocklyDropDownDiv .goog-menuitem,
+.blocklyDropDownDiv .goog-menuitem-content,
+.blocklyDropDownDiv .blocklyMenuItem,
+.blocklyWidgetDiv input,
+.blocklyWidgetDiv textarea {
+    background: #1e293b !important;
+    color: #fff !important;
+}
+
+.blocklyDropDownDiv .goog-menuitem-highlight,
+.blocklyDropDownDiv .goog-menuitem:hover {
+    background: #4a148c !important;
+    color: #fff !important;
+}
+
+.blocklyText,
+.blocklyEditableText text,
+.blocklyNonEditableText text { fill: #fff !important; }
+
+/* Mobile: the Blockly rail is a real, fixed-width column beside the canvas. */
 @include mobile-or-tablet-screen {
     #scratch_div {
-        padding-bottom: 5.8rem;
+        height: calc(100dvh - 15rem) !important;
+        min-height: 300px;
+        padding: 0;
         box-sizing: border-box;
+        background: #ffffff !important;
+    }
+
+    .injectionDiv {
+        min-height: 300px;
+        height: 100% !important;
     }
 
     #scratch_div .toolbar__wrapper {
-        background: var(--general-section-1);
-        border-right: 1px solid var(--border-normal);
-        box-shadow: none;
+        position: absolute !important;
+        z-index: 30 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 4.4rem !important;
+        max-height: none !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 0.55rem 0 0.8rem !important;
+        background: #ffffff !important;
+        border: 0 !important;
+        border-right: 1px solid #e2e5e9 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
     }
 
-    #scratch_div .toolbar__group-btn .toolbar__icon,
+    #scratch_div .toolbar__group-btn {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.35rem !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+    }
+
+    #scratch_div .toolbar__group-btn > * {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 4.15rem !important;
+        width: 4.1rem !important;
+        height: 4.15rem !important;
+        margin: 0 !important;
+        color: #42474d !important;
+        fill: #42474d !important;
+        opacity: 1 !important;
+    }
+
     #scratch_div .toolbar__group-btn .toolbar__icon svg,
     #scratch_div .toolbar__group-btn .toolbar__icon svg * {
-        color: var(--text-general) !important;
-        fill: currentColor;
-        stroke: currentColor;
+        color: #42474d !important;
+        fill: currentColor !important;
+        stroke: currentColor !important;
+        opacity: 1 !important;
     }
 
-    #scratch_div::before {
-        background: var(--border-normal);
-        box-shadow: none;
+    #scratch_div .toolbar__group-btn .toolbar__icon--disabled { opacity: 0.45 !important; }
+
+    #scratch_div .toolbar__group-btn .vertical-divider {
+        display: block !important;
+        width: 2.4rem !important;
+        height: 1px !important;
+        min-height: 1px !important;
+        margin: 0.5rem 0 !important;
+        background: #d9dde2 !important;
     }
+
+    #scratch_div > .blocklySvg,
+    #scratch_div .injectionDiv > .blocklySvg {
+        left: 4.4rem !important;
+        width: calc(100% - 4.4rem) !important;
+    }
+
+    #scratch_div .blocklyToolboxDiv {
+        left: 4.4rem !important;
+    }
+
+    #scratch_div .blocklyMainBackground { fill: #ffffff !important; }
+    #scratch_div .blocklySvg,
+    #scratch_div .blocklyWorkspace { background: #ffffff !important; }
+
+    .blocklyFlyout { max-width: 85vw; }
+}
+
+@media screen and (max-width: 420px) {
+    #scratch_div, .injectionDiv { min-height: 280px; }
 }

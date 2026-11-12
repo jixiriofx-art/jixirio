@@ -232,3 +232,14 @@
         width: 31.2rem !important;
     }
 }
+
+
+
+/* Purple execution control; preserve existing real Run/Stop event handlers. */
+.animation__run-button, .animation__stop-button {
+    background: #5c2bb8 !important; color: #fff !important; border-color: #5c2bb8 !important;
+}
+.animation__run-button:hover, .animation__stop-button:hover { background: #4a148c !important; }
+.animation__container { background: #181818; border-color: #4a148c; }
+.animation__text { color: #fff !important; }
+

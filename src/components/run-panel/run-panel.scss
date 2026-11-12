@@ -519,3 +519,239 @@
         white-space: nowrap;
     }
 }
+
+
+/* Compact mobile execution dock, matching the reference's short bottom bar. */
+@include mobile-or-tablet-screen {
+    .controls__section {
+        min-height: 6.4rem;
+        padding: 0.5rem 6.3% calc(0.5rem + env(safe-area-inset-bottom, 0));
+        border-top-width: 1px;
+    }
+
+    .controls__buttons {
+        height: 5.2rem;
+        min-height: 5.2rem;
+    }
+
+    .controls__animation.animation__wrapper {
+        height: 5.2rem;
+    }
+}
+
+
+/* Jixirio FAST/SLOW control shares the mobile execution dock with Run/Stop. */
+@include mobile-or-tablet-screen {
+    .controls__animation.animation__wrapper {
+        flex: 1 1 70%;
+        width: 70%;
+        min-width: 0;
+    }
+
+    .jixirio-speed-toggle {
+        box-sizing: border-box;
+        display: flex;
+        flex: 0 0 30%;
+        min-width: 0;
+        height: 5.2rem;
+        padding: 0.4rem 0.6rem;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        border: 1px solid #5c2bb8;
+        border-radius: 0 0.6rem 0.6rem 0;
+        background: #5c2bb8;
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1.1;
+        -webkit-tap-highlight-color: transparent;
+
+        span {
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            opacity: 0.85;
+        }
+
+        strong {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        &:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+    }
+}
+
+
+/* Reference-matched mobile dock: Run | Normal speed | Open transaction. */
+@include mobile-or-tablet-screen {
+    .controls__section {
+        position: fixed;
+        z-index: 40;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        min-height: 7.2rem;
+        box-sizing: border-box;
+        padding: 0.45rem 0 calc(0.45rem + env(safe-area-inset-bottom, 0));
+        background: #ffffff;
+        border-top: 1px solid #d9dce2;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .controls__buttons {
+        display: grid !important;
+        grid-template-columns: 33% 34% 33%;
+        align-items: stretch;
+        width: 100%;
+        height: 6.2rem;
+        min-height: 6.2rem;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    .controls__animation.animation__wrapper {
+        display: contents !important;
+    }
+
+    .controls__animation .animation__run-button,
+    .controls__animation .animation__stop-button {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100% !important;
+        height: 6.2rem !important;
+        min-width: 0;
+        margin: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #49b5b2 !important;
+        color: #ffffff !important;
+        font-size: 1.7rem;
+        font-weight: 700;
+        justify-content: center;
+    }
+
+    .controls__animation .animation__container {
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 0.15rem);
+        width: 100%;
+        height: 1.7rem;
+        min-height: 1.7rem;
+        box-sizing: border-box;
+        padding: 0 0.8rem;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        background: rgba(18, 18, 18, 0.88);
+        color: #ffffff;
+        font-size: 1.1rem;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .controls__animation .animation__text {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .jixirio-speed-toggle {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        gap: 0.3rem;
+        width: 100%;
+        height: 6.2rem;
+        min-width: 0;
+        padding: 0.3rem;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 0;
+        background: #fffbed;
+        color: #171717;
+        font: inherit;
+        font-size: clamp(0.9rem, 3.2vw, 1.35rem);
+        font-weight: 800;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .jixirio-speed-switch {
+        position: relative;
+        display: inline-block;
+        flex: 0 0 3.7rem;
+        width: 3.7rem;
+        height: 2.35rem;
+        border: 1px solid #cfd5df;
+        border-radius: 2rem;
+        background: #e8edf5;
+    }
+
+    .jixirio-speed-switch::after {
+        content: '';
+        position: absolute;
+        top: 0.22rem;
+        left: 0.22rem;
+        width: 1.85rem;
+        height: 1.85rem;
+        border-radius: 50%;
+        background: #dca52d;
+        transition: transform 160ms ease;
+    }
+
+    .jixirio-speed-switch--slow::after {
+        transform: translateX(1.3rem);
+    }
+
+    .jixirio-transactions-toggle {
+        grid-column: 3;
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.15rem;
+        width: 100%;
+        height: 6.2rem;
+        min-width: 0;
+        padding: 0.2rem;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 0;
+        border-left: 1px solid #e1e4e9;
+        background: #ffffff;
+        color: #171717;
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .jixirio-transactions-toggle strong {
+        font-size: clamp(0.95rem, 3.1vw, 1.35rem);
+        line-height: 1.1;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .jixirio-transactions-chevron {
+        font-size: 2.8rem;
+        line-height: 0.75;
+        font-weight: 300;
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .jixirio-speed-toggle { font-size: 0.85rem; }
+    .jixirio-speed-switch { flex-basis: 3rem; width: 3rem; }
+    .jixirio-speed-switch::after { width: 1.55rem; height: 1.55rem; }
+    .jixirio-speed-switch--slow::after { transform: translateX(0.95rem); }
+    .jixirio-transactions-toggle strong { font-size: 0.85rem; }
+}

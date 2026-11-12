@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
-import { addComma, getCurrencyDisplayCode, getDecimalPlaces } from '@/components/shared';
+import { getCurrencyDisplayCode } from '@/components/shared';
 import Text from '@/components/shared_ui/text';
 import { api_base } from '@/external/bot-skeleton/services/api/api-base';
 import { useApiBase } from '@/hooks/useApiBase';
@@ -14,6 +14,40 @@ import './account-switcher.scss';
 
 const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [displayCurrency, setDisplayCurrency] = useState<'USD' | 'KES'>(() => {
+        if (typeof window === 'undefined') return 'USD';
+        return localStorage.getItem('jixirio_display_currency') === 'KES' ? 'KES' : 'USD';
+    });
+    const [usdKesRate, setUsdKesRate] = useState<number | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch('https://open.er-api.com/v6/latest/USD')
+            .then(response => { if (!response.ok) throw new Error('Exchange rate request failed'); return response.json(); })
+            .then(data => { const rate = Number(data?.rates?.KES); if (!cancelled && Number.isFinite(rate) && rate > 0) setUsdKesRate(rate); })
+            .catch(error => console.warn('[Jixirio] Display exchange rate unavailable:', error));
+        return () => { cancelled = true; };
+    }, []);
+
+    const toggleDisplayCurrency = useCallback(() => {
+        setDisplayCurrency(current => {
+            const next = current === 'USD' ? 'KES' : 'USD';
+            localStorage.setItem('jixirio_display_currency', next);
+            return next;
+        });
+    }, []);
+
+    const formatDisplayBalance = useCallback((amount: number | string, accountCurrency?: string) => {
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount)) return String(amount);
+        if (accountCurrency === 'USD' && displayCurrency === 'KES' && usdKesRate) {
+            return (numericAmount * usdKesRate).toLocaleString('en-KE', { maximumFractionDigits: 2 }) + ' KSh';
+        }
+        if (accountCurrency === 'KES' && displayCurrency === 'USD' && usdKesRate) {
+            return '$' + (numericAmount / usdKesRate).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        return numericAmount.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' ' + getCurrencyDisplayCode(accountCurrency || '');
+    }, [displayCurrency, usdKesRate]);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const { accountList, activeLoginid } = useApiBase();
     const { client, run_panel } = useStore() ?? {};
@@ -58,12 +92,12 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
             .map(account => ({
                 loginid: account.loginid,
                 currency: account.currency,
-                balance: addComma(Number(account.balance ?? 0).toFixed(getDecimalPlaces(account.currency))),
+                balance: formatDisplayBalance(account.balance ?? 0, account.currency),
                 isVirtual: isDemoAccount(account.loginid),
                 isActive: account.loginid === activeLoginid,
             }))
             .sort((a, b) => (a.isActive ? -1 : b.isActive ? 1 : 0));
-    }, [accountList, activeLoginid]);
+    }, [accountList, activeLoginid, formatDisplayBalance]);
 
     if (!activeAccount) return null;
 
@@ -120,6 +154,16 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                                 </span>
                             )}
                         </div>
+                        <button
+                            type='button'
+                            disabled={!usdKesRate || !['USD', 'KES'].includes(currency || '')}
+                            className='acc-info__display-currency'
+                            onClick={event => { event.stopPropagation(); toggleDisplayCurrency(); }}
+                            aria-label='Toggle display currency'
+                            title='Displayed currency only; Deriv account currency is unchanged'
+                        >
+                            {displayCurrency === 'USD' ? 'USD' : 'KSH'} <span>⌄</span>
+                        </button>
                         {(typeof balance !== 'undefined' || !currency) && (
                             <div className='acc-info__balance-section'>
                                 <p
@@ -131,7 +175,7 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                                     {!currency ? (
                                         <Localize i18n_default_text='No currency assigned' />
                                     ) : (
-                                        `${balance} ${getCurrencyDisplayCode(currency)}`
+                                        formatDisplayBalance(balance, currency)
                                     )}
                                 </p>
                             </div>
@@ -173,7 +217,7 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
                             </Text>
                             <Text size='xs' weight='bold' className='acc-dropdown__balance'>
                                 {account.currency ? (
-                                    `${account.balance} ${getCurrencyDisplayCode(account.currency)}`
+                                    account.balance
                                 ) : (
                                     <Localize i18n_default_text='No currency assigned' />
                                 )}
