@@ -181,7 +181,7 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
 );
 
 const MobileDrawerFooter = ({ toggleDrawer }: { toggleDrawer: (is_open: boolean) => void }) => {
-    const [is_fast_speed, setIsFastSpeed] = React.useState(false);
+    const [is_fast_speed, setIsFastSpeed] = React.useState(Boolean(window.JixirioTurboSpeed));
 
     const toggleSpeed = () => {
         const next_speed = !is_fast_speed;
