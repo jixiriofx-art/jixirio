@@ -109,7 +109,6 @@ class DBot {
             __webpack_public_path__ = public_path; // eslint-disable-line no-global-assign
             ApiHelpers.setInstance(api_helpers_store);
             DBotStore.setInstance(store);
-            const window_width = window.innerWidth;
             try {
                 // Consistent initial scale keeps the default DBot layout legible on phones.
                 const workspaceScale = is_mobile ? 0.7 : 0.9;
