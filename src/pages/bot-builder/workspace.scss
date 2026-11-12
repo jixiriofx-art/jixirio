@@ -125,3 +125,70 @@
         min-height: 360px;
     }
 }
+
+
+/* Jixirio reference-match: charcoal Blockly blocks, blue section headers and a clean mobile canvas. */
+#scratch_div,
+#scratch_div .injectionDiv,
+#scratch_div .blocklySvg,
+#scratch_div .blocklyMainBackground {
+    background: #080808 !important;
+}
+
+#scratch_div .blocklyBlockCanvas .blocklyDraggable:not(.jixirio-root-block) .blocklyPath {
+    fill: #292929 !important;
+    stroke: #3a3a3a !important;
+}
+
+#scratch_div .blocklyBlockCanvas .blocklyText,
+#scratch_div .blocklyBlockCanvas .blocklyEditableText,
+#scratch_div .blocklyFlyout .blocklyText {
+    fill: #f5f5f5 !important;
+}
+
+#scratch_div .blocklyDropdownText,
+#scratch_div .blocklyText text {
+    fill: #f5f5f5 !important;
+}
+
+#scratch_div .blocklyToolboxDiv {
+    background: #fff !important;
+    color: #242424 !important;
+    border-right: 1px solid #d7d7d7;
+}
+
+#scratch_div .blocklyToolboxDiv .blocklyTreeRow,
+#scratch_div .blocklyToolboxDiv .blocklyTreeLabel {
+    color: #242424 !important;
+}
+
+#scratch_div .blocklyFlyoutBackground {
+    fill: #171717 !important;
+    fill-opacity: 0.98;
+}
+
+#scratch_div .blocklyScrollbarHandle {
+    fill: #777 !important;
+}
+
+@media (max-width: 767px) {
+    #scratch_div {
+        height: var(--bot-content-height, calc(100dvh - 15.5rem));
+        min-height: 320px;
+        overflow: hidden;
+    }
+
+    #scratch_div .injectionDiv {
+        min-height: 320px;
+        overflow: hidden;
+    }
+
+    #scratch_div .blocklyToolboxDiv {
+        width: 4.8rem !important;
+        min-width: 4.8rem !important;
+    }
+
+    #scratch_div .blocklyFlyout {
+        max-width: calc(100vw - 5.5rem);
+    }
+}
