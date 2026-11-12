@@ -111,18 +111,9 @@ class DBot {
             DBotStore.setInstance(store);
             const window_width = window.innerWidth;
             try {
-                let workspaceScale = 0.7;
-
+                // Consistent initial scale keeps the default DBot layout legible on phones.
+                const workspaceScale = is_mobile ? 0.7 : 0.9;
                 const { handleFileChange } = DBotStore.instance;
-                if (window_width < 1640) {
-                    if (is_mobile) {
-                        workspaceScale = 0.6;
-                    } else {
-                        const scratch_div_width = document.getElementById('scratch_div')?.offsetWidth;
-                        const zoom_scale = scratch_div_width / window_width / 1.5;
-                        workspaceScale = zoom_scale;
-                    }
-                }
 
                 const el_scratch_div = document.getElementById('scratch_div');
 
@@ -135,7 +126,7 @@ class DBot {
                     media: `${window.__webpack_public_path__}assets/media/`,
                     renderer: 'zelos',
                     trashcan: !is_mobile,
-                    zoom: { wheel: true, startScale: workspaceScale },
+                    zoom: { wheel: true, startScale: workspaceScale, minScale: 0.4, maxScale: 1.6, scaleSpeed: 1.2 },
                     scrollbars: true,
                     theme: window.Blockly.Themes.zelos_renderer,
                 });
