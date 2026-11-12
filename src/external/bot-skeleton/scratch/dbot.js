@@ -379,7 +379,8 @@ class DBot {
                 BinaryBotPrivateTickAnalysis();
                 BinaryBotPrivateRun(BinaryBotPrivateStart);
                 if (!BinaryBotPrivateHasCalledTradeOptions) {
-                    sleep(1);
+                    // Turbo skips only the engine's idle-cycle wait; explicit user sleep blocks remain unchanged.
+                    sleep(window.JixirioTurboSpeed ? 0 : 1);
                     continue;
                 }
                 while (watch('before')) {
