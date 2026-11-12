@@ -69,6 +69,14 @@
     color: #fff !important;
 }
 
+/* Blockly's global dark-label rule must not override the teal trade-definition header. */
+#scratch_div .jixirio-root-block .blocklyText,
+#scratch_div .jixirio-root-block .blocklyEditableText > text,
+#scratch_div .jixirio-root-block .blocklyNonEditableText > text,
+#scratch_div .jixirio-root-block .blocklyDropdownText {
+    fill: #ffffff !important;
+}
+
 .blocklyFlyoutBackground,
 .blocklyToolboxDiv {
     fill: #f8fafc !important;
