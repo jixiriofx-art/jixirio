@@ -87,6 +87,24 @@
     display: none;
 }
 
+@media screen and (min-width: 769px) {
+    /* Let the floating toolbar position itself against #scratch_div, not the top action strip. */
+    #scratch_div .toolbar.dashboard__toolbar {
+        position: static;
+        height: 0;
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    #scratch_div .toolbar.dashboard__toolbar > .toolbar__section {
+        display: contents;
+    }
+}
+
 /* Floating white DBot toolbar, shared across mobile and desktop. */
 #scratch_div .toolbar__wrapper {
     position: absolute;
