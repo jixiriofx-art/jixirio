@@ -1,26 +1,33 @@
-﻿<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
-  <variables></variables>
-  <block type="trade_definition" x="0" y="0">
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false" is_dbot="true">
+  <variables>
+    <variable id="jix-stake">Stake</variable>
+    <variable id="jix-martangle">Martangle</variable>
+    <variable id="jix-take-profit">Take Profit</variable>
+    <variable id="jix-consecutive-losses">Consecutive Losses</variable>
+  </variables>
+
+  <!-- 1. Trade parameters: match the supplied reference structure. -->
+  <block type="trade_definition" id="jix-trade-definition" x="0" y="0">
     <statement name="TRADE_OPTIONS">
-      <block type="trade_definition_market" deletable="false" movable="false">
-        <field name="MARKET_LIST"></field>
-        <field name="SUBMARKET_LIST"></field>
-        <field name="SYMBOL_LIST"></field>
+      <block type="trade_definition_market" id="jix-market" deletable="false" movable="false">
+        <field name="MARKET_LIST">volidx</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ25V</field>
         <next>
-          <block type="trade_definition_tradetype" deletable="false" movable="false">
-            <field name="TRADETYPECAT_LIST"></field>
-            <field name="TRADETYPE_LIST"></field>
+          <block type="trade_definition_tradetype" id="jix-trade-type" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">digits</field>
+            <field name="TRADETYPE_LIST">evenodd</field>
             <next>
-              <block type="trade_definition_contracttype" deletable="false" movable="false">
-                <field name="TYPE_LIST"></field>
+              <block type="trade_definition_contracttype" id="jix-contract-type" deletable="false" movable="false">
+                <field name="TYPE_LIST">DIGITEVEN</field>
                 <next>
-                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                  <block type="trade_definition_candleinterval" id="jix-candle-interval" deletable="false" movable="false">
                     <field name="CANDLEINTERVAL_LIST">60</field>
                     <next>
-                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                      <block type="trade_definition_restartbuysell" id="jix-restart-buy-sell" deletable="false" movable="false">
                         <field name="TIME_MACHINE_ENABLED">FALSE</field>
                         <next>
-                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                          <block type="trade_definition_restartonerror" id="jix-restart-on-error" deletable="false" movable="false">
                             <field name="RESTARTONERROR">TRUE</field>
                           </block>
                         </next>
@@ -34,44 +41,92 @@
         </next>
       </block>
     </statement>
-    <statement name="SUBMARKET">
-      <block type="trade_definition_tradeoptions">
-        <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
-        <field name="DURATIONTYPE_LIST"></field>
-        <field name="CURRENCY_LIST">USD</field>
-        <value name="DURATION">
-          <shadow type="math_number_positive">
-            <field name="NUM">5</field>
+
+    <!-- Run once at start: initial values shown in the reference image. -->
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="jix-set-stake">
+        <field name="VAR" id="jix-stake" variabletype="">Stake</field>
+        <value name="VALUE">
+          <shadow type="math_number_positive" id="jix-stake-value">
+            <field name="NUM">10</field>
           </shadow>
         </value>
-        <value name="AMOUNT">
-          <shadow type="math_number_positive">
+        <next>
+          <block type="variables_set" id="jix-set-martangle">
+            <field name="VAR" id="jix-martangle" variabletype="">Martangle</field>
+            <value name="VALUE">
+              <shadow type="math_number_positive" id="jix-martangle-value">
+                <field name="NUM">2</field>
+              </shadow>
+            </value>
+            <next>
+              <block type="variables_set" id="jix-set-take-profit">
+                <field name="VAR" id="jix-take-profit" variabletype="">Take Profit</field>
+                <value name="VALUE">
+                  <shadow type="math_number_positive" id="jix-take-profit-value">
+                    <field name="NUM">100</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="variables_set" id="jix-set-consecutive-losses">
+                    <field name="VAR" id="jix-consecutive-losses" variabletype="">Consecutive Losses</field>
+                    <value name="VALUE">
+                      <shadow type="math_number_positive" id="jix-consecutive-losses-value">
+                        <field name="NUM">5</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="procedures_callnoreturn" id="jix-call-start-info">
+                        <mutation name="Start Info"></mutation>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+
+    <!-- Trade options: 1 tick, USD, stake from the Stake variable. -->
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="jix-trade-options">
+        <mutation has_first_barrier="false" has_second_barrier="false" has_prediction="false"></mutation>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <field name="CURRENCY_LIST">USD</field>
+        <value name="DURATION">
+          <shadow type="math_number_positive" id="jix-duration-value">
             <field name="NUM">1</field>
           </shadow>
         </value>
-        <field name="AMOUNT_LIMITS"></field>
-      </block>
-    </statement>
-  </block>
-  <block type="during_purchase" x="720" y="0">
-    <statement name="DURING_PURCHASE_STACK">
-      <block type="controls_if">
-        <value name="IF0">
-          <block type="check_sell"></block>
+        <value name="AMOUNT">
+          <block type="variables_get" id="jix-stake-reference">
+            <field name="VAR" id="jix-stake" variabletype="">Stake</field>
+          </block>
         </value>
       </block>
     </statement>
   </block>
-  <block type="after_purchase" x="720" y="248">
+
+  <!-- 4. Restart trading conditions. Keep Trade again inside the collapsed root. -->
+  <block type="after_purchase" id="jix-after-purchase" x="1050" y="0" collapsed="true">
     <statement name="AFTERPURCHASE_STACK">
-      <block type="trade_again"></block>
+      <block type="trade_again" id="jix-trade-again"></block>
     </statement>
   </block>
-  <block type="before_purchase" x="0" y="576">
+
+  <!-- 2. Purchase conditions: purchase Even. -->
+  <block type="before_purchase" id="jix-before-purchase" x="0" y="1050">
     <statement name="BEFOREPURCHASE_STACK">
-      <block type="purchase">
-        <field name="PURCHASE_LIST"></field>
+      <block type="purchase" id="jix-purchase-even">
+        <field name="PURCHASE_LIST">DIGITEVEN</field>
       </block>
     </statement>
+  </block>
+
+  <!-- Start Info function definition, matching the reference's separate procedure. -->
+  <block type="procedures_defnoreturn" id="jix-start-info-definition" x="0" y="1350" collapsed="true">
+    <field name="NAME">Start Info</field>
   </block>
 </xml>
