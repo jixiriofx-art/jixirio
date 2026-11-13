@@ -615,8 +615,8 @@
         &__switch {
             display: inline-flex;
             align-items: center;
-            flex: 0 0 24px;
-            width: 24px;
+            flex: 0 0 35px;
+            width: 35px;
             height: 14px;
             padding: 1.5px;
             margin-left: auto;
@@ -637,7 +637,7 @@
             background: #cbd5e1;
 
             > span {
-                transform: translateX(10px);
+                transform: translateX(21px);
                 background: #0f766e;
             }
         }
