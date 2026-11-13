@@ -159,7 +159,7 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, t
     }, [is_drawer_open, isDesktop]);
 
     return (
-        <>
+        <div className='run-panel__mobile-layout'>
             <Tabs className='run-panel-mobile-tabs' active_index={active_index} onTabItemClick={setActiveTabIndex} top>
                 <div id='db-run-panel-tab__summary' label={<Localize i18n_default_text='Summary' />}>
                     <Summary is_drawer_open={is_drawer_open} />
@@ -171,8 +171,10 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, t
                     <Journal />
                 </div>
             </Tabs>
-            {((is_drawer_open && active_index !== 2) || active_tour) && <StatisticsSummary {...props} />}
-        </>
+            {((is_drawer_open && active_index !== 2) || active_tour) && (
+                <StatisticsSummary {...props} is_mobile={!isDesktop} />
+            )}
+        </div>
     );
 };
 
