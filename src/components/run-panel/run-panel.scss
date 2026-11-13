@@ -519,3 +519,118 @@
         white-space: nowrap;
     }
 }
+
+/* Jixirio mobile run-panel layout: match the approved DBTraders reference.
+   Keep the tab bar at the top, the summary workspace in the middle, and
+   the statistics grid directly above the fixed execution controls. */
+@include mobile-or-tablet-screen {
+    .run-panel__container--mobile {
+        position: fixed;
+        inset: 0 0 8.2rem;
+        width: 100vw;
+        height: auto;
+        padding: 0;
+        z-index: var(--zindex-drawer);
+
+        .dc-drawer {
+            position: fixed;
+            top: 0 !important;
+            right: 0;
+            bottom: 8.2rem;
+            left: 0;
+            width: 100vw !important;
+            height: auto !important;
+            transform: none !important;
+        }
+
+        .dc-drawer__container {
+            height: calc(100% - 3.6rem);
+            min-height: 0;
+        }
+
+        .dc-drawer__content.run-panel__content {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            justify-content: stretch;
+            min-height: 0;
+            overflow: hidden !important;
+        }
+
+        .dc-tabs {
+            display: grid;
+            flex: 1 1 auto;
+            grid-template-rows: auto minmax(0, 1fr);
+            min-height: 0;
+            width: 100%;
+        }
+
+        .dc-tabs__list {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            justify-content: stretch;
+            overflow: hidden;
+        }
+
+        .dc-tabs__item {
+            flex: 1 1 33.333%;
+            width: 33.333% !important;
+            min-width: 0;
+            min-height: 6.2rem;
+            padding: 0.7rem 0.3rem !important;
+            font-size: 1.6rem;
+        }
+
+        .dc-tabs__active-line {
+            background: #8b45f7;
+        }
+
+        .run-panel-tab__content--mobile {
+            position: relative;
+            inset: auto;
+            display: flex;
+            flex: 1 1 auto;
+            height: 100%;
+            min-height: 0;
+            width: 100%;
+            padding: 0.4rem 0;
+        }
+
+        .summary {
+            height: 100%;
+            min-height: 0;
+        }
+
+        .run-panel__stat--mobile {
+            position: relative;
+            inset: auto;
+            flex: 0 0 auto;
+            width: 100%;
+            bottom: auto;
+            background-color: var(--general-section-2);
+        }
+
+        .run-panel__stat--info {
+            justify-content: flex-end;
+            width: 100%;
+            padding: 1.2rem 1.6rem 0.2rem;
+        }
+
+        .run-panel__stat--tiles {
+            grid-template: 6.4rem 6.4rem / repeat(3, minmax(0, 1fr));
+        }
+
+        .run-panel__tile {
+            min-width: 0;
+            padding: 0 0.2rem;
+        }
+
+        .run-panel__tile-title,
+        .run-panel__tile-content {
+            max-width: 100%;
+            white-space: nowrap;
+            font-size: 1.35rem;
+        }
+    }
+}
