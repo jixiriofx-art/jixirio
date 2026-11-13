@@ -721,3 +721,106 @@
         }
     }
 }
+
+
+/* Mobile run-panel: reproduce DBTraders' header, tabs, workspace and stats order. */
+@include mobile-or-tablet-screen {
+    .run-panel__content {
+        display: flex !important;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden !important;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout > .dc-tabs--run-panel-mobile-tabs {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs {
+        display: flex !important;
+        flex: 0 0 62px;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 62px;
+        overflow: hidden !important;
+        background: #0d0d0d;
+        border-bottom: 2px solid #171717;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs .dc-themed-scrollbars-wrapper {
+        display: flex !important;
+        flex: 1 1 100%;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
+        display: flex !important;
+        flex: 1 1 0 !important;
+        justify-content: center;
+        min-width: 0 !important;
+        height: 62px !important;
+        padding: 0 4px !important;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__active-line--top {
+        height: 3px;
+        background: #7c3aed;
+        bottom: -2px;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__content--run-panel-mobile-tabs {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        min-height: 0;
+        overflow: auto;
+        background: linear-gradient(180deg, #101010 0%, #141414 100%);
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--mobile {
+        display: block;
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 18px 16px 22px;
+        box-sizing: border-box;
+        background: #0d0d0d;
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--info {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 14px;
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--tiles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 8px;
+        row-gap: 28px;
+        width: 100%;
+    }
+}
