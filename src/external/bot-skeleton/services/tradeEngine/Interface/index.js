@@ -4,15 +4,14 @@ import getTicksInterface from './TicksInterface';
 import getToolsInterface from './ToolsInterface';
 
 const sleep = (observer, arg = 1) => {
-    return new Promise(
-        r =>
-            // eslint-disable-next-line no-promise-executor-return
-            setTimeout(() => {
-                r();
-                setTimeout(() => observer.emit('CONTINUE'), 0);
-            }, arg * 1000),
-        () => {}
-    );
+    const turbo = typeof window !== 'undefined' && window.JixirioTurboSpeed === true;
+    const delay = turbo ? 0 : Math.max(0, Number(arg) || 0) * 1000;
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+            setTimeout(() => observer.emit('CONTINUE'), 0);
+        }, delay);
+    });
 };
 
 const Interface = $scope => {
