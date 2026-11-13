@@ -214,7 +214,6 @@ const MobileDrawerFooter = ({ toggleDrawer }: { toggleDrawer: (is_open: boolean)
                     onClick={() => toggleDrawer(true)}
                     aria-label='Open transactions'
                 >
-                    <span className='dbot-controls__chevron' aria-hidden='true'>⌃</span>
                     <strong>Open transaction</strong>
                 </button>
             </div>
