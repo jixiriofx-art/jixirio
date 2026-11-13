@@ -32,12 +32,12 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
         run_panel;
     const [shouldDisable, setShouldDisable] = React.useState(false);
     const [normalSpeed, setNormalSpeed] = React.useState(
-        typeof window !== 'undefined' ? !window.JixirioTurboSpeed : true
+        typeof window !== 'undefined' ? !(window as any).JixirioTurboSpeed : true
     );
     const toggleSpeed = () => {
         const nextNormalSpeed = !normalSpeed;
         setNormalSpeed(nextNormalSpeed);
-        window.JixirioTurboSpeed = !nextNormalSpeed;
+        (window as any).JixirioTurboSpeed = !nextNormalSpeed;
     };
     const openTransactions = () => {
         run_panel.setActiveTabIndex(1);
