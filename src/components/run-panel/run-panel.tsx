@@ -118,17 +118,29 @@ export const StatisticsSummary = ({
     </div>
 );
 
-const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onClearStatClick }: TDrawerHeader) =>
+const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onClearStatClick, toggleDrawer }: TDrawerHeader) =>
     is_mobile &&
     is_drawer_open && (
-        <Button
-            id='db-run-panel__clear-button'
-            className='run-panel__clear-button'
-            disabled={is_clear_stat_disabled}
-            text={localize('Reset')}
-            onClick={onClearStatClick}
-            secondary
-        />
+        <div className='run-panel__mobile-header'>
+            <button
+                type='button'
+                className='run-panel__mobile-back'
+                onClick={() => toggleDrawer(false)}
+                aria-label='Back to Bot Builder'
+            >
+                <svg viewBox='0 0 48 28' aria-hidden='true' focusable='false'>
+                    <path d='M4 5 L24 23 L44 5' />
+                </svg>
+            </button>
+            <Button
+                id='db-run-panel__clear-button'
+                className='run-panel__clear-button'
+                disabled={is_clear_stat_disabled}
+                text={localize('Reset')}
+                onClick={onClearStatClick}
+                secondary
+            />
+        </div>
     );
 
 const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, toggleDrawer, setActiveTabIndex, ...props }: TDrawerContent) => {
@@ -149,18 +161,6 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, t
 
     return (
         <>
-            {is_mobile && (
-                <button
-                    type='button'
-                    className='run-panel__mobile-back'
-                    onClick={() => toggleDrawer(false)}
-                    aria-label='Back to Bot Builder'
-                >
-                    <svg viewBox='0 0 48 28' aria-hidden='true' focusable='false'>
-                        <path d='M4 4 L24 24 L44 4' />
-                    </svg>
-                </button>
-            )}
             <Tabs className='run-panel-mobile-tabs' active_index={active_index} onTabItemClick={setActiveTabIndex} top>
                 <div id='db-run-panel-tab__summary' label={<Localize i18n_default_text='Summary' />}>
                     <Summary is_drawer_open={is_drawer_open} />
