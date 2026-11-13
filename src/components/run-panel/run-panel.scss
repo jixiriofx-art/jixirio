@@ -6,6 +6,19 @@
 .run-panel {
     height: 0;
 
+    /* Hide the mobile drawer grab-handle above the fixed Run/Speed/Transactions bar. */
+    .dc-drawer__toggle {
+        @include mobile-or-tablet-screen {
+            display: none !important;
+        }
+    }
+
+    .dc-drawer__container {
+        @include mobile-or-tablet-screen {
+            height: 100% !important;
+        }
+    }
+
     &__container {
         height: var(--bot-content-height) !important;
         top: 10.4rem !important;
@@ -517,5 +530,194 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+
+/* Compact, fixed three-part DBot execution bar for phones. */
+.controls__section--dbot {
+    display: block;
+    height: 62px;
+    min-height: 62px;
+    padding: 0;
+    border-top: 1px solid #dbe2e8;
+    background: #fff;
+    z-index: 120;
+    box-sizing: border-box;
+
+    .dbot-controls {
+        display: grid;
+        grid-template-columns: 21% 44% 35%;
+        width: 100%;
+        height: 56px;
+        min-height: 56px;
+        padding: 0;
+        margin: 0;
+        align-items: stretch;
+        box-sizing: border-box;
+
+        &__run {
+            min-width: 0;
+            height: 56px;
+            overflow: hidden;
+            background: #2bbbad;
+
+            .animation__wrapper,
+            .controls__animation {
+                display: flex;
+                flex: 1 1 100%;
+                width: 100%;
+                min-width: 0;
+                height: 56px;
+                margin: 0;
+                padding: 0;
+                background: #2bbbad;
+            }
+
+            .animation__run-button,
+            .animation__stop-button {
+                display: flex;
+                flex: 1 1 100% !important;
+                align-items: center;
+                justify-content: center;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0;
+                height: 56px !important;
+                padding: 0 6px !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: #2bbbad !important;
+                color: #fff !important;
+                font-size: 15px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            .animation__stop-button {
+                background: #ef4444 !important;
+            }
+
+            .animation__container {
+                display: none;
+            }
+
+            .animation__overlay {
+                display: none;
+            }
+        }
+
+        &__speed {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            min-width: 0;
+            padding: 0 12px;
+            border: 0;
+            border-right: 1px solid #e5e7eb;
+            border-radius: 0;
+            background: #fdf8e4;
+            color: #1e293b;
+            font-size: clamp(9px, 2.5vw, 12px);
+            font-weight: 800;
+            line-height: 1.15;
+            cursor: pointer;
+
+            > span:first-child {
+                min-width: 0;
+                text-align: left;
+                white-space: nowrap;
+            }
+        }
+
+        &__switch {
+            display: inline-flex;
+            align-items: center;
+            flex: 0 0 35px;
+            width: 35px;
+            height: 14px;
+            padding: 1.5px;
+            margin-left: auto;
+            border-radius: 999px;
+            background: #e2e8f0;
+            box-sizing: border-box;
+
+            > span {
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: #d49b1a;
+                transition: transform 160ms ease;
+            }
+        }
+
+        &__speed--fast .dbot-controls__switch {
+            background: #cbd5e1;
+
+            > span {
+                transform: translateX(21px);
+                background: #0f766e;
+            }
+        }
+
+        &__transactions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            min-width: 0;
+            padding: 2px 4px;
+            border: 0;
+            border-radius: 0;
+            background: #fff;
+            color: #111827;
+            cursor: pointer;
+
+            strong {
+                max-width: 100%;
+                overflow: hidden;
+                font-size: clamp(10px, 2.8vw, 13px);
+                line-height: 1.15;
+                text-align: center;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        &__chevron {
+            height: 19px;
+            font-size: 25px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        &__bottom-accent {
+            width: 100%;
+            height: 6px;
+            background: #ff4d4f;
+        }
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .controls__section--dbot .dbot-controls {
+        grid-template-columns: 27% 39% 34%;
+
+        &__speed {
+            gap: 4px;
+            padding: 0 3px;
+            font-size: 9px;
+        }
+
+        &__switch {
+            flex-basis: 29px;
+            width: 29px;
+        }
+
+        &__speed--fast .dbot-controls__switch > span {
+            transform: translateX(9px);
+        }
     }
 }

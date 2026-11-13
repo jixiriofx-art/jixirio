@@ -229,3 +229,62 @@
         }
     }
 }
+
+
+/* Jixirio mobile run-panel layout: DBTraders-style evenly spaced tabs. */
+.dc-tabs--run-panel-mobile-tabs {
+    .dc-tabs__list {
+        @include mobile-or-tablet-screen {
+            justify-content: space-around;
+        }
+
+        .dc-themed-scrollbars-wrapper {
+            @include mobile-or-tablet-screen {
+                width: 100%;
+                min-width: 100%;
+                justify-content: space-around;
+            }
+        }
+    }
+
+    .dc-tabs__item {
+        @include mobile-or-tablet-screen {
+            flex: 1 1 0;
+            min-width: 0;
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+    }
+}
+
+/* Large centered collapse arrow above Summary / Transactions / Journal. */
+.run-panel__mobile-back {
+    display: none;
+
+    @include mobile-or-tablet-screen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 64px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+
+        svg {
+            display: block;
+            width: 48px;
+            height: 28px;
+            overflow: visible;
+        }
+
+        path {
+            fill: none;
+            stroke: var(--text-prominent);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+}

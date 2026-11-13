@@ -5,27 +5,21 @@ import {
     LabelPairedArrowRotateLeftMdRegularIcon,
     LabelPairedArrowRotateRightMdRegularIcon,
     LabelPairedArrowsRotateMdRegularIcon,
-    LabelPairedChartLineMdRegularIcon,
-    LabelPairedChartTradingviewMdRegularIcon,
-    LabelPairedFloppyDiskMdRegularIcon,
     LabelPairedFolderOpenMdRegularIcon,
     LabelPairedMagnifyingGlassMinusMdRegularIcon,
     LabelPairedMagnifyingGlassPlusMdRegularIcon,
     LabelPairedObjectsAlignLeftMdRegularIcon,
 } from '@deriv/quill-icons/LabelPaired';
 import { localize } from '@deriv-com/translations';
-import { useDevice } from '@deriv-com/ui';
 /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
 /* [/AI] */
 import ToolbarIcon from './toolbar-icon';
 
 const WorkspaceGroup = observer(() => {
-    const { dashboard, toolbar, load_modal, save_modal } = useStore();
-    const { setPreviewOnPopup, setChartModalVisibility, setTradingViewModalVisibility } = dashboard;
+    const { dashboard, toolbar, load_modal } = useStore();
+    const { setPreviewOnPopup } = dashboard;
     const { has_redo_stack, has_undo_stack, onResetClick, onSortClick, onUndoClick, onZoomInOutClick } = toolbar;
-    const { toggleSaveModal } = save_modal;
     const { toggleLoadModal } = load_modal;
-    const { isDesktop } = useDevice();
 
     return (
         <div className='toolbar__wrapper'>
@@ -62,19 +56,6 @@ const WorkspaceGroup = observer(() => {
                     }
                 />
                 <ToolbarIcon
-                    popover_message={localize('Save')}
-                    icon={
-                        <span
-                            className='toolbar__icon'
-                            id='db-toolbar__save-button'
-                            data-testid='dt_toolbar_save_button'
-                            onClick={toggleSaveModal}
-                        >
-                            <LabelPairedFloppyDiskMdRegularIcon />
-                        </span>
-                    }
-                />
-                <ToolbarIcon
                     popover_message={localize('Sort blocks')}
                     icon={
                         <span
@@ -87,35 +68,6 @@ const WorkspaceGroup = observer(() => {
                         </span>
                     }
                 />
-                {isDesktop && (
-                    <>
-                        <div className='vertical-divider' />
-                        <ToolbarIcon
-                            popover_message={localize('Charts')}
-                            icon={
-                                <span
-                                    className='toolbar__icon'
-                                    id='db-toolbar__charts-button'
-                                    onClick={() => setChartModalVisibility()}
-                                >
-                                    <LabelPairedChartLineMdRegularIcon />
-                                </span>
-                            }
-                        />
-                        <ToolbarIcon
-                            popover_message={localize('TradingView Chart')}
-                            icon={
-                                <span
-                                    className='toolbar__icon'
-                                    id='db-toolbar__tradingview-button'
-                                    onClick={() => setTradingViewModalVisibility()}
-                                >
-                                    <LabelPairedChartTradingviewMdRegularIcon />
-                                </span>
-                            }
-                        />
-                    </>
-                )}
                 <div className='vertical-divider' />
                 <ToolbarIcon
                     popover_message={localize('Undo')}

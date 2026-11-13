@@ -90,6 +90,8 @@ export interface ExtendedBlocklyWorkspace extends BlocklyWorkspace {
 // Extend the Window interface to include Blockly types
 declare global {
     interface Window {
+        /** Enables zero artificial waits in the Jixirio bot interpreter. */
+        JixirioTurboSpeed?: boolean;
         Blockly: {
             derivWorkspace?: ExtendedBlocklyWorkspace;
             Events: BlocklyEvents;

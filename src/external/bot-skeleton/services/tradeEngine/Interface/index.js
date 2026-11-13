@@ -4,15 +4,16 @@ import getTicksInterface from './TicksInterface';
 import getToolsInterface from './ToolsInterface';
 
 const sleep = (observer, arg = 1) => {
-    return new Promise(
-        r =>
-            // eslint-disable-next-line no-promise-executor-return
-            setTimeout(() => {
-                r();
-                setTimeout(() => observer.emit('CONTINUE'), 0);
-            }, arg * 1000),
-        () => {}
-    );
+    // Turbo mode skips only the artificial timeout; the interpreter still resumes
+    // asynchronously so its observer/event loop remains intact.
+    const delay = window.JixirioTurboSpeed ? 0 : Math.max(0, Number(arg) || 0) * 1000;
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+            setTimeout(() => observer.emit('CONTINUE'), 0);
+        }, delay);
+    });
 };
 
 const Interface = $scope => {

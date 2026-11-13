@@ -820,7 +820,7 @@ const AppWrapper = observer(() => {
             </div>
 
             {/* MOVABLE JIXIRIO AI BUTTON */}
-            <AIFloatingButton onClick={handleAIClick} />
+            {active_tab !== BOT_BUILDER && <AIFloatingButton onClick={handleAIClick} />}
 
             <DesktopWrapper>
                 <div className='main__run-strategy-wrapper'>
