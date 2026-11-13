@@ -240,16 +240,16 @@
         display: flex;
         align-items: stretch;
         width: 100%;
-        height: 6.4rem;
+        height: 7.8rem;
         gap: 0;
         overflow: hidden;
-        border-radius: 0.5rem;
+        border-radius: 0;
     }
 
     .controls__animation .animation__run-button,
     .controls__animation .animation__stop-button {
-        flex: 0 0 32%;
-        width: 32%;
+        flex: 0 0 21.1%;
+        width: 21.1%;
         min-width: 0;
         height: 100% !important;
         border: 0 !important;
@@ -271,7 +271,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.55rem;
+        gap: 0.2rem;
         min-width: 0;
         height: 100%;
         padding: 0.45rem 0.5rem;
@@ -282,8 +282,8 @@
     }
 
     .animation__speed-control {
-        flex: 0 0 36%;
-        width: 36%;
+        flex: 0 0 43.6%;
+        width: 43.6%;
         background: #fff8df;
         color: #171717;
     }
@@ -328,7 +328,8 @@
     }
 
     .animation__transactions-control {
-        flex: 1 1 32%;
+        flex: 0 0 35.3%;
+        width: 35.3%;
         background: #ffffff;
         color: #111111;
         font-size: clamp(0.95rem, 3.3vw, 1.4rem);
