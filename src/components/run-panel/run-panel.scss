@@ -6,6 +6,19 @@
 .run-panel {
     height: 0;
 
+    /* Hide the mobile drawer grab-handle above the fixed Run/Speed/Transactions bar. */
+    .dc-drawer__toggle {
+        @include mobile-or-tablet-screen {
+            display: none !important;
+        }
+    }
+
+    .dc-drawer__container {
+        @include mobile-or-tablet-screen {
+            height: 100% !important;
+        }
+    }
+
     &__container {
         height: var(--bot-content-height) !important;
         top: 10.4rem !important;
