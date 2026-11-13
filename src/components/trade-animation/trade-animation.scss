@@ -232,3 +232,114 @@
         width: 31.2rem !important;
     }
 }
+
+
+/* Three-part mobile execution dock matching the supplied Jixirio reference. */
+@media (max-width: 1024px) {
+    .controls__animation.animation__wrapper {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 6.4rem;
+        gap: 0;
+        overflow: hidden;
+        border-radius: 0.5rem;
+    }
+
+    .controls__animation .animation__run-button,
+    .controls__animation .animation__stop-button {
+        flex: 0 0 32%;
+        width: 32%;
+        min-width: 0;
+        height: 100% !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #35b6b3 !important;
+        color: #ffffff !important;
+        font-size: 1.7rem;
+        font-weight: 700;
+    }
+
+    .controls__animation .animation__container {
+        display: none;
+    }
+
+    .animation__speed-control,
+    .animation__transactions-control {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        min-width: 0;
+        height: 100%;
+        padding: 0.45rem 0.5rem;
+        border: 0;
+        border-radius: 0;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .animation__speed-control {
+        flex: 0 0 36%;
+        width: 36%;
+        background: #fff8df;
+        color: #171717;
+    }
+
+    .animation__speed-label {
+        font-size: clamp(0.95rem, 3.4vw, 1.45rem);
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+    }
+
+    .animation__speed-switch {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        width: 5.4rem;
+        height: 2.7rem;
+        padding: 0.25rem;
+        border: 1px solid #d8dce2;
+        border-radius: 999px;
+        background: #e9eef6;
+        transition: background 160ms ease;
+    }
+
+    .animation__speed-switch > span {
+        display: block;
+        width: 2.15rem;
+        height: 2.15rem;
+        border-radius: 50%;
+        background: #e3a62c;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .animation__speed-switch--turbo {
+        background: #dcefe9;
+    }
+
+    .animation__speed-switch--turbo > span {
+        transform: translateX(2.65rem);
+        background: #22a879;
+    }
+
+    .animation__transactions-control {
+        flex: 1 1 32%;
+        background: #ffffff;
+        color: #111111;
+        font-size: clamp(0.95rem, 3.3vw, 1.4rem);
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .animation__transactions-chevron {
+        font-size: 3rem;
+        line-height: 1;
+        font-weight: 400;
+        height: 2.4rem;
+    }
+}
