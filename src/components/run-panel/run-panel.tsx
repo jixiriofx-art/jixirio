@@ -129,7 +129,9 @@ const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onCle
                 onClick={() => toggleDrawer(false)}
                 aria-label='Back to Bot Builder'
             >
-                <span className='run-panel__mobile-back-chevron' aria-hidden='true' />
+                <svg className='run-panel__mobile-back-chevron' viewBox='0 0 56 40' aria-hidden='true' focusable='false'>
+                    <path d='M5 8 L28 30 L51 8' />
+                </svg>
             </button>
             <Button
                 id='db-run-panel__clear-button'
@@ -357,6 +359,7 @@ const RunPanel = observer(() => {
             is_mobile={!isDesktop}
             is_drawer_open={is_drawer_open}
             onClearStatClick={onClearStatClick}
+            toggleDrawer={toggleDrawer}
         />
     );
 
