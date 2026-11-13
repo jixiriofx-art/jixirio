@@ -830,7 +830,7 @@
 @include mobile-or-tablet-screen {
     /* The drawer itself occupies the available area above the fixed execution dock. */
     .run-panel__container--mobile {
-        position: fixed !important;
+        position: absolute !important;
         top: 0 !important;
         right: 0 !important;
         bottom: 8.8rem !important;
