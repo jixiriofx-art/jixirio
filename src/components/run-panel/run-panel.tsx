@@ -129,9 +129,7 @@ const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onCle
                 onClick={() => toggleDrawer(false)}
                 aria-label='Back to Bot Builder'
             >
-                <svg viewBox='0 0 48 28' aria-hidden='true' focusable='false'>
-                    <path d='M4 5 L24 23 L44 5' />
-                </svg>
+                <span className='run-panel__mobile-back-chevron' aria-hidden='true' />
             </button>
             <Button
                 id='db-run-panel__clear-button'
