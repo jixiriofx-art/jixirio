@@ -236,18 +236,18 @@
 }
 
 
-/* Blue floating toolbar, sized to the Blockly canvas so it cannot cover page controls. */
+/* Blue floating toolbar: begin below Quick strategy and end before Run controls. */
 @include mobile-or-tablet-screen {
     #scratch_div .toolbar__wrapper {
         position: absolute;
-        top: 0.5rem;
+        top: 7rem;
         bottom: auto;
         left: 0.5rem;
         right: auto;
         z-index: 30;
         width: 3.25rem;
-        height: 76%;
-        max-height: 76%;
+        height: calc(76% - 6.5rem);
+        max-height: calc(76% - 6.5rem);
         min-height: 0;
         overflow-x: hidden;
         overflow-y: auto;
@@ -295,7 +295,6 @@
         stroke: currentColor !important;
     }
 
-    /* More breathing room around the zoom controls. */
     #scratch_div .toolbar__group-btn .vertical-divider {
         display: block;
         width: 1.8rem;
