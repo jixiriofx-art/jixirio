@@ -41,6 +41,7 @@ type TDrawerHeader = {
     is_mobile: boolean;
     is_drawer_open: boolean;
     onClearStatClick: () => void;
+    toggleDrawer: (is_open: boolean) => void;
 };
 
 type TDrawerContent = {
