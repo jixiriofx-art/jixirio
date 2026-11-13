@@ -591,10 +591,10 @@
         &__speed {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 7px;
+            justify-content: space-between;
+            gap: 6px;
             min-width: 0;
-            padding: 0 7px;
+            padding: 0 12px;
             border: 0;
             border-right: 1px solid #e5e7eb;
             border-radius: 0;
@@ -607,24 +607,26 @@
 
             > span:first-child {
                 min-width: 0;
-                text-align: center;
+                text-align: left;
+                white-space: nowrap;
             }
         }
 
         &__switch {
             display: inline-flex;
             align-items: center;
-            flex: 0 0 34px;
-            width: 34px;
-            height: 20px;
-            padding: 2px;
+            flex: 0 0 24px;
+            width: 24px;
+            height: 14px;
+            padding: 1.5px;
+            margin-left: auto;
             border-radius: 999px;
             background: #e2e8f0;
             box-sizing: border-box;
 
             > span {
-                width: 16px;
-                height: 16px;
+                width: 11px;
+                height: 11px;
                 border-radius: 50%;
                 background: #d49b1a;
                 transition: transform 160ms ease;
@@ -635,7 +637,7 @@
             background: #cbd5e1;
 
             > span {
-                transform: translateX(14px);
+                transform: translateX(10px);
                 background: #0f766e;
             }
         }
