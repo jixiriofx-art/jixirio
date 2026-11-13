@@ -236,27 +236,28 @@
 }
 
 
-/* Taller, easier-to-use floating Blockly toolbar, aligned with the workspace blocks. */
+/* Blue floating toolbar: begin below Quick strategy and end before Run controls. */
 @include mobile-or-tablet-screen {
     #scratch_div .toolbar__wrapper {
         position: absolute;
-        top: 0.5rem;
-        bottom: 5.5rem;
+        top: 7rem;
+        bottom: auto;
         left: 0.5rem;
         right: auto;
         z-index: 30;
-        width: 3.6rem;
-        height: auto;
-        max-height: none;
+        width: 3.25rem;
+        height: calc(76% - 6.5rem);
+        max-height: calc(76% - 6.5rem);
+        min-height: 0;
         overflow-x: hidden;
         overflow-y: auto;
         transform: none;
         box-sizing: border-box;
-        padding: 0.65rem 0;
-        border: 1px solid var(--border-normal);
+        padding: 0.55rem 0 0.7rem;
+        border: 1px solid #28618f;
         border-radius: 9999px;
-        background: var(--general-section-1);
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.24), 0 6px 20px rgba(0, 0, 0, 0.2);
+        background: #123f68;
+        box-shadow: 0 0 12px rgba(47, 130, 196, 0.32), 0 5px 18px rgba(0, 0, 0, 0.22);
         scrollbar-width: none;
     }
 
@@ -265,19 +266,41 @@
     }
 
     #scratch_div .toolbar__group-btn {
-        gap: 0.15rem;
-        padding: 0.1rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.12rem;
+        width: 100%;
+        height: auto;
+        padding: 0;
         background: transparent;
     }
 
     #scratch_div .toolbar__group-btn .toolbar__icon {
-        width: 3.3rem;
-        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 2.65rem;
+        flex: 0 0 2.65rem;
         margin: 0;
+        color: #ffffff !important;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon svg,
+    #scratch_div .toolbar__group-btn .toolbar__icon svg * {
+        color: #ffffff !important;
+        fill: none !important;
+        stroke: currentColor !important;
     }
 
     #scratch_div .toolbar__group-btn .vertical-divider {
-        width: 1.9rem;
-        margin: 0.35rem 0;
+        display: block;
+        width: 1.8rem;
+        height: 1px;
+        min-height: 1px;
+        margin: 0.65rem auto;
+        background: rgba(255, 255, 255, 0.48);
     }
 }
