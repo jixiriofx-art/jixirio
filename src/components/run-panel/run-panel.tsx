@@ -47,6 +47,8 @@ type TDrawerContent = {
     active_index: number;
     is_drawer_open: boolean;
     active_tour: string;
+    is_mobile: boolean;
+    toggleDrawer: (is_open: boolean) => void;
     setActiveTabIndex: () => void;
 };
 
@@ -129,7 +131,7 @@ const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onCle
         />
     );
 
-const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTabIndex, ...props }: TDrawerContent) => {
+const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, toggleDrawer, setActiveTabIndex, ...props }: TDrawerContent) => {
     const { isDesktop } = useDevice();
     // Use the useBlockScroll hook to prevent body scrolling when drawer is open on mobile
 
@@ -147,7 +149,19 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
 
     return (
         <>
-            <Tabs active_index={active_index} onTabItemClick={setActiveTabIndex} top>
+            {is_mobile && (
+                <button
+                    type='button'
+                    className='run-panel__mobile-back'
+                    onClick={() => toggleDrawer(false)}
+                    aria-label='Back to Bot Builder'
+                >
+                    <svg viewBox='0 0 48 28' aria-hidden='true' focusable='false'>
+                        <path d='M4 4 L24 24 L44 4' />
+                    </svg>
+                </button>
+            )}
+            <Tabs className='run-panel-mobile-tabs' active_index={active_index} onTabItemClick={setActiveTabIndex} top>
                 <div id='db-run-panel-tab__summary' label={<Localize i18n_default_text='Summary' />}>
                     <Summary is_drawer_open={is_drawer_open} />
                 </div>
@@ -321,6 +335,7 @@ const RunPanel = observer(() => {
             currency={currency}
             is_drawer_open={is_drawer_open}
             is_mobile={!isDesktop}
+            toggleDrawer={toggleDrawer}
             lost_contracts={lost_contracts}
             number_of_runs={number_of_runs}
             setActiveTabIndex={setActiveTabIndex}
