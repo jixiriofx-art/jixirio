@@ -247,7 +247,8 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
                         <CircularWrapper key={`status_class-${status_class}-${i}`} className={status_class} />
                     ))}
                 </div>
-                <button type='button' className='animation__speed-control' onClick={toggleSpeed} aria-pressed={!normalSpeed}>
+            </div>
+            <button type='button' className='animation__speed-control' onClick={toggleSpeed} aria-pressed={!normalSpeed}>
                     <span className='animation__speed-label'>NORMAL SPEED</span>
                     <span className={classNames('animation__speed-switch', {'animation__speed-switch--turbo': !normalSpeed})}>
                         <span />
@@ -257,7 +258,6 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
                     <span className='animation__transactions-chevron' aria-hidden='true'>⌃</span>
                     <span>Open transaction</span>
                 </button>
-            </div>
         </div>
     );
 });
