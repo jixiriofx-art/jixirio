@@ -113,7 +113,7 @@
     }
 }
 
-/* Floating white DBot toolbar, shared across mobile and desktop. */
+/* Compact floating pill toolbar: stays clear of the bottom Run controls. */
 #scratch_div .toolbar__wrapper {
     position: absolute;
     top: 50%;
@@ -121,16 +121,17 @@
     right: auto;
     z-index: 30;
     width: 52px;
-    max-height: calc(100% - 32px);
+    height: auto;
+    max-height: min(360px, calc(100% - 160px));
     overflow-y: auto;
     overflow-x: hidden;
     transform: translateY(-50%);
     box-sizing: border-box;
-    padding: 10px 0;
+    padding: 8px 0;
     border: 1px solid #f1f5f9;
-    border-radius: 12px;
+    border-radius: 9999px;
     background: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.22), 0 5px 18px rgba(0, 0, 0, 0.16);
     scrollbar-width: none;
 }
 
@@ -144,7 +145,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 2px;
     width: 100%;
     height: auto;
     padding: 0;
@@ -164,7 +165,7 @@
     align-items: center;
     justify-content: center;
     width: 48px;
-    height: 46px;
+    height: 38px;
     margin: 0;
     color: #374151 !important;
     fill: none !important;
@@ -189,10 +190,10 @@
 #scratch_div .toolbar__group-btn .vertical-divider,
 #scratch_div .toolbar__group-btn > .vertical-divider {
     display: block;
-    width: 28px;
+    width: 24px;
     height: 1px;
     min-height: 1px;
-    margin: 7px auto;
+    margin: 4px auto;
     background: #e5e7eb;
 }
 
@@ -210,12 +211,13 @@
     #scratch_div .toolbar__wrapper {
         left: 8px;
         width: 48px;
-        max-height: calc(100% - 24px);
+        max-height: min(320px, calc(100% - 150px));
+        padding: 7px 0;
     }
 
     #scratch_div .toolbar__group-btn .toolbar__icon {
         width: 44px;
-        height: 42px;
+        height: 36px;
     }
 
     .blocklyFlyout {
