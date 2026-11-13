@@ -236,27 +236,27 @@
 }
 
 
-/* Taller, easier-to-use floating Blockly toolbar, aligned with the workspace blocks. */
+/* Match the reference: toolbar is contained within the Blockly canvas, never over page controls. */
 @include mobile-or-tablet-screen {
     #scratch_div .toolbar__wrapper {
         position: absolute;
-        top: 0.5rem;
+        top: 7rem;
         bottom: 5.5rem;
         left: 0.5rem;
         right: auto;
         z-index: 30;
-        width: 3.6rem;
+        width: 3.1rem;
         height: auto;
         max-height: none;
         overflow-x: hidden;
         overflow-y: auto;
         transform: none;
         box-sizing: border-box;
-        padding: 0.65rem 0;
-        border: 1px solid var(--border-normal);
+        padding: 0.45rem 0;
+        border: 1px solid #e5e7eb;
         border-radius: 9999px;
-        background: var(--general-section-1);
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.24), 0 6px 20px rgba(0, 0, 0, 0.2);
+        background: #ffffff;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.22), 0 5px 18px rgba(0, 0, 0, 0.18);
         scrollbar-width: none;
     }
 
@@ -265,19 +265,27 @@
     }
 
     #scratch_div .toolbar__group-btn {
-        gap: 0.15rem;
-        padding: 0.1rem 0;
+        gap: 0.1rem;
+        padding: 0;
         background: transparent;
     }
 
     #scratch_div .toolbar__group-btn .toolbar__icon {
-        width: 3.3rem;
-        height: 3rem;
+        width: 2.85rem;
+        height: 2.8rem;
         margin: 0;
+        color: #374151 !important;
+    }
+
+    #scratch_div .toolbar__group-btn .toolbar__icon svg,
+    #scratch_div .toolbar__group-btn .toolbar__icon svg * {
+        color: #374151 !important;
+        fill: none !important;
+        stroke: currentColor !important;
     }
 
     #scratch_div .toolbar__group-btn .vertical-divider {
-        width: 1.9rem;
-        margin: 0.35rem 0;
+        width: 1.7rem;
+        margin: 0.25rem 0;
     }
 }
