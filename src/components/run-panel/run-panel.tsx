@@ -344,7 +344,7 @@ const RunPanel = observer(() => {
     );
 
     const show_run_panel = [BOT_BUILDER, CHART].includes(active_tab) || active_tour;
-    if ((!show_run_panel && isDesktop) || active_tour === 'bot_builder') return null;
+    if (!show_run_panel || active_tour === 'bot_builder') return null;
 
     return (
         <>
