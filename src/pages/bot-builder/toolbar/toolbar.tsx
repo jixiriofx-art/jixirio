@@ -23,6 +23,8 @@ const Toolbar = observer(() => {
         /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
         /* [/AI] */
     };
+    if (!isDesktop && is_drawer_open) return null;
+
     return (
         <React.Fragment>
             <div className='toolbar dashboard__toolbar' data-testid='dt_dashboard_toolbar'>
