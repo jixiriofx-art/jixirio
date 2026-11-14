@@ -1085,3 +1085,51 @@
         z-index: 1;
     }
 }
+
+
+/* FINAL MOBILE RESULTS HEADER OVERRIDE
+   Pull Summary / Transactions / Journal directly toward Reset.
+   Keep a compact 32px Reset row followed by a 40px tab row. */
+@media screen and (max-width: 1024px) {
+    body .run-panel__container--mobile .dc-drawer__container > .dc-drawer__header {
+        box-sizing: border-box !important;
+        flex: 0 0 2rem !important;
+        height: 2rem !important;
+        min-height: 2rem !important;
+        max-height: 2rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    body .run-panel__container--mobile .dc-drawer__header .run-panel__mobile-header {
+        box-sizing: border-box !important;
+        height: 2rem !important;
+        min-height: 2rem !important;
+        max-height: 2rem !important;
+        padding: 0 1.6rem !important;
+        margin: 0 !important;
+    }
+
+    body .run-panel__container--mobile .dc-tabs--run-panel-mobile-tabs {
+        grid-template-rows: 2.5rem minmax(0, 1fr) !important;
+    }
+
+    body .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs {
+        box-sizing: border-box !important;
+        flex: 0 0 2.5rem !important;
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        max-height: 2.5rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    body .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
+        box-sizing: border-box !important;
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        max-height: 2.5rem !important;
+        padding: 0 1rem !important;
+    }
+}
