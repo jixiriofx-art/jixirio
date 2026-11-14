@@ -29,25 +29,40 @@
     }
 }
 
-
-/* Keep the Blockly tool rail inside the builder only.
-   When the mobile results drawer is open, it must not cover the tabs or results. */
+/* Results drawer should never show the Blockly tool rail over its content.
+   The rail remains available whenever the user returns to the builder. */
 @media screen and (max-width: 1024px) {
-    body:has(.run-panel__container--mobile) #scratch_div .toolbar__wrapper {
+    body:has(.run-panel__container--mobile) .toolbar__wrapper {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
     }
 
-    /* Match DBTraders: Reset row sits directly above the three result tabs. */
+    /* Tighten the Reset/chevron row and tabs to match the supplied DBTraders reference. */
     .run-panel__container--mobile .dc-drawer__header {
-        flex: 0 0 5rem !important;
-        height: 5rem !important;
-        min-height: 5rem !important;
+        flex: 0 0 4rem !important;
+        height: 4rem !important;
+        min-height: 4rem !important;
+        padding: 0 !important;
     }
 
     .run-panel__container--mobile .run-panel__mobile-header {
-        min-height: 5rem !important;
-        height: 5rem !important;
+        min-height: 4rem !important;
+        height: 4rem !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs--run-panel-mobile-tabs {
+        grid-template-rows: 4.5rem minmax(0, 1fr) !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs {
+        flex-basis: 4.5rem !important;
+        height: 4.5rem !important;
+        min-height: 4.5rem !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
+        height: 4.5rem !important;
+        min-height: 4.5rem !important;
     }
 }
