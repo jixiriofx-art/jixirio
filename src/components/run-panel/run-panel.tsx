@@ -18,6 +18,7 @@ import { useStore } from '@/hooks/useStore';
 import { Localize, localize } from '@deriv-com/translations';
 import { useDevice } from '@deriv-com/ui';
 import ThemedScrollbars from '../shared_ui/themed-scrollbars';
+import './mobile-reference-fixes.scss';
 
 type TStatisticsTile = {
     content: React.ElementType | string;
