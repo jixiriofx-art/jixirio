@@ -6,6 +6,19 @@
 .run-panel {
     height: 0;
 
+    /* Hide the mobile drawer grab-handle above the fixed Run/Speed/Transactions bar. */
+    .dc-drawer__toggle {
+        @include mobile-or-tablet-screen {
+            display: none !important;
+        }
+    }
+
+    .dc-drawer__container {
+        @include mobile-or-tablet-screen {
+            height: 100% !important;
+        }
+    }
+
     &__container {
         height: var(--bot-content-height) !important;
         top: 10.4rem !important;
@@ -520,106 +533,555 @@
     }
 }
 
-/* Jixirio mobile run-panel layout: match the approved DBTraders reference.
-   Keep the tab bar at the top, the summary workspace in the middle, and
-   the statistics grid directly above the fixed execution controls. */
-@include mobile-or-tablet-screen {
-    .run-panel__container--mobile {
-        position: fixed;
-        inset: 0 0 8.2rem;
-        width: 100vw;
-        height: auto;
+
+/* Compact, fixed three-part DBot execution bar for phones. */
+.controls__section--dbot {
+    display: block;
+    height: 62px;
+    min-height: 62px;
+    padding: 0;
+    border-top: 1px solid #dbe2e8;
+    background: #fff;
+    z-index: 120;
+    box-sizing: border-box;
+
+    .dbot-controls {
+        display: grid;
+        grid-template-columns: 21% 44% 35%;
+        width: 100%;
+        height: 56px;
+        min-height: 56px;
         padding: 0;
-        z-index: var(--zindex-drawer);
+        margin: 0;
+        align-items: stretch;
+        box-sizing: border-box;
 
-        .dc-drawer__container {
-            height: calc(100% - 3.6rem);
-            min-height: 0;
-        }
-
-        .dc-drawer__content.run-panel__content {
-            display: flex;
-            flex: 1 1 auto;
-            flex-direction: column;
-            justify-content: stretch;
-            min-height: 0;
-            overflow: hidden !important;
-        }
-
-        .dc-tabs {
-            display: grid;
-            flex: 1 1 auto;
-            grid-template-rows: auto minmax(0, 1fr);
-            min-height: 0;
-            width: 100%;
-        }
-
-        .dc-tabs__list {
-            display: flex;
-            width: 100%;
+        &__run {
             min-width: 0;
-            justify-content: stretch;
+            height: 56px;
             overflow: hidden;
+            background: #2bbbad;
+
+            .animation__wrapper,
+            .controls__animation {
+                display: flex;
+                flex: 1 1 100%;
+                width: 100%;
+                min-width: 0;
+                height: 56px;
+                margin: 0;
+                padding: 0;
+                background: #2bbbad;
+            }
+
+            .animation__run-button,
+            .animation__stop-button {
+                display: flex;
+                flex: 1 1 100% !important;
+                align-items: center;
+                justify-content: center;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0;
+                height: 56px !important;
+                padding: 0 6px !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: #2bbbad !important;
+                color: #fff !important;
+                font-size: 15px;
+                font-weight: 800;
+                white-space: nowrap;
+            }
+
+            .animation__stop-button {
+                background: #ef4444 !important;
+            }
+
+            .animation__container {
+                display: none;
+            }
+
+            .animation__overlay {
+                display: none;
+            }
         }
 
-        .dc-tabs__item {
-            flex: 1 1 33.333%;
-            width: 33.333% !important;
-            min-width: 0;
-            min-height: 6.2rem;
-            padding: 0.7rem 0.3rem !important;
-            font-size: 1.6rem;
-        }
-
-        .dc-tabs__active-line {
-            background: #8b45f7;
-        }
-
-        .run-panel-tab__content--mobile {
-            position: relative;
-            inset: auto;
+        &__speed {
             display: flex;
-            flex: 1 1 auto;
-            height: 100%;
-            min-height: 0;
-            width: 100%;
-            padding: 0.4rem 0;
-        }
-
-        .summary {
-            height: 100%;
-            min-height: 0;
-        }
-
-        .run-panel__stat--mobile {
-            position: relative;
-            inset: auto;
-            flex: 0 0 auto;
-            width: 100%;
-            bottom: auto;
-            background-color: var(--general-section-2);
-        }
-
-        .run-panel__stat--info {
-            justify-content: flex-end;
-            width: 100%;
-            padding: 1.2rem 1.6rem 0.2rem;
-        }
-
-        .run-panel__stat--tiles {
-            grid-template: 6.4rem 6.4rem / repeat(3, minmax(0, 1fr));
-        }
-
-        .run-panel__tile {
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
             min-width: 0;
-            padding: 0 0.2rem;
+            padding: 0 12px;
+            border: 0;
+            border-right: 1px solid #e5e7eb;
+            border-radius: 0;
+            background: #fdf8e4;
+            color: #1e293b;
+            font-size: clamp(9px, 2.5vw, 12px);
+            font-weight: 800;
+            line-height: 1.15;
+            cursor: pointer;
+
+            > span:first-child {
+                min-width: 0;
+                text-align: left;
+                white-space: nowrap;
+            }
         }
 
-        .run-panel__tile-title,
-        .run-panel__tile-content {
-            max-width: 100%;
-            white-space: nowrap;
-            font-size: 1.35rem;
+        &__switch {
+            display: inline-flex;
+            align-items: center;
+            flex: 0 0 35px;
+            width: 35px;
+            height: 14px;
+            padding: 1.5px;
+            margin-left: auto;
+            border-radius: 999px;
+            background: #e2e8f0;
+            box-sizing: border-box;
+
+            > span {
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: #d49b1a;
+                transition: transform 160ms ease;
+            }
         }
+
+        &__speed--fast .dbot-controls__switch {
+            background: #cbd5e1;
+
+            > span {
+                transform: translateX(21px);
+                background: #0f766e;
+            }
+        }
+
+        &__transactions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            min-width: 0;
+            padding: 2px 4px;
+            border: 0;
+            border-radius: 0;
+            background: #fff;
+            color: #111827;
+            cursor: pointer;
+
+            strong {
+                max-width: 100%;
+                overflow: hidden;
+                font-size: clamp(10px, 2.8vw, 13px);
+                line-height: 1.15;
+                text-align: center;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        &__chevron {
+            height: 19px;
+            font-size: 25px;
+            font-weight: 400;
+            line-height: 18px;
+        }
+
+        &__bottom-accent {
+            width: 100%;
+            height: 6px;
+            background: #ff4d4f;
+        }
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .controls__section--dbot .dbot-controls {
+        grid-template-columns: 27% 39% 34%;
+
+        &__speed {
+            gap: 4px;
+            padding: 0 3px;
+            font-size: 9px;
+        }
+
+        &__switch {
+            flex-basis: 29px;
+            width: 29px;
+        }
+
+        &__speed--fast .dbot-controls__switch > span {
+            transform: translateX(9px);
+        }
+    }
+}
+
+
+/* Mobile run-panel: reproduce DBTraders' header, tabs, workspace and stats order. */
+@include mobile-or-tablet-screen {
+    .run-panel__content {
+        display: flex !important;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden !important;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout > .dc-tabs--run-panel-mobile-tabs {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        background: #101010;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs {
+        display: flex !important;
+        flex: 0 0 62px;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 62px;
+        overflow: hidden !important;
+        background: #0d0d0d;
+        border-bottom: 2px solid #171717;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs .dc-themed-scrollbars-wrapper {
+        display: flex !important;
+        flex: 1 1 100%;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
+        display: flex !important;
+        flex: 1 1 0 !important;
+        justify-content: center;
+        min-width: 0 !important;
+        height: 62px !important;
+        padding: 0 4px !important;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__active-line--top {
+        height: 3px;
+        background: #7c3aed;
+        bottom: -2px;
+    }
+
+    .run-panel__mobile-layout .dc-tabs__content--run-panel-mobile-tabs {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        min-height: 0;
+        overflow: auto;
+        background: linear-gradient(180deg, #101010 0%, #141414 100%);
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--mobile {
+        display: block;
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 18px 16px 22px;
+        box-sizing: border-box;
+        background: #0d0d0d;
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--info {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 14px;
+    }
+
+    .run-panel__mobile-layout .run-panel__stat--tiles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 8px;
+        row-gap: 28px;
+        width: 100%;
+    }
+}
+
+
+/* DBTraders reference: full-height tab workspace with a distinct statistics footer. */
+@include mobile-or-tablet-screen {
+    /* The drawer itself occupies the available area above the fixed execution dock. */
+    .run-panel__container--mobile {
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 8.8rem !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        z-index: var(--zindex-drawer);
+        box-sizing: border-box;
+    }
+
+    .run-panel__container--mobile .dc-drawer {
+        position: absolute !important;
+        inset: 0 !important;
+        display: flex !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        transform: none !important;
+        background: #101010 !important;
+    }
+
+    .run-panel__container--mobile .dc-drawer__toggle {
+        display: none !important;
+    }
+
+    .run-panel__container--mobile .dc-drawer__container {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .run-panel__container--mobile .dc-drawer__header {
+        flex: 0 0 6.4rem !important;
+        height: 6.4rem !important;
+        min-height: 6.4rem !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: #101010 !important;
+    }
+
+    .run-panel__container--mobile .run-panel__content {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        background: #101010 !important;
+    }
+
+    .run-panel__container--mobile .run-panel__mobile-layout {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        background: #101010 !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs--run-panel-mobile-tabs {
+        display: grid !important;
+        flex: 1 1 auto !important;
+        grid-template-rows: 6.2rem minmax(0, 1fr) !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        background: #101010 !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs {
+        display: flex !important;
+        flex: 0 0 6.2rem !important;
+        width: 100% !important;
+        height: 6.2rem !important;
+        min-height: 6.2rem !important;
+        overflow: hidden !important;
+        border-top: 1px solid #191919;
+        border-bottom: 2px solid #191919 !important;
+        background: #0d0d0d !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs .dc-themed-scrollbars-wrapper {
+        display: flex !important;
+        flex: 1 1 100% !important;
+        justify-content: space-around !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
+        display: flex !important;
+        flex: 1 1 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 33.333% !important;
+        min-width: 0 !important;
+        height: 6.2rem !important;
+        min-height: 6.2rem !important;
+        padding: 0 0.4rem !important;
+        font-size: 1.6rem !important;
+        white-space: nowrap !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__active-line--top {
+        height: 3px !important;
+        background: #7c3aed !important;
+        bottom: -2px !important;
+    }
+
+    .run-panel__container--mobile .dc-tabs__content--run-panel-mobile-tabs {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+        background: linear-gradient(180deg, #101010 0%, #141414 100%) !important;
+    }
+
+    /* Summary / Transactions / Journal content stays in the large central workspace. */
+    .run-panel__container--mobile .run-panel-tab__content--mobile {
+        position: relative !important;
+        inset: auto !important;
+        display: flex !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        overflow: auto !important;
+    }
+
+    /* Stats are a separate bottom section, never fixed over the tab workspace. */
+    .run-panel__container--mobile .run-panel__stat--mobile {
+        position: relative !important;
+        inset: auto !important;
+        display: flex !important;
+        flex: 0 0 auto !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 18rem !important;
+        margin: 0 !important;
+        padding: 0 1.6rem 1.4rem !important;
+        box-sizing: border-box !important;
+        background: #0d0d0d !important;
+    }
+
+    .run-panel__container--mobile .run-panel__stat--info {
+        display: flex !important;
+        justify-content: flex-end !important;
+        width: 100% !important;
+        padding: 1.2rem 0 0.8rem !important;
+    }
+
+    .run-panel__container--mobile .run-panel__stat--tiles {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        grid-template-rows: repeat(2, minmax(5.6rem, auto)) !important;
+        width: 100% !important;
+        row-gap: 1.6rem !important;
+        column-gap: 0.4rem !important;
+    }
+
+    .run-panel__container--mobile .run-panel__tile {
+        min-width: 0 !important;
+        height: auto !important;
+        text-align: center !important;
+    }
+
+    .run-panel__container--mobile .run-panel__tile-title,
+    .run-panel__container--mobile .run-panel__tile-content {
+        text-align: center !important;
+        white-space: normal !important;
+    }
+
+    .run-panel__container--mobile .run-panel__tile-title {
+        min-height: 2.2rem !important;
+        font-size: 1.35rem !important;
+    }
+
+    .run-panel__container--mobile .run-panel__tile-content {
+        height: auto !important;
+        font-size: 1.35rem !important;
+    }
+}
+
+
+/* Compact mobile drawer chevron: preserve the existing header dimensions and layout. */
+@include mobile-or-tablet-screen {
+    .run-panel__container--mobile .run-panel__mobile-header {
+        position: relative;
+    }
+
+    .run-panel__container--mobile .run-panel__mobile-back {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 4.4rem !important;
+        height: 4rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: translate(-50%, -50%) !important;
+        border: 0 !important;
+        background: transparent !important;
+        color: #f5f5f5 !important;
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: transparent;
+        z-index: 2;
+    }
+
+    .run-panel__container--mobile .run-panel__mobile-back-chevron {
+        display: block !important;
+        width: 1.8rem !important;
+        height: 1.1rem !important;
+        overflow: visible;
+    }
+
+    .run-panel__container--mobile .run-panel__mobile-back-chevron path {
+        fill: none !important;
+        stroke: currentColor !important;
+        stroke-width: 2 !important;
+        stroke-linecap: round !important;
+        stroke-linejoin: round !important;
+    }
+
+    .run-panel__container--mobile .run-panel__clear-button {
+        position: absolute !important;
+        top: 50% !important;
+        right: 1.6rem !important;
+        margin: 0 !important;
+        transform: translateY(-50%) !important;
+        z-index: 1;
     }
 }

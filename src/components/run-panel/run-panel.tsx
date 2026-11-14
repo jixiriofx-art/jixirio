@@ -41,12 +41,15 @@ type TDrawerHeader = {
     is_mobile: boolean;
     is_drawer_open: boolean;
     onClearStatClick: () => void;
+    toggleDrawer: (is_open: boolean) => void;
 };
 
 type TDrawerContent = {
     active_index: number;
     is_drawer_open: boolean;
     active_tour: string;
+    is_mobile: boolean;
+    toggleDrawer: (is_open: boolean) => void;
     setActiveTabIndex: () => void;
 };
 
@@ -116,20 +119,32 @@ export const StatisticsSummary = ({
     </div>
 );
 
-const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onClearStatClick }: TDrawerHeader) =>
+const DrawerHeader = ({ is_clear_stat_disabled, is_mobile, is_drawer_open, onClearStatClick, toggleDrawer }: TDrawerHeader) =>
     is_mobile &&
     is_drawer_open && (
-        <Button
-            id='db-run-panel__clear-button'
-            className='run-panel__clear-button'
-            disabled={is_clear_stat_disabled}
-            text={localize('Reset')}
-            onClick={onClearStatClick}
-            secondary
-        />
+        <div className='run-panel__mobile-header'>
+            <button
+                type='button'
+                className='run-panel__mobile-back'
+                onClick={() => toggleDrawer(false)}
+                aria-label='Back to Bot Builder'
+            >
+                <svg className='run-panel__mobile-back-chevron' viewBox='0 0 56 40' aria-hidden='true' focusable='false'>
+                    <path d='M5 8 L28 30 L51 8' />
+                </svg>
+            </button>
+            <Button
+                id='db-run-panel__clear-button'
+                className='run-panel__clear-button'
+                disabled={is_clear_stat_disabled}
+                text={localize('Reset')}
+                onClick={onClearStatClick}
+                secondary
+            />
+        </div>
     );
 
-const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTabIndex, ...props }: TDrawerContent) => {
+const DrawerContent = ({ active_index, is_drawer_open, active_tour, is_mobile, toggleDrawer, setActiveTabIndex, ...props }: TDrawerContent) => {
     const { isDesktop } = useDevice();
     // Use the useBlockScroll hook to prevent body scrolling when drawer is open on mobile
 
@@ -146,8 +161,8 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
     }, [is_drawer_open, isDesktop]);
 
     return (
-        <>
-            <Tabs active_index={active_index} onTabItemClick={setActiveTabIndex} top>
+        <div className='run-panel__mobile-layout'>
+            <Tabs className='run-panel-mobile-tabs' active_index={active_index} onTabItemClick={setActiveTabIndex} top>
                 <div id='db-run-panel-tab__summary' label={<Localize i18n_default_text='Summary' />}>
                     <Summary is_drawer_open={is_drawer_open} />
                 </div>
@@ -158,8 +173,10 @@ const DrawerContent = ({ active_index, is_drawer_open, active_tour, setActiveTab
                     <Journal />
                 </div>
             </Tabs>
-            {((is_drawer_open && active_index !== 2) || active_tour) && <StatisticsSummary {...props} />}
-        </>
+            {((is_drawer_open && active_index !== 2) || active_tour) && (
+                <StatisticsSummary {...props} is_mobile={!isDesktop} />
+            )}
+        </div>
     );
 };
 
@@ -180,12 +197,45 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
     </div>
 );
 
-const MobileDrawerFooter = () => {
+const MobileDrawerFooter = ({ toggleDrawer }: { toggleDrawer: (is_open: boolean) => void }) => {
+    const [is_fast_speed, setIsFastSpeed] = React.useState(Boolean(window.JixirioTurboSpeed));
+
+    const toggleSpeed = () => {
+        const next_speed = !is_fast_speed;
+        setIsFastSpeed(next_speed);
+        // The trade-engine sleep interface reads this flag for artificial waits only.
+        window.JixirioTurboSpeed = next_speed;
+    };
+
     return (
-        <div className='controls__section'>
-            <div className='controls__buttons'>
-                <TradeAnimation className='controls__animation' should_show_overlay />
+        <div className='controls__section controls__section--dbot'>
+            <div className='dbot-controls'>
+                <div className='dbot-controls__run'>
+                    <TradeAnimation className='controls__animation' should_show_overlay />
+                </div>
+                <button
+                    type='button'
+                    className={`dbot-controls__speed ${is_fast_speed ? 'dbot-controls__speed--fast' : ''}`}
+                    onClick={toggleSpeed}
+                    aria-pressed={is_fast_speed}
+                    aria-label='Toggle execution speed'
+                >
+                    <span>{is_fast_speed ? 'TURBO / FAST SPEED' : 'NORMAL SPEED'}</span>
+                    <span className='dbot-controls__switch' aria-hidden='true'>
+                        <span />
+                    </span>
+                </button>
+                <button
+                    type='button'
+                    className='dbot-controls__transactions'
+                    onClick={() => toggleDrawer(true)}
+                    aria-label='Open transactions'
+                >
+                    <span className='dbot-controls__transactions-arrow' aria-hidden='true'>⌃</span>
+                    <strong>Open transaction</strong>
+                </button>
             </div>
+            <div className='dbot-controls__bottom-accent' />
         </div>
     );
 };
@@ -288,6 +338,7 @@ const RunPanel = observer(() => {
             currency={currency}
             is_drawer_open={is_drawer_open}
             is_mobile={!isDesktop}
+            toggleDrawer={toggleDrawer}
             lost_contracts={lost_contracts}
             number_of_runs={number_of_runs}
             setActiveTabIndex={setActiveTabIndex}
@@ -308,11 +359,12 @@ const RunPanel = observer(() => {
             is_mobile={!isDesktop}
             is_drawer_open={is_drawer_open}
             onClearStatClick={onClearStatClick}
+            toggleDrawer={toggleDrawer}
         />
     );
 
     const show_run_panel = [BOT_BUILDER, CHART].includes(active_tab) || active_tour;
-    if ((!show_run_panel && isDesktop) || active_tour === 'bot_builder') return null;
+    if (!show_run_panel || active_tour === 'bot_builder') return null;
 
     return (
         <>
@@ -333,7 +385,7 @@ const RunPanel = observer(() => {
                 >
                     {content}
                 </Drawer>
-                {!isDesktop && <MobileDrawerFooter />}
+                {!isDesktop && <MobileDrawerFooter toggleDrawer={toggleDrawer} />}
             </div>
 
             <StatisticsInfoModal
