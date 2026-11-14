@@ -1,0 +1,30 @@
+@use 'components/shared/styles/mixins' as *;
+
+/* Match the DBTraders mobile run-panel header: keep the chevron and Reset
+   fully visible in a dedicated row immediately above Summary/Transactions/Journal. */
+@include mobile-or-tablet-screen {
+    .run-panel__container--mobile .run-panel__mobile-header {
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: 100% !important;
+        min-height: 5.6rem !important;
+        height: 5.6rem !important;
+        padding: 0 1.6rem !important;
+        overflow: visible !important;
+    }
+
+    .run-panel__container--mobile .run-panel__clear-button {
+        top: 50% !important;
+        right: 1.6rem !important;
+        margin: 0 !important;
+        transform: translateY(-50%) !important;
+        z-index: 3 !important;
+    }
+
+    .run-panel__container--mobile .run-panel__mobile-back {
+        top: 50% !important;
+        z-index: 3 !important;
+    }
+}
