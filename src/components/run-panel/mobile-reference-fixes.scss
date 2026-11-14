@@ -1,7 +1,6 @@
 @use 'components/shared/styles/mixins' as *;
 
-/* Match the DBTraders mobile run-panel header: keep the chevron and Reset
-   fully visible in a dedicated row immediately above Summary/Transactions/Journal. */
+/* Keep the mobile Reset/chevron row compact and aligned above the result tabs. */
 @include mobile-or-tablet-screen {
     .run-panel__container--mobile .run-panel__mobile-header {
         box-sizing: border-box !important;
@@ -29,8 +28,7 @@
     }
 }
 
-/* Results drawer should never show the Blockly tool rail over its content.
-   The rail remains available whenever the user returns to the builder. */
+/* Hide the Blockly tool rail over mobile results; it remains available in the builder. */
 @media screen and (max-width: 1024px) {
     body:has(.run-panel__container--mobile) .toolbar__wrapper {
         display: none !important;
@@ -38,31 +36,39 @@
         pointer-events: none !important;
     }
 
-    /* Tighten the Reset/chevron row and tabs to match the supplied DBTraders reference. */
+    /* Target: roughly 42–46 CSS px from Reset's bottom edge to the tab divider.
+       A 32px header plus a 40px tab row gives approximately that distance. */
     .run-panel__container--mobile .dc-drawer__header {
-        flex: 0 0 4rem !important;
-        height: 4rem !important;
-        min-height: 4rem !important;
+        box-sizing: border-box !important;
+        flex: 0 0 2rem !important;
+        height: 2rem !important;
+        min-height: 2rem !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
 
     .run-panel__container--mobile .run-panel__mobile-header {
-        min-height: 4rem !important;
-        height: 4rem !important;
+        min-height: 2rem !important;
+        height: 2rem !important;
     }
 
     .run-panel__container--mobile .dc-tabs--run-panel-mobile-tabs {
-        grid-template-rows: 4.5rem minmax(0, 1fr) !important;
+        grid-template-rows: 2.5rem minmax(0, 1fr) !important;
     }
 
     .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs {
-        flex-basis: 4.5rem !important;
-        height: 4.5rem !important;
-        min-height: 4.5rem !important;
+        box-sizing: border-box !important;
+        flex-basis: 2.5rem !important;
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     .run-panel__container--mobile .dc-tabs__list--run-panel-mobile-tabs .dc-tabs__item {
-        height: 4.5rem !important;
-        min-height: 4.5rem !important;
+        box-sizing: border-box !important;
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0.5rem 1rem !important;
     }
 }
