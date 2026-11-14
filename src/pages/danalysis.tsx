@@ -77,9 +77,55 @@ const Danalysis = observer(() => {
     const underCount = (barrier: number) =>
         counts.slice(0, barrier).reduce((sum, count) => sum + count, 0);
 
-    const hottest = total > 0 ? counts.indexOf(Math.max(...counts)) : null;
-    const coldest = total > 0 ? counts.indexOf(Math.min(...counts)) : null;
+    const rankedDigits = counts
+        .map((count, digit) => ({ digit, count, percentage: total > 0 ? (count / total) * 100 : 0 }))
+        .sort((a, b) => b.count - a.count || a.digit - b.digit);
+    const hottest = total > 0 ? rankedDigits[0].digit : null;
+    const secondHottest = total > 0 ? rankedDigits[1].digit : null;
+    const coldest = total > 0 ? rankedDigits[9].digit : null;
+    const secondColdest = total > 0 ? rankedDigits[8].digit : null;
     const lastDigit = digits.length > 0 ? digits[digits.length - 1] : null;
+
+    const getDigitRank = (digit: number) => {
+        if (total === 0) return 'neutral';
+        if (digit === hottest) return 'highest';
+        if (digit === secondHottest) return 'second-highest';
+        if (digit === coldest) return 'lowest';
+        if (digit === secondColdest) return 'second-lowest';
+        return 'neutral';
+    };
+
+    const digitRankStyles: Record<string, React.CSSProperties> = {
+        highest: {
+            background: 'linear-gradient(145deg, rgba(0, 230, 118, 0.24), rgba(0, 230, 118, 0.08))',
+            border: '2px solid #00e676',
+            color: '#5dffa9',
+            boxShadow: '0 0 16px rgba(0, 230, 118, 0.16)',
+        },
+        'second-highest': {
+            background: 'linear-gradient(145deg, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.07))',
+            border: '2px solid #38bdf8',
+            color: '#7dd3fc',
+            boxShadow: '0 0 14px rgba(56, 189, 248, 0.13)',
+        },
+        lowest: {
+            background: 'linear-gradient(145deg, rgba(248, 75, 85, 0.22), rgba(248, 75, 85, 0.07))',
+            border: '2px solid #f84b55',
+            color: '#ff8b91',
+            boxShadow: '0 0 14px rgba(248, 75, 85, 0.13)',
+        },
+        'second-lowest': {
+            background: 'linear-gradient(145deg, rgba(255, 171, 64, 0.22), rgba(255, 171, 64, 0.07))',
+            border: '2px solid #ffab40',
+            color: '#ffd08a',
+            boxShadow: '0 0 14px rgba(255, 171, 64, 0.12)',
+        },
+        neutral: {
+            background: 'rgba(255, 255, 255, 0.035)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            color: 'var(--text-general)',
+        },
+    };
 
     const panel: React.CSSProperties = {
         padding: '14px',
@@ -207,24 +253,105 @@ const Danalysis = observer(() => {
 
             <div style={{ ...panel, marginBottom: '14px' }}>
                 <h3 style={heading}>Digit frequency</h3>
+                <p style={{ fontSize: '12px', opacity: 0.7, marginTop: '-4px', marginBottom: '14px' }}>
+                    Live percentage share for each digit in the selected tick sample.
+                </p>
+
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-                    gap: '7px',
+                    gap: '12px 8px',
                 }}>
-                    {counts.map((count, digit) => (
-                        <div key={digit} style={{
-                            textAlign: 'center',
-                            padding: '9px 2px',
-                            borderRadius: '8px',
-                            background: 'var(--general-main-1)',
+                    {counts.map((count, digit) => {
+                        const rank = getDigitRank(digit);
+                        const rankLabel = {
+                            highest: 'HIGHEST',
+                            'second-highest': '2ND HIGH',
+                            lowest: 'LOWEST',
+                            'second-lowest': '2ND LOW',
+                            neutral: '',
+                        }[rank];
+
+                        return (
+                            <div key={digit} style={{
+                                minWidth: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '5px',
+                            }}>
+                                <div style={{
+                                    width: 'clamp(48px, 13vw, 72px)',
+                                    height: 'clamp(48px, 13vw, 72px)',
+                                    borderRadius: '50%',
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '1px',
+                                    ...digitRankStyles[rank],
+                                }}>
+                                    <strong style={{ fontSize: '20px', lineHeight: 1.1 }}>{digit}</strong>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, lineHeight: 1.2 }}>
+                                        {percentage(count)}
+                                    </span>
+                                </div>
+                                <small style={{
+                                    minHeight: '12px',
+                                    fontSize: '8px',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.035em',
+                                    textAlign: 'center',
+                                    color: rank === 'neutral' ? 'var(--text-less-prominent)' : digitRankStyles[rank].color,
+                                }}>
+                                    {rankLabel || '\u00a0'}
+                                </small>
+                                <small style={{ fontSize: '10px', opacity: 0.6 }}>
+                                    {count} ticks
+                                </small>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '9px 14px',
+                    marginTop: '14px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid var(--border-normal)',
+                }}>
+                    {[
+                        ['#00e676', 'Highest'],
+                        ['#38bdf8', '2nd highest'],
+                        ['#f84b55', 'Lowest'],
+                        ['#ffab40', '2nd lowest'],
+                    ].map(([color, label]) => (
+                        <span key={label} style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            fontSize: '10px',
+                            color: 'var(--text-less-prominent)',
                         }}>
-                            <strong style={{ fontSize: '18px' }}>{digit}</strong>
-                            <div style={{ fontSize: '12px' }}>{count} times</div>
-                            <small style={{ opacity: 0.7 }}>{percentage(count)}</small>
-                        </div>
+                            <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: color,
+                                display: 'inline-block',
+                            }} />
+                            {label}
+                        </span>
                     ))}
                 </div>
+                {total === 0 && (
+                    <p style={{ marginBottom: 0, fontSize: '12px', opacity: 0.65 }}>
+                        Circles will show live percentages once market ticks arrive.
+                    </p>
+                )}
             </div>
 
             <div style={{ ...panel, marginBottom: '14px' }}>
