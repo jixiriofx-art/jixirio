@@ -86,7 +86,7 @@ const Danalysis = observer(() => {
     const secondColdest = total > 0 ? rankedDigits[8].digit : null;
     const lastDigit = digits.length > 0 ? digits[digits.length - 1] : null;
 
-    const getDigitRank = (digit: number) => {
+    const getDigitRank = (digit: number): 'highest' | 'second-highest' | 'lowest' | 'second-lowest' | 'neutral' => {
         if (total === 0) return 'neutral';
         if (digit === hottest) return 'highest';
         if (digit === secondHottest) return 'second-highest';
