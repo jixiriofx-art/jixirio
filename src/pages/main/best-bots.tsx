@@ -8,7 +8,7 @@ type Bot = {
     number: number;
     name: string;
     description: string;
-    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55' | 'PARITY_PULSE' | 'TRICYCLE_OVER_012';
+    strategy: 'MARTINGALE' | 'EVEN_MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55' | 'PARITY_PULSE' | 'TRICYCLE_OVER_012';
     comingSoon?: boolean;
 };
 
@@ -22,34 +22,41 @@ const bots: Bot[] = [
     },
     {
         number: 2,
+        name: 'Jixirio Even Martingale Pro',
+        description:
+            '1HZ25V Even-only one-tick strategy with $10 starting stake, 2× Martingale, $100 take-profit and a five-loss session limit.',
+        strategy: 'EVEN_MARTINGALE',
+    },
+    {
+        number: 3,
         name: 'Jixirio D’Alembert Strategy Bot',
         description:
             'D’Alembert strategy with configurable market, contract, stake and risk controls.',
         strategy: 'D_ALEMBERT',
     },
     {
-        number: 3,
+        number: 4,
         name: 'Jixirio Viper 5.5 Pro',
         description:
             '1HZ100V Digit Over 1 strategy with 5.5× recovery, a three-loss recovery-cycle limit, $5 take-profit and $15 session stop-loss.',
         strategy: 'VIPER_55',
     },
     {
-        number: 4,
+        number: 5,
         name: 'Jixirio Parity Pulse Switcher',
         description:
             '1HZ100V one-tick Even/Odd alternator with 2.1× recovery, a five-loss recovery-cycle reset and $5 take-profit.',
         strategy: 'PARITY_PULSE',
     },
     {
-        number: 5,
+        number: 6,
         name: 'Jixirio TriCycle Over 0–1–2',
         description:
             '1HZ100V Digit Over one-tick rotation through barriers 0, 1 and 2, with 5.5× recovery, a three-loss cycle reset and $5 take-profit.',
         strategy: 'TRICYCLE_OVER_012',
     },
     {
-        number: 6,
+        number: 7,
         name: 'MAMBA X-MAN PRO V1',
         description:
             'Jixirio recreation with configurable trading and risk-management settings.',
@@ -142,7 +149,9 @@ const BestBots = () => {
             const strategyModule =
                 bot.strategy === 'MARTINGALE'
                     ? await import('../../xml/martingale_max-stake.xml')
-                    : bot.strategy === 'D_ALEMBERT'
+                    : bot.strategy === 'EVEN_MARTINGALE'
+                      ? await import('../../xml/jixirio_even_martingale.xml')
+                      : bot.strategy === 'D_ALEMBERT'
                       ? await import('../../xml/dalembert_max-stake.xml')
                       : bot.strategy === 'VIPER_55'
                         ? await import('../../xml/jixirio_viper_55_over.xml')
