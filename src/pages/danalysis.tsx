@@ -33,7 +33,7 @@ const SmartAnalyzer = observer(() => {
         const stream = api_base.api.onMessage().subscribe(({ data }: any) => {
             if (!alive || data?.msg_type !== 'active_symbols' || !Array.isArray(data.active_symbols)) return;
             const available = data.active_symbols
-                .filter((item: any) => item?.symbol && item?.display_name && item.exchange_is_open !== 0)
+                .filter((item: any) => item?.symbol && item?.display_name)
                 .map((item: any) => ({
                     symbol: String(item.symbol),
                     display_name: String(item.display_name),
@@ -54,7 +54,7 @@ const SmartAnalyzer = observer(() => {
                 if (response?.error) setMarketStatus(response.error.message || 'Unable to load markets.');
                 else if (Array.isArray(response?.active_symbols)) {
                     const available = response.active_symbols
-                        .filter((item: any) => item?.symbol && item?.display_name && item.exchange_is_open !== 0)
+                        .filter((item: any) => item?.symbol && item?.display_name)
                         .map((item: any) => ({ symbol: String(item.symbol), display_name: String(item.display_name), market_display_name: item.market_display_name, submarket_display_name: item.submarket_display_name, pip: Number(item.pip) }))
                         .sort((a: Market, b: Market) => a.display_name.localeCompare(b.display_name));
                     if (available.length) { setMarkets(available); setMarketStatus(available.length + ' active markets available'); }
