@@ -241,7 +241,7 @@ const SmartAnalyzer = observer(() => {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5px 0 15px' }}>
                 <span style={{ ...muted, fontSize: 11, marginBottom: 7 }}>LAST DIGIT</span>
-                <div key={lastDigit === null ? 'empty' : lastDigit} style={{ width: 82, height: 82, borderRadius: '50%', border: '3px solid ' + lastDigitColor, background: lastDigit === null ? '#1A222B' : lastDigitColor + '18', boxShadow: lastDigit === null ? 'none' : '0 0 20px ' + lastDigitColor + '66', display: 'flex', alignItems: 'center', justifyContent: 'center', color: lastDigitColor, fontSize: 42, lineHeight: 1, fontWeight: 900, animation: lastDigit === null ? 'none' : 'jixirioDigitPulse 650ms ease-out' }}>
+                <div key={lastTickTime || 'empty'} style={{ width: 82, height: 82, borderRadius: '50%', border: '3px solid ' + lastDigitColor, background: lastDigit === null ? '#1A222B' : lastDigitColor + '18', boxShadow: lastDigit === null ? 'none' : '0 0 20px ' + lastDigitColor + '66', display: 'flex', alignItems: 'center', justifyContent: 'center', color: lastDigitColor, fontSize: 42, lineHeight: 1, fontWeight: 900, animation: lastDigit === null ? 'none' : 'jixirioDigitPulse 650ms ease-out' }}>
                     {lastDigit === null ? '—' : lastDigit}
                 </div>
                 <span style={{ color: lastDigitColor, fontSize: 10, fontWeight: 800, marginTop: 6 }}>{lastDigit === null ? 'WAITING FOR TICK' : lastDigit % 2 === 0 ? 'EVEN DIGIT' : 'ODD DIGIT'}</span>
