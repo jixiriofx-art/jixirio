@@ -135,7 +135,7 @@
          <value name="VALUE"><block type="math_arithmetic" id="blk049">
           <field name="OP">MULTIPLY</field>
           <value name="A"><block type="variables_get" id="blk047"><field name="VAR" id="var_current_stake" variabletype="">Current_Stake</field></block></value>
-          <value name="B"><block type="variables_get" id="var_martingale" variabletype="">Martingale</field></block></value>
+          <value name="B"><block type="variables_get"><field name="VAR" id="var_martingale" variabletype="">Martingale</field></block></value>
          </block></value>
         </block>
        </statement>
