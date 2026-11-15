@@ -176,9 +176,24 @@ const SmartAnalyzer = observer(() => {
         : contract === 'Over/Under' ? ['OVER', 'UNDER']
         : contract === 'Matches/Differs' ? ['MATCHES', 'DIFFERS'] : ['RISE', 'FALL'];
     const firstLabel = sides[0], secondLabel = sides[1];
-    const signalSide = shortStats.denominator >= 20 && Math.max(shortStats.firstPct, shortStats.secondPct) >= 60
-        ? (shortStats.firstPct >= shortStats.secondPct ? firstLabel : secondLabel) : '';
+    const leadingSide = shortStats.firstPct >= shortStats.secondPct ? firstLabel : secondLabel;
+    const classifyTick = (tick: Tick, previous?: Tick): string => {
+        if (contract === 'Even/Odd') return tick.digit % 2 === 0 ? firstLabel : secondLabel;
+        if (contract === 'Over/Under') return tick.digit > barrier ? firstLabel : tick.digit < barrier ? secondLabel : '';
+        if (contract === 'Matches/Differs') return tick.digit === barrier ? firstLabel : secondLabel;
+        if (!previous || tick.quote === previous.quote) return '';
+        return tick.quote > previous.quote ? firstLabel : secondLabel;
+    };
+    const recentSides = last25.map((tick, index) => classifyTick(tick, last25[index - 1]));
+    const currentStreakSide = recentSides[recentSides.length - 1] || '';
+    let currentStreak = 0;
+    if (currentStreakSide) {
+        for (let index = recentSides.length - 1; index >= 0 && recentSides[index] === currentStreakSide; index--) currentStreak++;
+    }
+    const momentumPct = leadingSide === firstLabel ? shortStats.firstPct : shortStats.secondPct;
+    const signalSide = shortStats.denominator >= 20 && momentumPct >= 60 && currentStreak >= 3 && currentStreakSide === leadingSide ? leadingSide : '';
     const last = ticks[ticks.length - 1];
+    const lastDigitColor = lastDigit === null ? '#94A3B8' : lastDigit % 2 === 0 ? '#10B981' : '#EF4444';
     const chosenMarket = markets.find(item => item.symbol === symbol);
     const filteredMarkets = markets.filter(item => (item.display_name + ' ' + item.symbol + ' ' + (item.market_display_name || '') + ' ' + (item.submarket_display_name || '')).toLowerCase().includes(marketSearch.toLowerCase()));
 
@@ -194,6 +209,7 @@ const SmartAnalyzer = observer(() => {
     });
 
     return <div style={{ background: '#0B1117', color: '#E8EEF4', minHeight: '100%', padding: '12px 12px 24px', boxSizing: 'border-box', width: '100%', maxWidth: 850, margin: '0 auto' }}>
+        <style>{'@keyframes jixirioDigitPulse { 0% { transform: scale(.82); opacity: .55; } 65% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }'}</style>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div><div style={{ fontSize: 18, fontWeight: 800 }}>Smart Analyzer</div><div style={{ ...muted, fontSize: 11 }}>Live market statistics · Deriv</div></div>
             <span style={{ color: status.toLowerCase().includes('connected') ? '#34D399' : '#FBBF24', fontSize: 10, fontWeight: 800 }}>● {status.toLowerCase().includes('connected') ? 'LIVE' : 'CONNECTING'}</span>
@@ -223,6 +239,13 @@ const SmartAnalyzer = observer(() => {
                 <strong style={{ fontSize: 14 }}>Last Digit Heatmap</strong>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '3px 7px', maxWidth: 170 }}>{[['#10B981','1st High'],['#06B6D4','2nd High'],['#EF4444','1st Low'],['#F59E0B','2nd Low']].map(([color, label]) => <span key={label} style={{ ...muted, fontSize: 8, whiteSpace: 'nowrap' }}><b style={{ color }}>●</b> {label}</span>)}</div>
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5px 0 15px' }}>
+                <span style={{ ...muted, fontSize: 11, marginBottom: 7 }}>LAST DIGIT</span>
+                <div key={lastDigit === null ? 'empty' : lastDigit} style={{ width: 82, height: 82, borderRadius: '50%', border: '3px solid ' + lastDigitColor, background: lastDigit === null ? '#1A222B' : lastDigitColor + '18', boxShadow: lastDigit === null ? 'none' : '0 0 20px ' + lastDigitColor + '66', display: 'flex', alignItems: 'center', justifyContent: 'center', color: lastDigitColor, fontSize: 42, lineHeight: 1, fontWeight: 900, animation: lastDigit === null ? 'none' : 'jixirioDigitPulse 650ms ease-out' }}>
+                    {lastDigit === null ? '—' : lastDigit}
+                </div>
+                <span style={{ color: lastDigitColor, fontSize: 10, fontWeight: 800, marginTop: 6 }}>{lastDigit === null ? 'WAITING FOR TICK' : lastDigit % 2 === 0 ? 'EVEN DIGIT' : 'ODD DIGIT'}</span>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: '12px 5px' }}>
                 {counts.map((count, digit) => {
                     const rank = rankFor(digit);
@@ -249,11 +272,33 @@ const SmartAnalyzer = observer(() => {
             </div>)}
         </div>
 
-        <div style={{ ...panel, marginBottom: 10, borderColor: signalSide ? '#087B58' : '#202C38', background: signalSide ? 'linear-gradient(120deg,#102A25,#13232B)' : '#131B24' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}><strong style={{ fontSize: 13 }}>Market Insight</strong><span style={{ color: signalSide ? '#34D399' : '#9BAAB7', fontSize: 9, fontWeight: 800 }}>{signalSide ? signalSide + ' MOMENTUM' : 'WAIT / NEUTRAL'}</span></div>
-            <div style={{ color: signalSide ? '#34D399' : '#C4CED8', fontSize: 14, fontWeight: 800, marginTop: 7 }}>{signalSide ? signalSide + ' IS LEADING' : 'NO CLEAR MOMENTUM'}</div>
-            <div style={{ ...muted, fontSize: 11, marginTop: 4 }}>{shortStats.denominator < 20 ? 'Collecting enough ticks for a 25-tick comparison.' : 'Last 25 ticks: ' + firstLabel + ' ' + shortStats.firstPct.toFixed(1) + '% · ' + secondLabel + ' ' + shortStats.secondPct.toFixed(1) + '%.'}</div>
-            <div style={{ ...muted, fontSize: 9, marginTop: 6 }}>Historical frequency and movement only; this is not a prediction or guarantee of the next contract result.</div>
+        <div style={{ ...panel, marginBottom: 10, borderColor: signalSide ? '#087B58' : '#8A5A12', borderLeft: '4px solid ' + (signalSide ? '#10B981' : '#F59E0B'), background: signalSide ? 'linear-gradient(135deg,#102A25,#13232B)' : '#171F27', padding: 15 }}>
+            <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 12 }}>Trading Signal</div>
+            <div style={{ color: signalSide ? '#34D399' : '#FBBF24', fontSize: 16, fontWeight: 900, lineHeight: 1.35 }}>
+                {signalSide ? 'TRADE ' + signalSide + ' — Momentum conditions met' : 'NO CONFIRMED SIGNAL — WAIT'}
+            </div>
+            <div style={{ ...muted, fontSize: 11, marginTop: 9 }}>
+                {shortStats.denominator < 20 ? 'Collecting enough recent ticks before evaluating a signal.' : 'Last 25 ticks: ' + firstLabel + ' ' + shortStats.firstPct.toFixed(1) + '% · ' + secondLabel + ' ' + shortStats.secondPct.toFixed(1) + '%.'}
+            </div>
+            <div style={{ marginTop: 13, padding: 12, borderRadius: 10, background: signalSide ? '#15352B' : '#30291B', border: '1px solid ' + (signalSide ? '#176B4C' : '#665022') }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12, fontWeight: 800, color: signalSide ? '#6EE7B7' : '#FCD34D' }}>
+                    <span>{signalSide ? 'MOMENTUM CONFIRMED' : 'WAIT FOR CONFIRMATION'}</span>
+                    <span>{currentStreak} tick streak</span>
+                </div>
+                <div style={{ height: 7, borderRadius: 10, background: '#34413F', marginTop: 9, overflow: 'hidden' }}>
+                    <div style={{ width: Math.min(100, momentumPct) + '%', height: '100%', background: signalSide ? '#10B981' : '#F59E0B', borderRadius: 10 }} />
+                </div>
+                <div style={{ ...muted, fontSize: 10, marginTop: 6 }}>Momentum: {momentumPct.toFixed(1)}% · Rule: at least 60% of the last 25 ticks and a matching streak of 3 or more</div>
+            </div>
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: '#1A222B', borderLeft: '3px solid #06B6D4' }}>
+                <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 5 }}>ENTER</div>
+                <div style={{ color: '#CBD5E1', fontSize: 11, lineHeight: 1.5 }}>{signalSide ? 'The selected ' + contract + ' side is ' + signalSide + '. Review your strategy and risk limits before acting.' : 'Wait until the selected market meets both momentum conditions. No entry is recommended by this analyzer right now.'}</div>
+            </div>
+            {signalSide && <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: '#281E22', borderLeft: '3px solid #EF4444' }}>
+                <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 5, color: '#FCA5A5' }}>EXIT / INVALIDATION</div>
+                <div style={{ color: '#CBD5E1', fontSize: 11, lineHeight: 1.5 }}>Treat the signal as invalid if the matching streak breaks or the leading side falls below 60% in the rolling 25-tick sample. Reassess before any new entry.</div>
+            </div>}
+            <div style={{ ...muted, fontSize: 9, marginTop: 11, lineHeight: 1.45 }}>This is a transparent momentum filter based on recent ticks, not a prediction, win probability, or guarantee. Signals can fail; use your own risk rules.</div>
         </div>
 
         <div style={{ ...panel, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
