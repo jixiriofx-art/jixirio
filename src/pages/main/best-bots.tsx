@@ -8,7 +8,7 @@ type Bot = {
     number: number;
     name: string;
     description: string;
-    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55' | 'PARITY_PULSE';
+    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55' | 'PARITY_PULSE' | 'TRICYCLE_OVER_012';
     comingSoon?: boolean;
 };
 
@@ -43,6 +43,13 @@ const bots: Bot[] = [
     },
     {
         number: 5,
+        name: 'Jixirio TriCycle Over 0–1–2',
+        description:
+            '1HZ100V Digit Over one-tick rotation through barriers 0, 1 and 2, with 5.5× recovery, a three-loss cycle reset and $5 take-profit.',
+        strategy: 'TRICYCLE_OVER_012',
+    },
+    {
+        number: 6,
         name: 'MAMBA X-MAN PRO V1',
         description:
             'Jixirio recreation with configurable trading and risk-management settings.',
@@ -141,7 +148,9 @@ const BestBots = () => {
                         ? await import('../../xml/jixirio_viper_55_over.xml')
                         : bot.strategy === 'PARITY_PULSE'
                           ? await import('../../xml/jixirio_parity_pulse_switcher.xml')
-                          : null;
+                          : bot.strategy === 'TRICYCLE_OVER_012'
+                            ? await import('../../xml/jixirio_tricycle_over_012.xml')
+                            : null;
 
             if (!strategyModule?.default) {
                 throw new Error('This bot does not have a published strategy file yet.');
