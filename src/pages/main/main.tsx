@@ -618,7 +618,7 @@ const AppWrapper = observer(() => {
                                 <BestBots />
                             </div>
 
-                            {/* AI ANALYSIS */}
+                            {/* SMART ANALYZER */}
                             <div
                                 label={
                                     <>
@@ -627,7 +627,7 @@ const AppWrapper = observer(() => {
                                             width='24px'
                                             fill='var(--text-general)'
                                         />
-                                        <Localize i18n_default_text='AI Analysis' />
+                                        <Localize i18n_default_text='Smart Analyzer' />
                                     </>
                                 }
                                 id='id-ai-analysis'
