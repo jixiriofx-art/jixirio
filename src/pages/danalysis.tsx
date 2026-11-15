@@ -169,7 +169,7 @@ const Danalysis = observer(() => {
             boxSizing: 'border-box',
             overflowWrap: 'anywhere',
         }}>
-            <h2 style={{ marginTop: 0 }}>AI Market Analysis</h2>
+            <h2 style={{ marginTop: 0 }}>Smart Analyzer</h2>
             <p style={{ opacity: 0.7 }}>
                 Live digit statistics for your selected Deriv market.
             </p>
@@ -436,7 +436,7 @@ const Danalysis = observer(() => {
             </div>
 
             <div style={{ ...panel, marginBottom: '14px' }}>
-                <h3 style={heading}>AI analysis</h3>
+                <h3 style={heading}>Smart Analyzer insights</h3>
 
                 {total < sampleSize ? (
                     <p>Collecting market data. More ticks are needed for the selected sample.</p>
