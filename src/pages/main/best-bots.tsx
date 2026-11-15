@@ -8,7 +8,7 @@ type Bot = {
     number: number;
     name: string;
     description: string;
-    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN';
+    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55';
     comingSoon?: boolean;
 };
 
@@ -29,6 +29,13 @@ const bots: Bot[] = [
     },
     {
         number: 3,
+        name: 'Jixirio Viper 5.5 Pro',
+        description:
+            '1HZ100V Digit Over 1 strategy with 5.5× recovery, a three-loss recovery-cycle limit, $5 take-profit and $15 session stop-loss.',
+        strategy: 'VIPER_55',
+    },
+    {
+        number: 4,
         name: 'MAMBA X-MAN PRO V1',
         description:
             'Jixirio recreation with configurable trading and risk-management settings.',
@@ -113,32 +120,31 @@ const BestBots = () => {
         try {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
 
-            // React must commit the tab change before Blockly injects its SVG.
-            // DBot.initWorkspace calculates its initial zoom from #scratch_div width;
-            // initializing while the tab is hidden produces a zero-width workspace.
+            // Wait until the builder is visible before initializing Blockly.
             await waitForVisibleBuilder();
-
-            // Reuse the Bot Builder's guarded initializer and wait for its workspace.
             await app.onMount();
             const workspace = await waitForBlocklyWorkspace(blockly_store);
 
             const strategyModule =
                 bot.strategy === 'MARTINGALE'
                     ? await import('../../xml/martingale_max-stake.xml')
-                    : await import('../../xml/dalembert_max-stake.xml');
+                    : bot.strategy === 'D_ALEMBERT'
+                      ? await import('../../xml/dalembert_max-stake.xml')
+                      : bot.strategy === 'VIPER_55'
+                        ? await import('../../xml/jixirio_viper_55_over.xml')
+                        : null;
 
-            let strategyXml = strategyModule.default;
+            if (!strategyModule?.default) {
+                throw new Error('This bot does not have a published strategy file yet.');
+            }
 
-            if (
-                typeof strategyXml !== 'string' ||
-                !strategyXml.trim()
-            ) {
+            const strategyXml = strategyModule.default;
+
+            if (typeof strategyXml !== 'string' || !strategyXml.trim()) {
                 throw new Error(
                     'The selected bot strategy file is empty or could not be loaded.'
                 );
             }
-
-            // Both bundled XML templates already contain their matching variable IDs.
 
             const strategyId =
                 `jixirio-${bot.strategy.toLowerCase()}-${Date.now()}`;
@@ -169,7 +175,6 @@ const BestBots = () => {
             dashboard.setActiveTab(DBOT_TABS.BOT_BUILDER);
         } catch (err) {
             console.error('Failed to load Jixirio bot:', err);
-
             setError(
                 err instanceof Error
                     ? err.message
@@ -199,18 +204,15 @@ const BestBots = () => {
                             <th>Action</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         {bots.map(bot => (
                             <tr key={bot.number}>
                                 <td className='best-bots__name'>
                                     <span>{bot.number}.</span> {bot.name}
                                 </td>
-
                                 <td className='best-bots__description'>
                                     {bot.description}
                                 </td>
-
                                 <td className='best-bots__action'>
                                     <button
                                         type='button'
