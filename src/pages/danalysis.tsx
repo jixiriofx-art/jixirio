@@ -70,7 +70,7 @@ const SmartAnalyzer = observer(() => {
         let lastEpoch = 0;
         let subscriptionId: string | undefined;
         const selectedMarket = markets.find(item => item.symbol === symbol);
-        const precision = selectedMarket?.pip;
+        const rawPip = Number(selectedMarket?.pip);\n        const precision = rawPip > 0 && rawPip < 1 ? Math.max(0, Math.round(-Math.log10(rawPip))) : undefined;
         setTicks([]);
         setLastDigit(null);
         setStatus('Loading latest 1,000 ticks...');
