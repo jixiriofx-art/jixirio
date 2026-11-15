@@ -8,7 +8,7 @@ type Bot = {
     number: number;
     name: string;
     description: string;
-    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN';
+    strategy: 'MARTINGALE' | 'EVEN_MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN';
     comingSoon?: boolean;
 };
 
@@ -22,13 +22,20 @@ const bots: Bot[] = [
     },
     {
         number: 2,
+        name: 'Jixirio Even Martingale Pro',
+        description:
+            'Automated Even-only strategy on Volatility 25 (1s), with editable stake, Martingale, take-profit and consecutive-loss settings.',
+        strategy: 'EVEN_MARTINGALE',
+    },
+    {
+        number: 3,
         name: 'Jixirio D’Alembert Strategy Bot',
         description:
             'D’Alembert strategy with configurable market, contract, stake and risk controls.',
         strategy: 'D_ALEMBERT',
     },
     {
-        number: 3,
+        number: 4,
         name: 'MAMBA X-MAN PRO V1',
         description:
             'Jixirio recreation with configurable trading and risk-management settings.',
@@ -125,7 +132,15 @@ const BestBots = () => {
             const strategyModule =
                 bot.strategy === 'MARTINGALE'
                     ? await import('../../xml/martingale_max-stake.xml')
-                    : await import('../../xml/dalembert_max-stake.xml');
+                    : bot.strategy === 'EVEN_MARTINGALE'
+                      ? await import('../../xml/jixirio_even_martingale.xml')
+                      : bot.strategy === 'D_ALEMBERT'
+                        ? await import('../../xml/dalembert_max-stake.xml')
+                        : null;
+
+            if (!strategyModule) {
+                throw new Error('This bot strategy is not available yet.');
+            }
 
             let strategyXml = strategyModule.default;
 
