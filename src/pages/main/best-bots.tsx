@@ -8,7 +8,7 @@ type Bot = {
     number: number;
     name: string;
     description: string;
-    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55';
+    strategy: 'MARTINGALE' | 'D_ALEMBERT' | 'MAMBA_XMAN' | 'VIPER_55' | 'PARITY_PULSE';
     comingSoon?: boolean;
 };
 
@@ -36,6 +36,13 @@ const bots: Bot[] = [
     },
     {
         number: 4,
+        name: 'Jixirio Parity Pulse Switcher',
+        description:
+            '1HZ100V one-tick Even/Odd alternator with 2.1× recovery, a five-loss recovery-cycle reset and $5 take-profit.',
+        strategy: 'PARITY_PULSE',
+    },
+    {
+        number: 5,
         name: 'MAMBA X-MAN PRO V1',
         description:
             'Jixirio recreation with configurable trading and risk-management settings.',
@@ -132,7 +139,9 @@ const BestBots = () => {
                       ? await import('../../xml/dalembert_max-stake.xml')
                       : bot.strategy === 'VIPER_55'
                         ? await import('../../xml/jixirio_viper_55_over.xml')
-                        : null;
+                        : bot.strategy === 'PARITY_PULSE'
+                          ? await import('../../xml/jixirio_parity_pulse_switcher.xml')
+                          : null;
 
             if (!strategyModule?.default) {
                 throw new Error('This bot does not have a published strategy file yet.');
