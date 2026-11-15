@@ -208,8 +208,8 @@ const SmartAnalyzer = observer(() => {
         fontWeight: 700,
     });
 
-    return <div style={{ background: '#0B1117', color: '#E8EEF4', minHeight: '100%', padding: '12px 12px 24px', boxSizing: 'border-box', width: '100%', maxWidth: 850, margin: '0 auto' }}>
-        <style>{'@keyframes jixirioDigitPulse { 0% { transform: scale(.82); opacity: .55; } 65% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }'}</style>
+    return <div id='jixirio-smart-analyzer' style={{ background: '#0B1117', color: '#E8EEF4', minHeight: '100%', padding: '12px 12px 24px', boxSizing: 'border-box', width: '100%', maxWidth: 850, margin: '0 auto' }}>
+        <style>{'@keyframes jixirioDigitPulse { 0% { transform: scale(.82); opacity: .55; } 65% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } } @media (max-width: 768px) { body:has(#jixirio-smart-analyzer) { overflow-y: auto !important; touch-action: pan-y; } body:has(#jixirio-smart-analyzer) .bot-dashboard { height: auto !important; min-height: calc(100vh - 4.4rem) !important; overflow: visible !important; } #jixirio-smart-analyzer { touch-action: pan-y; -webkit-overflow-scrolling: touch; } }'}</style>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div><div style={{ fontSize: 18, fontWeight: 800 }}>Smart Analyzer</div><div style={{ ...muted, fontSize: 11 }}>Live market statistics · Deriv</div></div>
             <span style={{ color: status.toLowerCase().includes('connected') ? '#34D399' : '#FBBF24', fontSize: 10, fontWeight: 800 }}>● {status.toLowerCase().includes('connected') ? 'LIVE' : 'CONNECTING'}</span>
