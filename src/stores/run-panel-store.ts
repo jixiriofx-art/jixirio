@@ -145,15 +145,6 @@ export default class RunPanelStore {
     setShowBotStopMessage = (show_bot_stop_message: boolean) => {
         this.show_bot_stop_message = show_bot_stop_message;
         if (!show_bot_stop_message) return;
-        const handleNotificationClick = () => {
-            const contract_type = getSelectedTradeType();
-            const baseUrl = `${standalone_routes.positions}?contract_type_bots=${contract_type}`;
-
-            // Use generateUrlWithRedirect to add redirect parameter and account_type from localStorage
-            const urlWithRedirect = generateUrlWithRedirect(baseUrl);
-            window.location.assign(urlWithRedirect);
-        };
-
         // Use a plain toast here: rendering the custom notification action while
         // the bot is stopping can trigger React error #130 in the production bundle.
         // Keep the Reports navigation available through the existing Reports page.
