@@ -1,6 +1,6 @@
 // @ts-nocheck — vendored bot code with known upstream type gaps; see AGENTS.md
 import { action, computed, makeObservable, observable, reaction, runInAction } from 'mobx';
-import { botNotification } from '@/components/bot-notification/bot-notification';
+import { toast } from 'react-toastify';
 import { notification_message } from '@/components/bot-notification/bot-notification-utils';
 import { generateOAuthURL, isSafari, mobileOSDetect, standalone_routes } from '@/components/shared';
 import { contract_stages, TContractStage } from '@/constants/contract-stage';
@@ -145,19 +145,10 @@ export default class RunPanelStore {
     setShowBotStopMessage = (show_bot_stop_message: boolean) => {
         this.show_bot_stop_message = show_bot_stop_message;
         if (!show_bot_stop_message) return;
-        const handleNotificationClick = () => {
-            const contract_type = getSelectedTradeType();
-            const baseUrl = `${standalone_routes.positions}?contract_type_bots=${contract_type}`;
-
-            // Use generateUrlWithRedirect to add redirect parameter and account_type from localStorage
-            const urlWithRedirect = generateUrlWithRedirect(baseUrl);
-            window.location.assign(urlWithRedirect);
-        };
-
-        botNotification(notification_message().bot_stop, {
-            label: localize('Reports'),
-            onClick: handleNotificationClick,
-        });
+        // Use a plain toast here: rendering the custom notification action while
+        // the bot is stopping can trigger React error #130 in the production bundle.
+        // Keep the Reports navigation available through the existing Reports page.
+        toast.success(notification_message().bot_stop);
     };
 
     onRunButtonClick = async () => {
